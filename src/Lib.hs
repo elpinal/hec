@@ -99,14 +99,14 @@ data Token =
   | WhiteSpace
     deriving (Show, Eq)
 
-scanElacht :: String -> Either ParseError [Token]
-scanElacht src =
-  case scanElacht' src of
+scan :: String -> Either ParseError [Token]
+scan src =
+  case scan' src of
     Right ts -> Right $ filter (/= WhiteSpace) ts
     x -> x
 
-scanElacht' :: String -> Either ParseError [Token]
-scanElacht' = parse lexeme "<unknown>"
+scan' :: String -> Either ParseError [Token]
+scan' = parse lexeme "<unknown>"
 
 lexeme :: GenParser Char st [Token]
 lexeme = do
