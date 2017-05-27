@@ -1,5 +1,5 @@
 module Lib
-    ( someFunc
+    ( compile
     ) where
 
 import Data.Char
