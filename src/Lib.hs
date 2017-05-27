@@ -99,31 +99,31 @@ data Token =
   | WhiteSpace
     deriving (Show, Eq)
 
-parseElacht :: String -> Either ParseError [Token]
-parseElacht src =
-  case parseElacht' src of
+scanElacht :: String -> Either ParseError [Token]
+scanElacht src =
+  case scanElacht' src of
     Right ts -> Right $ filter (/= WhiteSpace) ts
     x -> x
 
-parseElacht' :: String -> Either ParseError [Token]
-parseElacht' = parse lexeme "<unknown>"
+scanElacht' :: String -> Either ParseError [Token]
+scanElacht' = parse lexeme "<unknown>"
 
 lexeme :: GenParser Char st [Token]
 lexeme = do
-  expr <- many parseExpr
+  expr <- many scanExpr
   eof
   return expr
 
-parseExpr :: GenParser Char st Token
-parseExpr =
+scanExpr :: GenParser Char st Token
+scanExpr =
   (many1 digit >>= return . Number . read)
   <|> (many1 (letter <|> digit) >>= return . Ident)
-  <|> (parseString >>= return . Str)
+  <|> (scanString >>= return . Str)
   <|> (oneOf "+-" >>= return . BinOp . (:[]))
   <|> (many1 space >> return WhiteSpace)
 
-parseString :: GenParser Char st String
-parseString = do
+scanString :: GenParser Char st String
+scanString = do
   char '"'
   s <- many (noneOf "\"")
   char '"'
