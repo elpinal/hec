@@ -5,6 +5,8 @@ module Lib
 import Data.Char
 import Control.Monad
 
+import Text.ParserCombinators.Parsec
+
 someFunc :: IO ()
 someFunc = do
   val <- getLine
@@ -83,3 +85,40 @@ readString acc = do
       readString' acc c
         | c == '"' = return acc
         | otherwise = readString $ acc ++ [c]
+
+
+
+
+---------- Parsec -----------
+
+data Token =
+    Number Int
+  | Ident String
+  | Str String
+  | BinOp String
+  | WhiteSpace
+    deriving (Show, Eq)
+
+parseElacht :: String -> Either ParseError [Token]
+parseElacht = parse lexeme "<unknown>"
+
+lexeme :: GenParser Char st [Token]
+lexeme = do
+  expr <- many parseExpr
+  eof
+  return expr
+
+parseExpr :: GenParser Char st Token
+parseExpr =
+  (many1 digit >>= return . Number . read)
+  <|> (many1 (letter <|> digit) >>= return . Ident)
+  <|> (parseString >>= return . Str)
+  <|> (oneOf "+-" >>= return . BinOp . (:[]))
+  <|> (many1 space >> return WhiteSpace)
+
+parseString :: GenParser Char st String
+parseString = do
+  char '"'
+  s <- many (noneOf "\"")
+  char '"'
+  return s
