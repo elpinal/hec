@@ -41,8 +41,13 @@ test intfn 0 0
 test intfn 42 42
 test stringfn abc '"abc"'
 
+test intfn 3 '1+2'
+test intfn 3 '1 + 2'
+test intfn 10 '1+2+3+4'
+
 testfail stringfn '"abc'
 testfail intfn '0abc'
+testfail intfn '1+'
 
 rm -f tmp.out tmp.s
 echo "All tests passed"
