@@ -24,6 +24,15 @@ function test {
   fi
 }
 
+function testfail {
+  expr="$1"
+  echo "$expr" | stack exec hec >/dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    echo "Should fail to compile, but succeded: $expr"
+    exit
+  fi
+}
+
 stack build
 
 test 0 0
