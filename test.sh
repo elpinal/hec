@@ -4,7 +4,7 @@ function test {
   expected="$1"
   expr="$2"
 
-  echo "$expr" | stack exec hec-exe > tmp.s
+  echo "$expr" | stack exec hec > tmp.s
   if [ ! $? ]; then
     echo "Failed to compile $expr"
     exit
