@@ -100,7 +100,13 @@ data Token =
     deriving (Show, Eq)
 
 parseElacht :: String -> Either ParseError [Token]
-parseElacht = parse lexeme "<unknown>"
+parseElacht src =
+  case parseElacht' src of
+    Right ts -> Right $ filter (/= WhiteSpace) ts
+    x -> x
+
+parseElacht' :: String -> Either ParseError [Token]
+parseElacht' = parse lexeme "<unknown>"
 
 lexeme :: GenParser Char st [Token]
 lexeme = do
