@@ -104,11 +104,6 @@ generate' e = error $ "unexpected token: " ++ show e
 generateStringfn :: String -> String
 generateStringfn s = foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.data", ".mydata:", "\t.string \"" ++ s ++ "\"", "\t.text", "\t.global _stringfn", "_stringfn:", "\tlea .mydata(%rip), %rax\n"]
 
-{-
-  generateIntfn :: Int -> String
-  generateIntfn n = generateIntfn' n ++ "\tret"
--}
-
 generateIntfn :: Int -> String
 generateIntfn n = foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.text", "\t.global _intfn", "_intfn:", "\tmov $" ++ show n ++ ", %rax\n"]
 
