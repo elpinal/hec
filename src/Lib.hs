@@ -40,4 +40,16 @@ readNumber initial = do
         | otherwise = error $ "unexpected character in number: '" ++ [x] ++ "' (" ++ (show $ ord x) ++ ")"
 
 compileString :: IO ()
-compileString = do return ()
+compileString = do
+  s <- readString ""
+  putStrLn $ foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.data", ".mydata:", "\t.string \"" ++ s ++ "\"", "\t.text", "\t.global _stringfn", "_stringfn:", "\tlea .mydata(%rip), %rax", "\tret"]
+
+readString :: String -> IO String
+readString acc = do
+  c <- getChar
+  readString' acc c
+    where
+      readString' :: String -> Char -> IO String
+      readString' acc c
+        | c == '"' = return acc
+        | otherwise = readString $ acc ++ [c]
