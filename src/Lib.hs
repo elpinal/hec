@@ -18,14 +18,44 @@ compile = do
 
 compile' :: Char -> IO ()
 compile' c
-  | isDigit c = compileNumber (read [c])
+  | isDigit c = compileExpr (read [c])
   | c == '"' = compileString
   | otherwise = error $ "unexpected character: '" ++ [c] ++ "' (" ++ (show $ ord c) ++ ")"
 
-compileNumber :: Int -> IO ()
-compileNumber n = do
+compileExpr :: Int -> IO ()
+compileExpr n = do
   n' <- readNumber n
-  putStrLn $ foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.text", "\t.global _intfn", "_intfn:", "\tmov $" ++ show n' ++ ", %rax", "\tret"]
+  putStrLn $ foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.text", "\t.global _intfn", "_intfn:", "\tmov $" ++ show n' ++ ", %rax"]
+  compileExpr'
+
+compileExpr' :: IO ()
+compileExpr' = do
+  c <- skipSpace
+  if isControl c then
+    putStrLn "\tret"
+  else do
+    compileOp c
+
+compileOp :: Char -> IO ()
+compileOp '+' = op "add"
+compileOp '-' = op "sub"
+compileOp c = error $ "expected operator, but got '" ++ [c] ++ "'"
+
+op :: String -> IO ()
+op s = do
+  c <- skipSpace
+  guard . isDigit $ c
+  n <- readNumber $ read [c]
+  putStrLn $ '\t' : s ++ " $" ++ show n ++ ", %rax"
+
+
+skipSpace :: IO Char
+skipSpace = do
+  c <- getChar
+  if isSpace c then
+    skipSpace
+  else
+    return c
 
 readNumber :: Int -> IO Int
 readNumber initial = do
