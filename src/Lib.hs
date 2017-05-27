@@ -150,3 +150,29 @@ parse' = head . foldl f []
       _ -> Basic t : x : stack
     f [] (BinOp o) = error $ "unexpected binary operator: " ++ o
     f [] x = [Basic x]
+
+
+
+
+---------- Code Generator ----------
+
+generate :: Expr -> String
+generate (Basic (Str s)) = generateStringfn s
+generate (Basic (Number n)) = generateIntfn n
+generate (Bin (Basic (Number lhs)) (BinOp o) (Basic (Number rhs))) = generateIntfn' lhs ++ generateOp o rhs
+
+generateStringfn :: String -> String
+generateStringfn s = foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.data", ".mydata:", "\t.string \"" ++ s ++ "\"", "\t.text", "\t.global _stringfn", "_stringfn:", "\tlea .mydata(%rip), %rax", "\tret"]
+
+generateIntfn :: Int -> String
+generateIntfn n = generateIntfn' n ++ "\tret"
+
+generateIntfn' :: Int -> String
+generateIntfn' n = foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.text", "\t.global _intfn", "_intfn:", "\tmov $" ++ show n ++ ", %rax\n"]
+
+generateOp :: String -> Int -> String
+generateOp "+" = generateOp' "add"
+generateOp "-" = generateOp' "sub"
+
+generateOp' :: String -> Int -> String
+generateOp' o rhs = o ++ "$" ++ show rhs ++ "%rax\n"
