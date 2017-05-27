@@ -37,6 +37,10 @@ stack build
 
 test 0 0
 test 42 42
+test abc '"abc"'
+
+testfail '"abc'
+testfail '0abc'
 
 rm -f tmp.out tmp.s
 echo "All tests passed"
