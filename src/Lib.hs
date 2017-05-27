@@ -92,22 +92,29 @@ parse' = head . foldl f []
 ---------- Code Generator ----------
 
 generate :: Expr -> String
-generate (Basic (Str s)) = generateStringfn s
-generate (Basic (Number n)) = generateIntfn n
-generate (Bin (Basic (Number lhs)) (BinOp o) (Basic (Number rhs))) = generateIntfn' lhs ++ generateOp o rhs
+generate e = generate' e ++ "\tret"
+
+generate' :: Expr -> String
+generate' (Basic (Str s)) = generateStringfn s
+generate' (Basic (Number n)) = generateIntfn n
+generate' (Bin (Basic (Number lhs)) (BinOp o) (Basic (Number rhs))) = generateIntfn lhs ++ generateOp o rhs
+generate' (Bin e (BinOp o) (Basic (Number rhs))) = generate' e ++ generateOp o rhs
+generate' e = error $ "unexpected token: " ++ show e
 
 generateStringfn :: String -> String
-generateStringfn s = foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.data", ".mydata:", "\t.string \"" ++ s ++ "\"", "\t.text", "\t.global _stringfn", "_stringfn:", "\tlea .mydata(%rip), %rax", "\tret"]
+generateStringfn s = foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.data", ".mydata:", "\t.string \"" ++ s ++ "\"", "\t.text", "\t.global _stringfn", "_stringfn:", "\tlea .mydata(%rip), %rax\n"]
+
+{-
+  generateIntfn :: Int -> String
+  generateIntfn n = generateIntfn' n ++ "\tret"
+-}
 
 generateIntfn :: Int -> String
-generateIntfn n = generateIntfn' n ++ "\tret"
-
-generateIntfn' :: Int -> String
-generateIntfn' n = foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.text", "\t.global _intfn", "_intfn:", "\tmov $" ++ show n ++ ", %rax\n"]
+generateIntfn n = foldl1 (\acc next -> acc ++ "\n" ++ next) ["\t.text", "\t.global _intfn", "_intfn:", "\tmov $" ++ show n ++ ", %rax\n"]
 
 generateOp :: String -> Int -> String
 generateOp "+" = generateOp' "add"
 generateOp "-" = generateOp' "sub"
 
 generateOp' :: String -> Int -> String
-generateOp' o rhs = o ++ "$" ++ show rhs ++ "%rax\n"
+generateOp' o rhs = "\t" ++ o ++ " $" ++ show rhs ++ ", %rax\n"
