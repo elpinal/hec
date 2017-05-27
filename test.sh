@@ -1,15 +1,22 @@
 #!/bin/bash
 
+function compile {
+  echo "$1" | stack exec hec > tmp.s
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to compile $1"
+    exit
+  fi
+  gcc -o tmp.out driver/driver.c tmp.s
+  if [[ $? -ne 0 ]]; then
+    echo "GCC failed"
+    exit
+  fi
+}
+
 function test {
   expected="$1"
   expr="$2"
-
-  echo "$expr" | stack exec hec > tmp.s
-  if [ ! $? ]; then
-    echo "Failed to compile $expr"
-    exit
-  fi
-  gcc -o tmp.out driver/driver.c tmp.s || exit
+  compile "$expr"
   result="$(./tmp.out)"
   if [[ "$result" != "$expected" ]]; then
     echo "Test failed: $expected expected but got $result"
