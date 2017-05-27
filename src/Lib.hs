@@ -89,7 +89,7 @@ readString acc = do
 
 
 
----------- Parsec -----------
+---------- Tokenizer ----------
 
 data Token =
     Number Int
