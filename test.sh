@@ -6,7 +6,7 @@ function compile {
     echo "Failed to compile $1"
     exit
   fi
-  gcc -o tmp.out driver/driver.c tmp.s
+  gcc -o tmp.out "driver/$2.c" tmp.s
   if [[ $? -ne 0 ]]; then
     echo "GCC failed"
     exit
@@ -14,9 +14,10 @@ function compile {
 }
 
 function test {
-  expected="$1"
-  expr="$2"
-  compile "$expr"
+  driver="$1"
+  expected="$2"
+  expr="$3"
+  compile "$expr" "$driver"
   result="$(./tmp.out)"
   if [[ "$result" != "$expected" ]]; then
     echo "Test failed: $expected expected but got $result"
@@ -25,7 +26,8 @@ function test {
 }
 
 function testfail {
-  expr="$1"
+  driver="$1"
+  expr="$2"
   echo "$expr" | stack exec hec >/dev/null 2>&1
   if [[ $? -eq 0 ]]; then
     echo "Should fail to compile, but succeded: $expr"
@@ -35,12 +37,12 @@ function testfail {
 
 stack build
 
-test 0 0
-test 42 42
-test abc '"abc"'
+test intfn 0 0
+test intfn 42 42
+test stringfn abc '"abc"'
 
-testfail '"abc'
-testfail '0abc'
+testfail stringfn '"abc'
+testfail intfn '0abc'
 
 rm -f tmp.out tmp.s
 echo "All tests passed"
