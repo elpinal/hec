@@ -128,3 +128,25 @@ scanString = do
   s <- many (noneOf "\"")
   char '"'
   return s
+
+
+
+
+---------- Parser ----------
+
+data Expr =
+    Basic Token
+  | Bin Expr Token Expr
+  | BadExpr
+    deriving (Show, Eq)
+
+parse' :: [Token] -> Expr
+parse' = head . foldl f []
+  where
+    f :: [Expr] -> Token -> [Expr]
+    f (x:stack) t@(BinOp o) = Bin x t BadExpr : stack
+    f (x:stack) t = case x of
+      Bin l o BadExpr -> Bin l o (Basic t) : stack
+      _ -> Basic t : x : stack
+    f [] (BinOp o) = error $ "unexpected binary operator: " ++ o
+    f [] x = [Basic x]
