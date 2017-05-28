@@ -7,9 +7,17 @@ module Parser
 type Table = Int -> Symbol -> Action
 
 data Symbol =
-    Term String
+    Term Token
   | NonTerm String
   | EndPoint
+  deriving (Show)
+
+data Token =
+    Num Int
+  | Str String
+  | Ident String
+  | Plus
+  | Minus
   deriving (Show)
 
 data Action =
@@ -32,8 +40,8 @@ analyze tab (x:xs) (s:ss) = case tab x s of
 
 tableExample :: Table
 tableExample 0 (NonTerm "expr") = Accept
-tableExample 0 (Term "+") = Shift 1
-tableExample 1 (Term "1") = Shift 2
-tableExample 2 (Term "2") = Shift 3
+tableExample 0 (Term Plus) = Shift 1
+tableExample 1 (Term (Num 1)) = Shift 2
+tableExample 2 (Term (Num 2)) = Shift 3
 tableExample 3 EndPoint = Reduce 3 $ NonTerm "expr"
 tableExample n t = error $ "state " ++ show n ++ ": unexpected " ++ show t
