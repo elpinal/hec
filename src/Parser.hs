@@ -45,9 +45,28 @@ analyze tab (x:xs) (s:ss) = case tab x s of
 analyze t xs ss = error $ "unexpected error: " ++ show xs ++ ", " ++ show ss
 
 tableExample :: Table
-tableExample 0 (NonTerm "expr") = Accept
-tableExample 0 (Term Add) = Shift 1
-tableExample 1 (Term (Num 1)) = Shift 2
-tableExample 2 (Term (Num 2)) = Shift 3
-tableExample 3 EndPoint = Reduce 3 $ NonTerm "expr"
+tableExample 0 (Term (Num _)) = Shift 1
+tableExample 0 (NonTerm "expr") = Shift 2
+tableExample 0 (Term LParen) = Shift 5
+tableExample 1 EndPoint = Reduce 1 $ NonTerm "expr"
+tableExample 1 (Term RParen) = Reduce 1 $ NonTerm "expr"
+tableExample 1 (Term t)
+  | t `elem` [Add, Sub, Mul, Quo] = Reduce 1 $ NonTerm "expr"
+tableExample 2 EndPoint = Accept
+tableExample 2 (Term t)
+  | t `elem` [Add, Sub, Mul, Quo] = Shift 3
+tableExample 3 (Term (Num _)) = Shift 4
+tableExample 4 EndPoint = Reduce 3 $ NonTerm "expr"
+tableExample 4 (Term RParen) = Reduce 3 $ NonTerm "expr"
+tableExample 4 (Term t)
+  | t `elem` [Add, Sub, Mul, Quo] = Reduce 3 $ NonTerm "expr"
+tableExample 5 (NonTerm "expr") = Shift 6
+tableExample 5 (Term (Num _)) = Shift 1
+tableExample 6 (Term t)
+  | t `elem` [Add, Sub, Mul, Quo] = Shift 3
+tableExample 6 (Term RParen) = Shift 7
+tableExample 7 EndPoint = Reduce 3 $ NonTerm "expr"
+tableExample 7 (Term RParen) = Reduce 3 $ NonTerm "expr"
+tableExample 7 (Term t)
+  | t `elem` [Add, Sub, Mul, Quo] = Reduce 3 $ NonTerm "expr"
 tableExample n t = error $ "state " ++ show n ++ ": unexpected " ++ show t
