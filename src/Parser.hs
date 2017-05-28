@@ -16,8 +16,12 @@ data Token =
     Num Int
   | Str String
   | Ident String
-  | Plus
-  | Minus
+  | Add
+  | Sub
+  | Mul
+  | Quo
+  | LParen
+  | RParen
   deriving (Show)
 
 data Action =
@@ -40,7 +44,7 @@ analyze tab (x:xs) (s:ss) = case tab x s of
 
 tableExample :: Table
 tableExample 0 (NonTerm "expr") = Accept
-tableExample 0 (Term Plus) = Shift 1
+tableExample 0 (Term Add) = Shift 1
 tableExample 1 (Term (Num 1)) = Shift 2
 tableExample 2 (Term (Num 2)) = Shift 3
 tableExample 3 EndPoint = Reduce 3 $ NonTerm "expr"
