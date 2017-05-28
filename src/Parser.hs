@@ -4,9 +4,9 @@ module Parser
 
 ---------- LR Syntax Analysis ----------
 
-type Table = Int -> Token -> Action
+type Table = Int -> Symbol -> Action
 
-data Token =
+data Symbol =
     Term String
   | NonTerm String
   | EndPoint
@@ -14,15 +14,15 @@ data Token =
 
 data Action =
     Shift Int
-  | Reduce Int Token
+  | Reduce Int Symbol
   | Error String
   | Accept
   | Goto Int
 
-accept :: [Token] -> Table -> Bool
+accept :: [Symbol] -> Table -> Bool
 accept tok tab = analyze tab [0] $ tok ++ [EndPoint]
 
-analyze :: Table -> [Int] -> [Token] -> Bool
+analyze :: Table -> [Int] -> [Symbol] -> Bool
 analyze tab (x:xs) (s:ss) = case tab x s of
   Shift n -> analyze tab (n:x:xs) ss
   Reduce n t -> analyze tab (drop n (x:xs)) (t:s:ss)
