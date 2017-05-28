@@ -22,7 +22,7 @@ data Token =
   | Quo
   | LParen
   | RParen
-  deriving (Show)
+  deriving (Show, Eq)
 
 data Action =
     Shift Int
@@ -30,6 +30,7 @@ data Action =
   | Error String
   | Accept
   | Goto Int
+  deriving (Show)
 
 accept :: [Symbol] -> Table -> Bool
 accept tok tab = analyze tab [0] $ tok ++ [EndPoint]
@@ -40,7 +41,8 @@ analyze tab (x:xs) (s:ss) = case tab x s of
   Reduce n t -> analyze tab (drop n (x:xs)) (t:s:ss)
   Error msg -> False
   Accept -> True
-  Goto n -> analyze tab (n:x:xs) (s:ss)
+  Goto n -> analyze tab (n:x:xs) ss
+analyze t xs ss = error $ "unexpected error: " ++ show xs ++ ", " ++ show ss
 
 tableExample :: Table
 tableExample 0 (NonTerm "expr") = Accept
