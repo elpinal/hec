@@ -25,10 +25,10 @@ nulls :: [Grammar] -> [Symbol]
 nulls [] = []
 nulls gs =
   let
-    (tg', fg) = partition justNull gs
-    tg = map getHead tg'
+    (nu, pend) = partition justNull gs
+    ns = map getHead nu
   in
-    converge (nulls' fg) tg
+    converge (nulls' pend) ns
 
 justNull :: Grammar -> Bool
 justNull (Grammar _ (SymbolSet [])) = True
