@@ -4,21 +4,17 @@ module Grammar
 
 data Grammar = Grammar Symbol SymbolSet
 
-data Term =
-    Num
-  | Ident
-    deriving (Eq, Show)
-
 data Symbol =
     Term Term
   | NonTerm String
     deriving (Eq, Show)
 
-data SymbolSet = SymbolSet [Symbol]
+data Term =
+    Num
+  | Ident
+    deriving (Eq, Show)
 
-justNull :: Grammar -> Bool
-justNull (Grammar _ (SymbolSet [])) = True
-justNull _ = False
+data SymbolSet = SymbolSet [Symbol]
 
 nulls :: [Grammar] -> [Symbol]
 nulls [] = []
@@ -29,6 +25,10 @@ nulls gs =
     fg = map snd $ filter (not . fst) bits
   in
     converge (nulls' fg) tg
+
+justNull :: Grammar -> Bool
+justNull (Grammar _ (SymbolSet [])) = True
+justNull _ = False
 
 nulls' :: [Grammar] -> [Symbol] -> [Symbol]
 nulls' [] ns = ns
