@@ -4,7 +4,7 @@ module Grammar
 
 import Data.List
 
-data Grammar = Grammar Symbol SymbolSet
+data Grammar = Grammar Symbol SymbolSet deriving (Show)
 
 getHead :: Grammar -> Symbol
 getHead (Grammar head _) = head
@@ -19,7 +19,7 @@ data Term =
   | Ident
     deriving (Eq, Show)
 
-data SymbolSet = SymbolSet [Symbol]
+data SymbolSet = SymbolSet [Symbol] deriving (Show)
 
 nulls :: [Grammar] -> [Symbol]
 nulls [] = []
