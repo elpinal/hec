@@ -2,7 +2,12 @@ module Grammar
     (
     ) where
 
+import Data.List
+
 data Grammar = Grammar Symbol SymbolSet
+
+getHead :: Grammar -> Symbol
+getHead (Grammar head _) = head
 
 data Symbol =
     Term Term
@@ -20,9 +25,8 @@ nulls :: [Grammar] -> [Symbol]
 nulls [] = []
 nulls gs =
   let
-    bits = zip (map justNull gs) gs
-    tg = map ((\(Grammar head _) -> head) . snd) $ filter fst bits
-    fg = map snd $ filter (not . fst) bits
+    (tg', fg) = partition justNull gs
+    tg = map getHead tg'
   in
     converge (nulls' fg) tg
 
