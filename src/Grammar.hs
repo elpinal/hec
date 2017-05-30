@@ -9,6 +9,9 @@ data Grammar = Grammar Symbol SymbolSet deriving (Show)
 getHead :: Grammar -> Symbol
 getHead (Grammar head _) = head
 
+genGrammar :: String -> [Symbol] -> Grammar
+genGrammar name body = Grammar (NonTerm name) (SymbolSet body)
+
 data Symbol =
     Term Term
   | NonTerm String
