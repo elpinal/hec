@@ -45,8 +45,8 @@ willBeNull xs (Term _) = False
 willBeNull xs sym = sym `elem` xs
 
 converge :: Eq a => (a -> a) -> a -> a
-converge f y = let r = f y in
-  if r == y then
+converge f x = let r = f x in
+  if r == x then
     r
   else
     converge f r
