@@ -37,12 +37,12 @@ justNull _ = False
 nulls' :: [Grammar] -> [Symbol] -> [Symbol]
 nulls' [] ns = ns
 nulls' ((Grammar x (SymbolSet ss)):xs) ns
-  | x `notElem` ns && all (\x -> willBeNull x ns) ss = nulls' xs (x:ns)
+  | x `notElem` ns && all (willBeNull ns) ss = nulls' xs (x:ns)
   | otherwise = nulls' xs ns
 
-willBeNull :: Symbol -> [Symbol] -> Bool
-willBeNull (Term _) xs = False
-willBeNull sym xs = sym `elem` xs
+willBeNull :: [Symbol] -> Symbol -> Bool
+willBeNull xs (Term _) = False
+willBeNull xs sym = sym `elem` xs
 
 converge :: Eq a => (a -> a) -> a -> a
 converge f y = let r = f y in
