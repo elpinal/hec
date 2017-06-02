@@ -3,15 +3,20 @@ module Scan
     , Term
     ) where
 
+import Text.ParserCombinators.Parsec
+
 ---------- Tokenizer ----------
 
 newtype Token = Token (Term, String)
+  deriving Show
 
 data Term =
     Num
   | Ident
   | Str
-  | BinOp
+  | Add
+  | Sub
+  | WhiteSpace
     deriving (Eq, Show)
 
 ------
@@ -19,8 +24,10 @@ data Term =
 scan :: String -> Either ParseError [Token]
 scan src =
   case scan' src of
-    Right ts -> Right $ filter (/= WhiteSpace) ts
+    Right ts -> Right $ filter isNotWhiteSpace ts
     x -> x
+  where isNotWhiteSpace (Token (WhiteSpace, _)) = False
+        isNotWhiteSpace _ = True
 
 scan' :: String -> Either ParseError [Token]
 scan' = parse lexeme "<unknown>"
@@ -36,7 +43,8 @@ scanExpr =
   (many1 digit >>= return . curry Token Num)
   <|> (many1 (letter <|> digit) >>= return . curry Token Ident)
   <|> (scanString >>= return . curry Token Str)
-  <|> (oneOf "+-" >>= return . curry Token BinOp . (:[]))
+  <|> (char '+' >>= return . curry Token Add . (:[]))
+  <|> (char '-' >>= return . curry Token Sub . (:[]))
   <|> (many1 space >>= return . curry Token WhiteSpace)
 
 scanString :: GenParser Char st String
