@@ -41,3 +41,32 @@ goto :: Grammar -> String -> Token -> Int
 
 makeAST :: [Rule] -> [Token] -> AST
 makeAST steps tokens = Node []
+
+nulls :: Grammar -> [NonTerm]
+nulls [] = []
+nulls (Grammar start rules) =
+  let
+    (nu, pend) = partition justNull rules
+    ns = map getHead nu
+  in
+    converge (nulls' pend) ns
+
+justNull :: Rule -> Bool
+justNull (Rule _ []) = True
+justNull _ = False
+
+nulls' :: [Rule] -> [NonTerm] -> [NonTerm]
+nulls' [] ns = ns
+nulls' ((Rule head syms):rules) ns
+  | (NonTerm head) `notElem` ns && all f syms = nulls' rules (head:ns)
+  | otherwise = nulls' rules ns
+    where
+      f (NonTerm t) = t `elem` ns
+      f _ = False
+
+converge :: Eq a => (a -> a) -> a -> a
+converge f x = let r = f x in
+  if r == x then
+    r
+  else
+    converge f r
