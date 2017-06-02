@@ -62,12 +62,40 @@ makeAST steps tokens = Node []
 
 ---------- first----------
 
+first :: [Rule] -> [(NonTerm, [Term])]
+first [] = []
+first rules@(x:xs) = nub $ (getHead x, first' nullable x) : first xs
+  where
+    nullable (NonTerm x) = x `elem` (nulls rules)
+    nullable (Term x) = False
+
+first' :: (Symbol -> Bool) -> Rule -> [Term]
+first' f (Rule _ []) = []
+first' f (Rule _ ((Term x):_)) = [x]
+first' f (Rule _ body) =
+  let
+    xs = takeUpToNot f body
+  in
+    [ t | x <- xs, let Term t = x, isTerm x ]
+  where
+    isTerm :: Symbol -> Bool
+    isTerm (Term t) = True
+    isTerm _ = False
+
+takeUpToNot :: (a -> Bool) -> [a] -> [a]
+takeUpToNot f xs =
+  let
+    (l, r) = span f xs
+  in
+    case r of
+      [] -> l
+      otherwise -> l ++ [head r]
 
 ---------- nulls ----------
 
-nulls :: Grammar -> [NonTerm]
-nulls (Grammar _ []) = []
-nulls (Grammar start rules) =
+nulls :: [Rule] -> [NonTerm]
+nulls [] = []
+nulls rules =
   let
     (nu, pend) = partition justNull rules
     ns = map getHead nu
