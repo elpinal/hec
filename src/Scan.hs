@@ -19,8 +19,6 @@ data Term =
   | WhiteSpace
     deriving (Eq, Show)
 
-------
-
 scan :: String -> Either ParseError [Token]
 scan src =
   case scan' src of
