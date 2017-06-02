@@ -3,6 +3,7 @@ module Grammar
     ) where
 
 import Data.List
+import Scan
 
 data Grammar = Grammar Symbol SymbolSet deriving (Show)
 
@@ -12,17 +13,33 @@ getHead (Grammar head _) = head
 genGrammar :: String -> [Symbol] -> Grammar
 genGrammar name body = Grammar (NonTerm name) (SymbolSet body)
 
+extend :: Grammar -> [Grammar] -> [Grammar]
+extend start@(Grammar (NonTerm name) _) xs = Grammar (NonTerm "start") (SymbolSet [NonTerm name]) : start : xs
+
+data AnalysisTree =
+    Node [AnalysisTree]
+  | Leaf Token
+
+parse :: [Grammar] -> [Token] -> AnalysisTree
+parse _ [] = Node []
+parse grammars tokens = Node []
+
 data Symbol =
     Term Term
   | NonTerm String
     deriving (Eq, Show)
 
-data Term =
-    Num
-  | Ident
-    deriving (Eq, Show)
-
 data SymbolSet = SymbolSet [Symbol] deriving (Show)
+
+data Action =
+    Shift Int
+  | Reduce SymbolSet
+  | Accept
+
+action :: [Grammar] -> Int -> Maybe Action
+goto :: [Grammar] -> Int -> Maybe Int
+
+---------- first ----------
 
 first :: [Grammar] -> [(Symbol, [Symbol])]
 first [] = []
@@ -50,6 +67,8 @@ takeUpToNot f xs =
     case r of
       [] -> l
       otherwise -> l ++ [head r]
+
+---------- nulls ----------
 
 nulls :: [Grammar] -> [Symbol]
 nulls [] = []

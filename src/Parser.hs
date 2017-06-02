@@ -10,7 +10,8 @@ data Symbol =
     Term Token
   | NonTerm String
   | EndPoint
-  deriving (Show)
+  | Eps
+  deriving (Show, Eq)
 
 data Token =
     Num Int
@@ -70,3 +71,46 @@ tableExample 7 (Term RParen) = Reduce 3 $ NonTerm "expr"
 tableExample 7 (Term t)
   | t `elem` [Add, Sub, Mul, Quo] = Reduce 3 $ NonTerm "expr"
 tableExample n t = error $ "state " ++ show n ++ ": unexpected " ++ show t
+
+
+
+
+---------- LR(1) Items ----------
+
+data Type =
+    StringType
+  | IntType
+
+data Token' =
+  Const Type
+
+type Grammar = Symbol -> Maybe [[Symbol -> Bool]]
+
+(</>) :: Grammar -> Symbol -> Bool
+
+first :: Grammar -> Symbol -> Symbol -> Maybe Bool
+first _ _ (NonTerm t) = error $ "unexpected nonterminal symbol: " ++ t
+first _ x@(Term _) s = return $ x == s
+first g x@(NonTerm _) s = any (first' g s) <$> g x
+first _ sym _ = error $ "unexpected symbol: " ++ show sym
+
+first' :: Grammar -> Symbol -> [Symbol -> Bool] -> Bool
+first' _ _ [] = False
+first' g s x = elem True $ x <*> return s >>= \u -> if u then return u else return u
+
+grammarExample :: Grammar
+grammarExample (NonTerm "expr") = Just [[ isNum ], [ {- isLParen, -} (== NonTerm "term"), isRParen ], [ (== Eps) ]]
+grammarExample (NonTerm "term") = Just [ [ (== Term Add), isNum, (== NonTerm "term") ], [ (== Eps) ] ]
+grammarExample _ = Nothing
+
+isNum :: Symbol -> Bool
+isNum (Term (Num _)) = True
+isNum _ = False
+
+isLParen :: Symbol -> Bool
+isLParen (Term LParen) = True
+isLParen _ = False
+
+isRParen :: Symbol -> Bool
+isRParen (Term RParen) = True
+isRParen _ = False
