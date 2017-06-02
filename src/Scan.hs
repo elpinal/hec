@@ -1,6 +1,6 @@
 module Scan
-    ( Token
-    , Term
+    ( Token(..)
+    , Term(..)
     ) where
 
 import Text.ParserCombinators.Parsec

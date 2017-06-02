@@ -2,29 +2,41 @@ module Parser
     (
     ) where
 
-import Scan (Token, Term)
+import Data.List
+
+import Scan (Token(..), Term(..))
 
 ---------- Parser ----------
 
-data Grammar = Grammar NonTerm [Rule]
+data Grammar = Grammar NonTerm [Rule] deriving Show
 
-data NonTerm = Var String | Start
+data NonTerm = Var String | Start deriving (Eq, Show)
 
-data Rule = Rule NonTerm [Symbol]
+data Rule = Rule NonTerm [Symbol] deriving Show
 
-data Symbol = Term Term | NonTerm NonTerm
+data Symbol = Term Term | NonTerm NonTerm deriving Show
 
-data AST = Node [AST] | Leaf Token
+data AST = Node [AST] | Leaf Token deriving Show
 
-data State = State Int
+-- LR(1) Item
+type Items = [Item]
+data Item = Item Rule Int LookAhead deriving Show
+
+data LookAhead = LookAhead Token | EndPoint deriving Show
+
+data State = State Int deriving Show
 
 data Action =
     Shift Int
   | Reduce Rule
   | Accept
+    deriving Show
 
 extend :: Grammar -> Grammar
 extend (Grammar start rules) = Grammar Start ((Rule Start [NonTerm start]):rules)
+
+getHead :: Rule -> NonTerm
+getHead (Rule head body) = head
 
 parse :: Grammar -> [Token] -> AST
 parse _ [] = Node []
@@ -37,13 +49,24 @@ parse grammar tokens =
     makeAST steps tokens
 
 action :: Grammar -> State -> Token -> Action
-goto :: Grammar -> String -> Token -> Int
+action grammar state token = Accept
+
+goto :: Grammar -> State -> Token -> State
+goto grammar state token = state
+
+parse' :: (State -> Token -> Action) -> (State -> Token -> State) -> [Token] -> [Rule]
+parse' f g tokens = []
 
 makeAST :: [Rule] -> [Token] -> AST
 makeAST steps tokens = Node []
 
+---------- first----------
+
+
+---------- nulls ----------
+
 nulls :: Grammar -> [NonTerm]
-nulls [] = []
+nulls (Grammar _ []) = []
 nulls (Grammar start rules) =
   let
     (nu, pend) = partition justNull rules
@@ -58,7 +81,7 @@ justNull _ = False
 nulls' :: [Rule] -> [NonTerm] -> [NonTerm]
 nulls' [] ns = ns
 nulls' ((Rule head syms):rules) ns
-  | (NonTerm head) `notElem` ns && all f syms = nulls' rules (head:ns)
+  | head `notElem` ns && all f syms = nulls' rules (head:ns)
   | otherwise = nulls' rules ns
     where
       f (NonTerm t) = t `elem` ns
