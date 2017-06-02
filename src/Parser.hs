@@ -93,3 +93,19 @@ converge f x = let r = f x in
     r
   else
     converge f r
+
+---------- Examples ----------
+
+(>:>) :: String -> [Symbol] -> Rule
+head >:> body = Rule (Var head) body
+
+refer :: String -> Symbol
+refer = NonTerm . Var
+
+exampleGrammar :: Grammar
+exampleGrammar = Grammar (Var "expr")
+  [ "expr" >:> [ Term Num, Term Add, refer "expr" ]
+  , "expr" >:> [ refer "term" ]
+  , "term" >:> [ Term Sub, Term Num, refer "term" ]
+  , "term" >:> []
+  ]
