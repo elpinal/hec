@@ -67,7 +67,7 @@ first :: [Rule] -> Set.Set (NonTerm, Set.Set Term)
 first rules = Set.fromList [ (getHead rule, first' nullable rule) | rule <- rules ]
   where
     nullable (NonTerm x) = x `elem` (nulls rules)
-    nullable (Term x) = False
+    nullable (Term _) = False
 
 first' :: (Symbol -> Bool) -> Rule -> Set.Set Term
 first' f (Rule _ []) = Set.empty
