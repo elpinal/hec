@@ -2,7 +2,6 @@ module Parser
     (
     ) where
 
-import Control.Monad
 import Data.List
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
