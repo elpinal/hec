@@ -62,7 +62,7 @@ parse' f g tokens = []
 makeAST :: [Rule] -> [Token] -> AST
 makeAST steps tokens = Node []
 
----------- first----------
+---------- first ----------
 
 firstS :: [Rule] -> Map.Map NonTerm (Set.Set Term)
 firstS rules = converge (first rules) Map.empty
