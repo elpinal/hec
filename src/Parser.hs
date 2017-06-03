@@ -81,30 +81,23 @@ closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- (
     afterNext = let (Item (Rule _ body) n _) = item in drop (n+1) body
     la1 :: [LookAhead] -> [LookAhead]
     la1 x
-      | all nullable afterNext = let (Item _ _ a) = item in a : x
+      | all (nullable rules) afterNext = let (Item _ _ a) = item in a : x
       | otherwise = x
-    nullable (NonTerm x) = x `elem` (nulls rules)
-    nullable (Term _) = False
 
 ---------- first ----------
 
 firstOfSymbols :: [Rule] -> [Symbol] -> Set.Set Term
-firstOfSymbols rules symbols = Set.unions $ map m $ takeUpToNot nullable symbols
+firstOfSymbols rules symbols = Set.unions $ map m $ takeUpToNot (nullable rules) symbols
   where
     m :: Symbol -> Set.Set Term
     m (NonTerm t) = maybe Set.empty id $ Map.lookup t $ firstS rules
     m (Term t) = Set.singleton t
-    nullable (NonTerm x) = x `elem` (nulls rules)
-    nullable (Term _) = False
 
 firstS :: [Rule] -> Map.Map NonTerm (Set.Set Term)
 firstS rules = converge (first rules) Map.empty
 
 first :: [Rule] -> Map.Map NonTerm (Set.Set Term) -> Map.Map NonTerm (Set.Set Term)
-first rules stack = Map.fromListWith Set.union [ (head, first' nullable body stack) | (Rule head body) <- rules ]
-  where
-    nullable (NonTerm x) = x `elem` (nulls rules)
-    nullable (Term _) = False
+first rules stack = Map.fromListWith Set.union [ (head, first' (nullable rules) body stack) | (Rule head body) <- rules ]
 
 first' :: (Symbol -> Bool) -> [Symbol] -> Map.Map NonTerm (Set.Set Term) -> Set.Set Term
 first' f [] _ = Set.empty
@@ -132,6 +125,10 @@ takeUpToNot f xs =
       otherwise -> l ++ [head r]
 
 ---------- nulls ----------
+
+nullable :: [Rule] -> Symbol -> Bool
+nullable rules (NonTerm x) = x `elem` (nulls rules)
+nullable _ _ = False
 
 nulls :: [Rule] -> [NonTerm]
 nulls [] = []
