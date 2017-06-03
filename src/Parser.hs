@@ -63,8 +63,11 @@ makeAST steps tokens = Node []
 
 ---------- first----------
 
-first :: [Rule] -> Set.Set (NonTerm, Set.Set Term)
-first rules = Set.fromList [ (head, first' nullable body Set.empty) | (Rule head body) <- rules ]
+firstS :: [Rule] -> Set.Set (NonTerm, Set.Set Term)
+firstS rules = converge (first rules) Set.empty
+
+first :: [Rule] -> Set.Set (NonTerm, Set.Set Term) -> Set.Set (NonTerm, Set.Set Term)
+first rules stack = Set.fromList [ (head, first' nullable body stack) | (Rule head body) <- rules ]
   where
     nullable (NonTerm x) = x `elem` (nulls rules)
     nullable (Term _) = False
