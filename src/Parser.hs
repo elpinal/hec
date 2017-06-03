@@ -3,6 +3,7 @@ module Parser
     ) where
 
 import Data.List
+import qualified Data.Map.Lazy as Map
 import qualified Data.Set as Set
 
 import Scan (Token(..), Term(..))
@@ -63,16 +64,16 @@ makeAST steps tokens = Node []
 
 ---------- first----------
 
-firstS :: [Rule] -> Set.Set (NonTerm, Set.Set Term)
-firstS rules = converge (first rules) Set.empty
+firstS :: [Rule] -> Map.Map NonTerm (Set.Set Term)
+firstS rules = converge (first rules) Map.empty
 
-first :: [Rule] -> Set.Set (NonTerm, Set.Set Term) -> Set.Set (NonTerm, Set.Set Term)
-first rules stack = Set.fromList [ (head, first' nullable body stack) | (Rule head body) <- rules ]
+first :: [Rule] -> Map.Map NonTerm (Set.Set Term) -> Map.Map NonTerm (Set.Set Term)
+first rules stack = Map.fromListWith Set.union [ (head, first' nullable body stack) | (Rule head body) <- rules ]
   where
     nullable (NonTerm x) = x `elem` (nulls rules)
     nullable (Term _) = False
 
-first' :: (Symbol -> Bool) -> [Symbol] -> Set.Set (NonTerm, Set.Set Term) -> Set.Set Term
+first' :: (Symbol -> Bool) -> [Symbol] -> Map.Map NonTerm (Set.Set Term) -> Set.Set Term
 first' f [] _ = Set.empty
 first' f ((Term x):_) _ = Set.singleton x
 first' f body stack =
@@ -82,7 +83,7 @@ first' f body stack =
     x <- xs
     return $ case x of
       Term t -> Set.singleton t
-      NonTerm t -> Set.foldl Set.union Set.empty $ Set.map (\(k, v) -> if k == t then v else Set.empty) stack
+      NonTerm t -> maybe Set.empty id $ Map.lookup t stack
   where
     isTerm :: Symbol -> Bool
     isTerm (Term t) = True
