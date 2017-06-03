@@ -2,8 +2,10 @@ module Parser
     (
     ) where
 
+import Control.Monad
 import Data.List
 import qualified Data.Map.Lazy as Map
+import Data.Maybe
 import qualified Data.Set as Set
 
 import Scan (Token(..), Term(..))
@@ -62,14 +64,42 @@ parse' f g tokens = []
 makeAST :: [Rule] -> [Token] -> AST
 makeAST steps tokens = Node []
 
+---------- states ----------
+
+states :: [Rule] -> Set.Set Items
+states rules = converge (states' rules) . Set.singleton . closure rules . Set.singleton $ Item (getStart rules) 0 EndPoint
+
+getStart :: [Rule] -> Rule
+getStart (rule@(Rule Start _):_) = rule
+getStart (_:xs) = getStart xs
+getStart [] = error "grammar should be extended"
+
+states' :: [Rule] -> Set.Set Items -> Set.Set Items
+states' rules c = Set.union c . Set.fromList . catMaybes $ do
+  items <- Set.toList c
+  sym <- Set.toList syms
+  return $ gotoItems rules items sym
+    where
+      syms :: Set.Set Symbol
+      syms = Set.fromList . concat $ map syms' rules
+      syms' :: Rule -> [Symbol]
+      syms' (Rule Start body) = []
+      syms' (Rule head body) = NonTerm head : body
+
 ---------- goto items ----------
 
-gotoItems :: [Rule] -> Items -> Symbol -> Items
-gotoItems rules items sym = closure rules . Set.map inc . Set.filter filterFunc $ items
+gotoItems :: [Rule] -> Items -> Symbol -> Maybe Items
+gotoItems rules items sym =
+  let xs = Set.filter filterFunc items in
+    if xs == Set.empty then
+      Nothing
+    else
+      return . closure rules . Set.map inc $ xs
   where
     next :: Item -> Symbol
     next item = let (Item (Rule _ body) n _) = item in body !! n
     filterFunc :: Item -> Bool
+    filterFunc (Item (Rule _ body) n _) | length body <= n = False
     filterFunc item = next item == sym
     inc :: Item -> Item
     inc (Item r n l) = Item r (n+1) l
