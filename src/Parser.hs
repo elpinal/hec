@@ -64,19 +64,22 @@ makeAST steps tokens = Node []
 ---------- first----------
 
 first :: [Rule] -> Set.Set (NonTerm, Set.Set Term)
-first rules = Set.fromList [ (head, first' nullable body) | (Rule head body) <- rules ]
+first rules = Set.fromList [ (head, first' nullable body Set.empty) | (Rule head body) <- rules ]
   where
     nullable (NonTerm x) = x `elem` (nulls rules)
     nullable (Term _) = False
 
-first' :: (Symbol -> Bool) -> [Symbol] -> Set.Set Term
-first' f [] = Set.empty
-first' f ((Term x):_) = Set.singleton x
-first' f body =
+first' :: (Symbol -> Bool) -> [Symbol] -> Set.Set (NonTerm, Set.Set Term) -> Set.Set Term
+first' f [] _ = Set.empty
+first' f ((Term x):_) _ = Set.singleton x
+first' f body stack =
   let
     xs = takeUpToNot f body
-  in
-    Set.fromList [ t | x <- xs, let Term t = x, isTerm x ]
+  in Set.unions $ do
+    x <- xs
+    return $ case x of
+      Term t -> Set.singleton t
+      NonTerm t -> Set.foldl Set.union Set.empty $ Set.map (\(k, v) -> if k == t then v else Set.empty) stack
   where
     isTerm :: Symbol -> Bool
     isTerm (Term t) = True
