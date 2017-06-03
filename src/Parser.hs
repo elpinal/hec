@@ -132,8 +132,9 @@ refer = NonTerm . Var
 
 exampleGrammar :: Grammar
 exampleGrammar = Grammar (Var "expr")
-  [ "expr" >:> [ Term Num, Term Add, refer "expr" ]
+  [ "expr" >:> [ refer "term", Term Num, Term Add, refer "expr" ]
   , "expr" >:> [ refer "term" ]
-  , "term" >:> [ Term Sub, Term Num, refer "term" ]
+  , "term" >:> [ refer "factor", Term Sub, Term Num, refer "term" ]
   , "term" >:> []
+  , "factor" >:> [ refer "expr", refer "term", Term Ident ]
   ]
