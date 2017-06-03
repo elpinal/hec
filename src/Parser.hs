@@ -14,17 +14,17 @@ data Grammar = Grammar NonTerm [Rule] deriving Show
 
 data NonTerm = Var String | Start deriving (Eq, Show, Ord)
 
-data Rule = Rule NonTerm [Symbol] deriving (Eq, Show)
+data Rule = Rule NonTerm [Symbol] deriving (Eq, Show, Ord)
 
-data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show)
+data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show, Ord)
 
 data AST = Node [AST] | Leaf Token deriving Show
 
 -- LR(1) Item
 type Items = Set.Set Item
-data Item = Item Rule Int LookAhead deriving (Eq, Show)
+data Item = Item Rule Int LookAhead deriving (Eq, Show, Ord)
 
-data LookAhead = LookAhead Token | EndPoint deriving (Eq, Show)
+data LookAhead = LookAhead Term | EndPoint deriving (Eq, Show, Ord)
 
 data State = State Int deriving Show
 
@@ -64,13 +64,38 @@ makeAST steps tokens = Node []
 
 ---------- closure ----------
 
-closure :: Grammar -> Items -> Items
-closure grammar items = converge (closure' grammar) items
+closure :: [Rule] -> Items -> Items
+closure rules items = converge (closure' rules) items
 
-closure' :: Grammar -> Items -> Items
-closure' grammar items = items
+closure' :: [Rule] -> Items -> Items
+closure' rules items = Set.foldl Set.union Set.empty $ Set.map (closeItem rules) items
+
+closeItem :: [Rule] -> Item -> Items
+closeItem rules item@(Item (Rule _ body) n _)
+  | length body <= n = Set.singleton item
+closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- ((la1 . map LookAhead . Set.toList . firstOfSymbols rules) afterNext) ] | rule@(Rule head body) <- rules, (NonTerm head) == next ]
+  where
+    next :: Symbol
+    next = let (Item (Rule _ body) n _) = item in body !! n
+    afterNext :: [Symbol]
+    afterNext = let (Item (Rule _ body) n _) = item in drop (n+1) body
+    la1 :: [LookAhead] -> [LookAhead]
+    la1 x
+      | all nullable afterNext = let (Item _ _ a) = item in a : x
+      | otherwise = x
+    nullable (NonTerm x) = x `elem` (nulls rules)
+    nullable (Term _) = False
 
 ---------- first ----------
+
+firstOfSymbols :: [Rule] -> [Symbol] -> Set.Set Term
+firstOfSymbols rules symbols = Set.unions $ map m $ takeUpToNot nullable symbols
+  where
+    m :: Symbol -> Set.Set Term
+    m (NonTerm t) = maybe Set.empty id $ Map.lookup t $ firstS rules
+    m (Term t) = Set.singleton t
+    nullable (NonTerm x) = x `elem` (nulls rules)
+    nullable (Term _) = False
 
 firstS :: [Rule] -> Map.Map NonTerm (Set.Set Term)
 firstS rules = converge (first rules) Map.empty
@@ -152,4 +177,11 @@ exampleGrammar = Grammar (Var "expr")
   , "term" >:> [ refer "factor", Term Sub, Term Num, refer "term" ]
   , "term" >:> []
   , "factor" >:> [ refer "expr", refer "term", Term Ident ]
+  ]
+
+exampleGrammar2 :: Grammar
+exampleGrammar2 = Grammar (Var "S")
+  [ "S" >:> [ refer "C", refer "C" ]
+  , "C" >:> [ Term Add, refer "C" ]
+  , "C" >:> [ Term Sub ]
   ]
