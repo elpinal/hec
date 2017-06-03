@@ -62,6 +62,18 @@ parse' f g tokens = []
 makeAST :: [Rule] -> [Token] -> AST
 makeAST steps tokens = Node []
 
+---------- goto items ----------
+
+gotoItems :: [Rule] -> Items -> Symbol -> Items
+gotoItems rules items sym = closure rules . Set.map inc . Set.filter filterFunc $ items
+  where
+    next :: Item -> Symbol
+    next item = let (Item (Rule _ body) n _) = item in body !! n
+    filterFunc :: Item -> Bool
+    filterFunc item = next item == sym
+    inc :: Item -> Item
+    inc (Item r n l) = Item r (n+1) l
+
 ---------- closure ----------
 
 closure :: [Rule] -> Items -> Items
