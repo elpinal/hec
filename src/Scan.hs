@@ -17,7 +17,7 @@ data Term =
   | Add
   | Sub
   | WhiteSpace
-    deriving (Eq, Show)
+    deriving (Eq, Show, Ord)
 
 scan :: String -> Either ParseError [Token]
 scan src =

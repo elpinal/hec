@@ -3,6 +3,7 @@ module Parser
     ) where
 
 import Data.List
+import qualified Data.Set as Set
 
 import Scan (Token(..), Term(..))
 
@@ -10,7 +11,7 @@ import Scan (Token(..), Term(..))
 
 data Grammar = Grammar NonTerm [Rule] deriving Show
 
-data NonTerm = Var String | Start deriving (Eq, Show)
+data NonTerm = Var String | Start deriving (Eq, Show, Ord)
 
 data Rule = Rule NonTerm [Symbol] deriving Show
 
@@ -62,21 +63,20 @@ makeAST steps tokens = Node []
 
 ---------- first----------
 
-first :: [Rule] -> [(NonTerm, [Term])]
-first [] = []
-first rules@(x:xs) = nub $ (getHead x, first' nullable x) : first xs
+first :: [Rule] -> Set.Set (NonTerm, Set.Set Term)
+first rules = Set.fromList [ (getHead rule, first' nullable rule) | rule <- rules ]
   where
     nullable (NonTerm x) = x `elem` (nulls rules)
     nullable (Term x) = False
 
-first' :: (Symbol -> Bool) -> Rule -> [Term]
-first' f (Rule _ []) = []
-first' f (Rule _ ((Term x):_)) = [x]
+first' :: (Symbol -> Bool) -> Rule -> Set.Set Term
+first' f (Rule _ []) = Set.empty
+first' f (Rule _ ((Term x):_)) = Set.singleton x
 first' f (Rule _ body) =
   let
     xs = takeUpToNot f body
   in
-    [ t | x <- xs, let Term t = x, isTerm x ]
+    Set.fromList [ t | x <- xs, let Term t = x, isTerm x ]
   where
     isTerm :: Symbol -> Bool
     isTerm (Term t) = True
