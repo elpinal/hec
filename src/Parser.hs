@@ -64,15 +64,15 @@ makeAST steps tokens = Node []
 ---------- first----------
 
 first :: [Rule] -> Set.Set (NonTerm, Set.Set Term)
-first rules = Set.fromList [ (getHead rule, first' nullable rule) | rule <- rules ]
+first rules = Set.fromList [ (head, first' nullable body) | (Rule head body) <- rules ]
   where
     nullable (NonTerm x) = x `elem` (nulls rules)
     nullable (Term _) = False
 
-first' :: (Symbol -> Bool) -> Rule -> Set.Set Term
-first' f (Rule _ []) = Set.empty
-first' f (Rule _ ((Term x):_)) = Set.singleton x
-first' f (Rule _ body) =
+first' :: (Symbol -> Bool) -> [Symbol] -> Set.Set Term
+first' f [] = Set.empty
+first' f ((Term x):_) = Set.singleton x
+first' f body =
   let
     xs = takeUpToNot f body
   in
