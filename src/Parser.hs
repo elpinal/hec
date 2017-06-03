@@ -14,17 +14,17 @@ data Grammar = Grammar NonTerm [Rule] deriving Show
 
 data NonTerm = Var String | Start deriving (Eq, Show, Ord)
 
-data Rule = Rule NonTerm [Symbol] deriving Show
+data Rule = Rule NonTerm [Symbol] deriving (Eq, Show)
 
-data Symbol = Term Term | NonTerm NonTerm deriving Show
+data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show)
 
 data AST = Node [AST] | Leaf Token deriving Show
 
 -- LR(1) Item
-type Items = [Item]
-data Item = Item Rule Int LookAhead deriving Show
+type Items = Set.Set Item
+data Item = Item Rule Int LookAhead deriving (Eq, Show)
 
-data LookAhead = LookAhead Token | EndPoint deriving Show
+data LookAhead = LookAhead Token | EndPoint deriving (Eq, Show)
 
 data State = State Int deriving Show
 
@@ -61,6 +61,14 @@ parse' f g tokens = []
 
 makeAST :: [Rule] -> [Token] -> AST
 makeAST steps tokens = Node []
+
+---------- closure ----------
+
+closure :: Grammar -> Items -> Items
+closure grammar items = converge (closure' grammar) items
+
+closure' :: Grammar -> Items -> Items
+closure' grammar items = items
 
 ---------- first ----------
 
