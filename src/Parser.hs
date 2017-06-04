@@ -51,7 +51,7 @@ parse grammar tokens =
     start = getStart rules
     s = Map.fromAscList . zip [0..] . Set.toAscList $ states rules
     f = action (gotoItems rules) start s
-    g = goto s
+    g = goto (gotoItems rules) s
     steps = parse' f g $ map Token' tokens ++ [EndToken]
   in
     makeAST steps tokens
@@ -103,10 +103,23 @@ eqLaToken EndPoint _ = False
 eqLaToken _ EndToken = False
 eqLaToken (LookAhead term) (Token' (Token (token, _))) = term == token
 
-goto :: Map.Map Int Items -> State -> Token' -> State
-goto states state token = state
+goto :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> State -> NonTerm -> State
+goto gotoF states (State n) nt =
+  let
+    state = fromJust $ Map.lookup n states
+    j = gotoF state (NonTerm nt)
+  in
+    case j of
+      Nothing -> error $ "unexpected " ++ show nt
+      (Just j') -> State . fromJust $ getID states j'
+  where
+    getID :: Map.Map Int Items -> Items -> Maybe Int
+    getID states items = headMaybe . Map.keys . Map.filter (==items) $ states
+    headMaybe :: [a] -> Maybe a
+    headMaybe [] = Nothing
+    headMaybe (x:xs) = Just x
 
-parse' :: (State -> Token' -> Action) -> (State -> Token' -> State) -> [Token'] -> [Rule]
+parse' :: (State -> Token' -> Action) -> (State -> NonTerm -> State) -> [Token'] -> [Rule]
 parse' f g tokens = []
 
 makeAST :: [Rule] -> [Token] -> AST
