@@ -8,7 +8,7 @@ import Text.ParserCombinators.Parsec
 ---------- Tokenizer ----------
 
 newtype Token = Token (Term, String)
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 data Term =
     Num

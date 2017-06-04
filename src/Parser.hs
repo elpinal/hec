@@ -35,6 +35,8 @@ data Action =
   | Accept
     deriving Show
 
+data Token' = Token' Token | EndToken deriving (Eq, Show, Ord)
+
 extend :: Grammar -> Grammar
 extend (Grammar start rules) = Grammar Start ((Rule Start [NonTerm start]):rules)
 
@@ -45,19 +47,66 @@ parse :: Grammar -> [Token] -> AST
 parse _ [] = Node []
 parse grammar tokens =
   let
-    f = action grammar
-    g = goto grammar
-    steps = parse' f g tokens
+    (Grammar _ rules) = grammar
+    start = getStart rules
+    s = Map.fromAscList . zip [0..] . Set.toAscList $ states rules
+    f = action (gotoItems rules) start s
+    g = goto s
+    steps = parse' f g $ map Token' tokens ++ [EndToken]
   in
     makeAST steps tokens
 
-action :: Grammar -> State -> Token -> Action
-action grammar state token = Accept
+action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> State -> Token' -> Action
+action gotoF start states (State n) token =
+  let
+    state = fromJust $ Map.lookup n states
+  in
+    case token of
+      EndToken -> atEnd gotoF start states state
+      otherwise -> action' gotoF states state token
 
-goto :: Grammar -> State -> Token -> State
-goto grammar state token = state
+atEnd :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> Items -> Action
+atEnd gotoF start states current
+  | (Item start 1 EndPoint) `Set.member` current = Accept
+  | otherwise = action' gotoF states current EndToken
 
-parse' :: (State -> Token -> Action) -> (State -> Token -> State) -> [Token] -> [Rule]
+action' :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> Items -> Token' -> Action
+action' gotoF states current token
+  | 1 == Set.size matchReduce
+    = Reduce . getRule . head . Set.toList $ matchReduce
+  | 1 == Set.size matchShift
+    = fromJust $ return . Shift =<< getID states =<< (gotoF current $ fromToken' token)
+  where
+    matchReduce :: Items
+    matchReduce = Set.filter (\(Item _ _ la) -> la `eqLaToken` token) current
+    getRule :: Item -> Rule
+    getRule (Item rule _ _) = rule
+    next :: Item -> Maybe Term
+    next item =
+      let (Item (Rule _ body) n _) = item in
+        case body !! n of
+          (Term t) -> Just t
+          otherwise -> Nothing
+    matchShift :: Items
+    matchShift = Set.filter (\i -> fromMaybe False $ next i >>= return . (`eqLaToken` token) . LookAhead) current
+    fromToken' :: Token' -> Symbol
+    fromToken' (Token' (Token (term, _))) = Term term
+    getID :: Map.Map Int Items -> Items -> Maybe Int
+    getID states items = headMaybe . Map.keys . Map.filter (==items) $ states
+    headMaybe :: [a] -> Maybe a
+    headMaybe [] = Nothing
+    headMaybe (x:xs) = Just x
+
+eqLaToken :: LookAhead -> Token' -> Bool
+eqLaToken EndPoint EndToken = True
+eqLaToken EndPoint _ = False
+eqLaToken _ EndToken = False
+eqLaToken (LookAhead term) (Token' (Token (token, _))) = term == token
+
+goto :: Map.Map Int Items -> State -> Token' -> State
+goto states state token = state
+
+parse' :: (State -> Token' -> Action) -> (State -> Token' -> State) -> [Token'] -> [Rule]
 parse' f g tokens = []
 
 makeAST :: [Rule] -> [Token] -> AST
