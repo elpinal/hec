@@ -19,7 +19,7 @@ data Rule = Rule NonTerm [Symbol] deriving (Eq, Show, Ord)
 
 data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show, Ord)
 
-data AST = Node [AST] | Leaf Token deriving Show
+data ParseTree = Node Symbol [ParseTree] | EmptyTree deriving Show
 
 -- LR(1) Item
 type Items = Set.Set Item
@@ -43,8 +43,8 @@ extend (Grammar start rules) = Grammar Start ((Rule Start [NonTerm start]):rules
 getHead :: Rule -> NonTerm
 getHead (Rule head body) = head
 
-parse :: Grammar -> [Token] -> AST
-parse _ [] = Node []
+parse :: Grammar -> [Token] -> ParseTree
+parse _ [] = EmptyTree 
 parse grammar tokens =
   let
     (Grammar _ rules) = grammar
@@ -54,7 +54,7 @@ parse grammar tokens =
     g = goto (gotoItems rules) s
     steps = parse' f g $ map Token' tokens ++ [EndToken]
   in
-    makeAST steps tokens
+    makeTree steps tokens
 
 action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> State -> Token' -> Action
 action gotoF start states (State n) token =
@@ -122,8 +122,8 @@ goto gotoF states (State n) nt =
 parse' :: (State -> Token' -> Action) -> (State -> NonTerm -> State) -> [Token'] -> [Rule]
 parse' f g tokens = []
 
-makeAST :: [Rule] -> [Token] -> AST
-makeAST steps tokens = Node []
+makeTree :: [Rule] -> [Token] -> ParseTree
+makeTree steps tokens = EmptyTree
 
 ---------- states ----------
 
