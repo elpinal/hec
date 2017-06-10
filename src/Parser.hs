@@ -7,7 +7,7 @@ import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
 
-import Scan (Token(..), Term(..))
+import Scanner (Token(..), Term(..))
 
 ---------- Parser ----------
 

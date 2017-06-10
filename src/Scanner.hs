@@ -1,4 +1,4 @@
-module Scan
+module Scanner
     ( Token(..)
     , Term(..)
     ) where
