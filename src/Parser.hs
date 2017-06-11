@@ -125,17 +125,17 @@ goto gotoF states (State n) nt =
     headMaybe (x:xs) = Just x
 
 parse' :: (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> ParseTree
-parse' f g s0 tokens = head . snd $ foldl fun ([s0], [EmptyTree]) tokens
+parse' f g s0 tokens = head . snd $ foldl buildTree ([s0], [EmptyTree]) tokens
   where
-    fun :: ([Int], [ParseTree]) -> Token' -> ([Int], [ParseTree])
-    fun ((state:xs), trees) token = case f (State state) token of
+    buildTree :: ([Int], [ParseTree]) -> Token' -> ([Int], [ParseTree])
+    buildTree ((state:xs), trees) token = case f (State state) token of
       Accept -> (xs, trees)
       Shift n -> ((n:state:xs), ((Leaf . fromToken) token:trees))
       Reduce rule -> let
         bodyLen = length . getBody $ rule
         (s:ss) = drop bodyLen (state:xs)
         (t1, t2) = splitAt bodyLen trees in
-        fun (((fromState . g (State s)) (getHead rule) : s : ss), (Node (getHead rule) t1 : t2)) token
+        buildTree (((fromState . g (State s)) (getHead rule) : s : ss), (Node (getHead rule) t1 : t2)) token
     fromToken :: Token' -> Token
     fromToken (Token' token) = token
     fromToken EndToken = error "unexpected EndToken"
