@@ -19,7 +19,7 @@ data Rule = Rule NonTerm [Symbol] deriving (Eq, Show, Ord)
 
 data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show, Ord)
 
-data ParseTree = Node Symbol [ParseTree] | EmptyTree deriving Show
+data ParseTree = Node NonTerm [ParseTree] | Leaf Token | EmptyTree deriving Show
 
 -- LR(1) Item
 type Items = Set.Set Item
@@ -43,6 +43,9 @@ extend (Grammar start rules) = Grammar Start ((Rule Start [NonTerm start]):rules
 getHead :: Rule -> NonTerm
 getHead (Rule head body) = head
 
+getBody :: Rule -> [Symbol]
+getBody (Rule _ body) = body
+
 parse :: Grammar -> [Token] -> ParseTree
 parse _ [] = EmptyTree 
 parse grammar tokens =
@@ -50,11 +53,11 @@ parse grammar tokens =
     (Grammar _ rules) = grammar
     start = getStart rules
     s = Map.fromAscList . zip [0..] . Set.toAscList $ states rules
+    s0 = fst . Map.elemAt 0 $  Map.filter (Set.member $ Item (getStart rules) 0 EndPoint) s
     f = action (gotoItems rules) start s
     g = goto (gotoItems rules) s
-    steps = parse' f g $ map Token' tokens ++ [EndToken]
   in
-    makeTree steps tokens
+    parse' f g s0 $ map Token' tokens ++ [EndToken]
 
 action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> State -> Token' -> Action
 action gotoF start states (State n) token =
@@ -72,13 +75,15 @@ atEnd gotoF start states current
 
 action' :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> Items -> Token' -> Action
 action' gotoF states current token
-  | 1 == Set.size matchReduce
+  | not $ Set.null matchReduce
     = Reduce . getRule . head . Set.toList $ matchReduce
-  | 1 == Set.size matchShift
+  | not $ Set.null matchShift
     = fromJust $ return . Shift =<< getID states =<< (gotoF current $ fromToken' token)
+  | otherwise
+    = error $ "unexpected error: " ++ show token
   where
     matchReduce :: Items
-    matchReduce = Set.filter (\(Item _ _ la) -> la `eqLaToken` token) current
+    matchReduce = Set.filter (\(Item rule n la) -> la `eqLaToken` token && length (getBody rule) == n) current
     getRule :: Item -> Rule
     getRule (Item rule _ _) = rule
     next :: Item -> Maybe Term
@@ -119,11 +124,23 @@ goto gotoF states (State n) nt =
     headMaybe [] = Nothing
     headMaybe (x:xs) = Just x
 
-parse' :: (State -> Token' -> Action) -> (State -> NonTerm -> State) -> [Token'] -> [Rule]
-parse' f g tokens = []
-
-makeTree :: [Rule] -> [Token] -> ParseTree
-makeTree steps tokens = EmptyTree
+parse' :: (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> ParseTree
+parse' f g s0 tokens = head . snd $ foldl fun ([s0], [EmptyTree]) tokens
+  where
+    fun :: ([Int], [ParseTree]) -> Token' -> ([Int], [ParseTree])
+    fun ((state:xs), trees) token = case f (State state) token of
+      Accept -> (xs, trees)
+      Shift n -> ((n:state:xs), ((Leaf . fromToken) token:trees))
+      Reduce rule -> let
+        bodyLen = length . getBody $ rule
+        (s:ss) = drop bodyLen (state:xs)
+        (t1, t2) = splitAt bodyLen trees in
+        fun (((fromState . g (State s)) (getHead rule) : s : ss), (Node (getHead rule) t1 : t2)) token
+    fromToken :: Token' -> Token
+    fromToken (Token' token) = token
+    fromToken EndToken = error "unexpected EndToken"
+    fromState :: State -> Int
+    fromState (State n) = n
 
 ---------- states ----------
 
