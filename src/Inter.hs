@@ -1,11 +1,16 @@
 module Inter
-    ( ThreeAddr
+    ( Quad
+    , Triple
+    , Addr
+    , Result(..)
+    , Operator(..)
     , Op(..)
     , Operand(..)
-    , Addr
     ) where
 
-type ThreeAddr = (Result, Op, Operand, Operand)
+type Quad = (Result, Op, Operand, Operand)
+
+type Triple = (Op, Operand, Operand)
 
 type Addr = Int
 
