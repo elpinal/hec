@@ -323,12 +323,3 @@ refer = NonTerm . Var
 infix 8 |||
 (|||) :: Rule -> SemanticRule -> (Rule, SemanticRule)
 rule ||| sem = (rule, sem)
-
----------- Examples ----------
-
-exampleGrammar :: Grammar
-exampleGrammar = Grammar (Var "expr")
-  [ "expr" >:> [ refer "expr", Term Add, Term Num] ||| (\xs -> (Inter.Arith Inter.Add, (xs`at`0), (xs`at`2)))
-  , "expr" >:> [ refer "expr", Term Sub, Term Num] ||| (\xs -> (Inter.Arith Inter.Sub, (xs`at`0), (xs`at`2)))
-  , "expr" >:> [ Term Num ] ||| (\xs -> (Inter.NOP, xs`at`0, Inter.Nil))
-  ]
