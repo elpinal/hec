@@ -95,8 +95,8 @@ action' gotoF states current token
     next :: Item -> Maybe Term
     next item =
       let (Item (Rule _ body) n _) = item in
-        case body `at` n of
-          (Term t) -> Just t
+        case body `atMay` n of
+          Just (Term t) -> Just t
           otherwise -> Nothing
     matchShift :: Items
     matchShift = Set.filter (\i -> fromMaybe False $ next i >>= return . (`eqLaToken` token) . LookAhead) current
