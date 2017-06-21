@@ -20,7 +20,7 @@ import qualified Data.Set as Set
 import qualified Inter
 import Scanner (Token(..), Term(..))
 
----------- Parser ----------
+---------- Data structures ----------
 
 data Grammar = Grammar NonTerm [(Rule, SemanticRule)]
 
@@ -65,6 +65,8 @@ getHead (Rule head body) = head
 
 getBody :: Rule -> [Symbol]
 getBody (Rule _ body) = body
+
+---------- Parse ----------
 
 parse :: Grammar -> [Token] -> [Inter.Quad]
 parse _ [] = []
@@ -174,7 +176,7 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
     snd' :: (a, b, c, d) -> b
     snd' (a, b, c, d) = b
 
----------- states ----------
+---------- States ----------
 
 states :: [Rule] -> Set.Set Items
 states rules = converge (states' rules) . Set.singleton . closure rules . Set.singleton $ Item (getStart rules) 0 EndPoint
@@ -214,7 +216,7 @@ gotoItems rules items sym =
     inc :: Item -> Item
     inc (Item r n l) = Item r (n+1) l
 
----------- closure ----------
+---------- Closure ----------
 
 closure :: [Rule] -> Items -> Items
 closure rules items = converge (closure' rules) items
@@ -236,7 +238,7 @@ closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- (
       | all (nullable rules) afterNext = let (Item _ _ a) = item in a : x
       | otherwise = x
 
----------- first ----------
+---------- First ----------
 
 firstOfSymbols :: [Rule] -> [Symbol] -> Set.Set Term
 firstOfSymbols rules symbols = Set.unions $ map m $ takeUpToNot (nullable rules) symbols
@@ -276,7 +278,7 @@ takeUpToNot f xs =
       [] -> l
       otherwise -> l ++ [head r]
 
----------- nulls ----------
+---------- Nulls ----------
 
 nullable :: [Rule] -> Symbol -> Bool
 nullable rules (NonTerm x) = x `elem` (nulls rules)
