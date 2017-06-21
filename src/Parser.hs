@@ -21,10 +21,10 @@ import Scanner (Token(..), Term(..))
 
 ---------- Data structures ----------
 
-data Grammar = Grammar NonTerm [(Rule, SemanticRule)]
+data Grammar = Grammar NonTerm (Map.Map Rule SemanticRule)
 
 instance Show Grammar where
-  show (Grammar x xs) = "(Grammar " ++ show x ++ " " ++ (show . map fst) xs
+  show (Grammar x xs) = "(Grammar " ++ show x ++ " " ++ (show . Map.keys) xs
 
 data NonTerm = Var String | Start deriving (Eq, Show, Ord)
 
@@ -34,10 +34,10 @@ data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show, Ord)
 
 type SemanticRule = [Inter.Operand] -> Inter.Triple
 
-semRuleOf :: [(Rule, SemanticRule)] -> Rule -> SemanticRule
+semRuleOf :: Map.Map Rule SemanticRule -> Rule -> SemanticRule
 semRuleOf ruleSet prodRule =
-  case find (\(p, s) -> if p == prodRule then True else False) ruleSet of
-    Just (p, s) -> s
+  case Map.lookup prodRule ruleSet of
+    Just s -> s
     Nothing -> error $ "unexpected error: the semantic rule corresponding to " ++ show prodRule
 
 -- LR(1) Item
@@ -57,7 +57,10 @@ data Action =
 data Token' = Token' Token | EndToken deriving (Eq, Show, Ord)
 
 extend :: Grammar -> Grammar
-extend (Grammar start rules) = Grammar Start ((Rule Start [NonTerm start])|||(\xs -> (Inter.NOP, xs`at`0, Inter.Nil)):rules)
+extend (Grammar start rules) = Grammar Start $ Map.insert (Rule Start [NonTerm start]) (\xs -> (Inter.NOP, xs`at`0, Inter.Nil)) rules
+
+getRules :: Grammar -> Map.Map Rule SemanticRule
+getRules (Grammar _ rules) = rules
 
 getHead :: Rule -> NonTerm
 getHead (Rule head body) = head
@@ -71,8 +74,8 @@ parse :: Grammar -> [Token] -> [Inter.Quad]
 parse _ [] = []
 parse grammar tokens =
   let
-    (Grammar _ rulesSems) = grammar
-    rules = map fst rulesSems
+    rulesSems = getRules grammar
+    rules = Map.keys rulesSems
     start = getStart rules
     s = Map.fromAscList . zip [0..] . Set.toAscList $ states rules
     s0 = fst . Map.elemAt 0 $  Map.filter (Set.member $ Item (getStart rules) 0 EndPoint) s
