@@ -144,7 +144,7 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
         (s:ss) = drop bodyLen (state:xs)
         addr = head addrNumbers
         result = Inter.Point addr
-        triple = semRule ps1
+        triple = semRule $ reverse ps1
         quad = Inter.toQuad result triple
         in
         buildTree (((fromState . g (State s)) (getHead rule) : s : ss), (quad:quads), (Inter.At addr:ps2), (drop 1 addrNumbers)) token
