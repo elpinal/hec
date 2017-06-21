@@ -25,6 +25,14 @@ data Rule = Rule NonTerm [Symbol] deriving (Eq, Show, Ord)
 
 data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show, Ord)
 
+type SemanticRule = [Inter.Operand] -> Inter.Triple
+
+semRuleOf :: [(Rule, SemanticRule)] -> Rule -> SemanticRule
+semRuleOf ruleSet prodRule =
+  case find (\(p, s) -> if p == prodRule then True else False) ruleSet of
+    Just (p, s) -> s
+    Nothing -> error $ "unexpected error: the semantic rule corresponding to " ++ show prodRule
+
 -- LR(1) Item
 type Items = Set.Set Item
 data Item = Item Rule Int LookAhead deriving (Eq, Show, Ord)
@@ -296,7 +304,7 @@ converge f x = let r = f x in
   else
     converge f r
 
----------- Examples ----------
+---------- Useful functions ----------
 
 (>:>) :: String -> [Symbol] -> Rule
 head >:> body = Rule (Var head) body
@@ -304,17 +312,11 @@ head >:> body = Rule (Var head) body
 refer :: String -> Symbol
 refer = NonTerm . Var
 
-type SemanticRule = [Inter.Operand] -> Inter.Triple
-
-semRuleOf :: [(Rule, SemanticRule)] -> Rule -> SemanticRule
-semRuleOf ruleSet prodRule =
-  case find (\(p, s) -> if p == prodRule then True else False) ruleSet of
-    Just (p, s) -> s
-    Nothing -> error $ "unexpected error: the semantic rule corresponding to " ++ show prodRule
-
 infix 8 |||
 (|||) :: Rule -> SemanticRule -> (Rule, SemanticRule)
 rule ||| sem = (rule, sem)
+
+---------- Examples ----------
 
 exampleGrammar :: Grammar
 exampleGrammar = Grammar (Var "expr")
