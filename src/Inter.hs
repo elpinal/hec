@@ -17,22 +17,22 @@ type Addr = Int
 
 data Result = Point Addr
             | RET
-            deriving (Show)
+            deriving (Show, Eq)
 
 data Operator = Add
               | Sub
               | Mul
               | Quo
-              deriving (Show)
+              deriving (Show, Eq)
 
 data Op = Arith Operator
         | NOP
-        deriving (Show)
+        deriving (Show, Eq)
 
 data Operand = At Addr
              | Const Int
              | Nil
-             deriving (Show)
+             deriving (Show, Eq)
 
 toQuad :: Result -> Triple -> Quad
 toQuad result (op, operand1, operand2) = (result, op, operand1, operand2)

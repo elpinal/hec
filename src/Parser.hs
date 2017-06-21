@@ -1,5 +1,13 @@
 module Parser
-    (
+    ( parse
+    , extend
+    , Grammar(..)
+    , NonTerm(..)
+    , Symbol(..)
+    
+    , (>:>)
+    , refer
+    , (|||)
     ) where
 
 import Safe
