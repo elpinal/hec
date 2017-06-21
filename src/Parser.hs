@@ -2,6 +2,8 @@ module Parser
     (
     ) where
 
+import Safe
+
 import Data.List
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
@@ -40,7 +42,7 @@ data Action =
 data Token' = Token' Token | EndToken deriving (Eq, Show, Ord)
 
 extend :: Grammar -> Grammar
-extend (Grammar start rules) = Grammar Start ((Rule Start [NonTerm start])|||(\xs -> (Inter.NOP, xs!!0, Inter.Nil)):rules)
+extend (Grammar start rules) = Grammar Start ((Rule Start [NonTerm start])|||(\xs -> (Inter.NOP, xs`at`0, Inter.Nil)):rules)
 
 getHead :: Rule -> NonTerm
 getHead (Rule head body) = head
@@ -93,7 +95,7 @@ action' gotoF states current token
     next :: Item -> Maybe Term
     next item =
       let (Item (Rule _ body) n _) = item in
-        case body !! n of
+        case body `at` n of
           (Term t) -> Just t
           otherwise -> Nothing
     matchShift :: Items
@@ -189,7 +191,7 @@ gotoItems rules items sym =
       return . closure rules . Set.map inc $ xs
   where
     next :: Item -> Symbol
-    next item = let (Item (Rule _ body) n _) = item in body !! n
+    next item = let (Item (Rule _ body) n _) = item in body `at` n
     filterFunc :: Item -> Bool
     filterFunc (Item (Rule _ body) n _) | length body <= n = False
     filterFunc item = next item == sym
@@ -210,7 +212,7 @@ closeItem rules item@(Item (Rule _ body) n _)
 closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- ((la1 . map LookAhead . Set.toList . firstOfSymbols rules) afterNext) ] | rule@(Rule head body) <- rules, (NonTerm head) == next ]
   where
     next :: Symbol
-    next = let (Item (Rule _ body) n _) = item in body !! n
+    next = let (Item (Rule _ body) n _) = item in body `at` n
     afterNext :: [Symbol]
     afterNext = let (Item (Rule _ body) n _) = item in drop (n+1) body
     la1 :: [LookAhead] -> [LookAhead]
@@ -316,7 +318,7 @@ rule ||| sem = (rule, sem)
 
 exampleGrammar :: Grammar
 exampleGrammar = Grammar (Var "expr")
-  [ "expr" >:> [ refer "expr", Term Add, Term Num] ||| (\xs -> (Inter.Arith Inter.Add, (xs!!0), (xs!!2)))
-  , "expr" >:> [ refer "expr", Term Sub, Term Num] ||| (\xs -> (Inter.Arith Inter.Sub, (xs!!0), (xs!!2)))
-  , "expr" >:> [ Term Num ] ||| (\xs -> (Inter.NOP, xs!!0, Inter.Nil))
+  [ "expr" >:> [ refer "expr", Term Add, Term Num] ||| (\xs -> (Inter.Arith Inter.Add, (xs`at`0), (xs`at`2)))
+  , "expr" >:> [ refer "expr", Term Sub, Term Num] ||| (\xs -> (Inter.Arith Inter.Sub, (xs`at`0), (xs`at`2)))
+  , "expr" >:> [ Term Num ] ||| (\xs -> (Inter.NOP, xs`at`0, Inter.Nil))
   ]
