@@ -6,6 +6,7 @@ module Inter
     , Operator(..)
     , Op(..)
     , Operand(..)
+    , toQuad
     ) where
 
 type Quad = (Result, Op, Operand, Operand)
@@ -28,3 +29,6 @@ data Op = Arith Operator
 data Operand = At Addr
              | Const Int
              | Nil
+
+toQuad :: Result -> Triple -> Quad
+toQuad result (op, operand1, operand2) = (result, op, operand1, operand2)

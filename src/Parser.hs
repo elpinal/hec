@@ -7,19 +7,21 @@ import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
 
+import qualified Inter
 import Scanner (Token(..), Term(..))
 
 ---------- Parser ----------
 
-data Grammar = Grammar NonTerm [Rule] deriving Show
+data Grammar = Grammar NonTerm [(Rule, SemanticRule)]
+
+instance Show Grammar where
+  show (Grammar x xs) = "(Grammar " ++ show x ++ " " ++ (show . map fst) xs
 
 data NonTerm = Var String | Start deriving (Eq, Show, Ord)
 
 data Rule = Rule NonTerm [Symbol] deriving (Eq, Show, Ord)
 
 data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show, Ord)
-
-data ParseTree = Node NonTerm [ParseTree] | Leaf Token | EmptyTree deriving Show
 
 -- LR(1) Item
 type Items = Set.Set Item
@@ -38,7 +40,7 @@ data Action =
 data Token' = Token' Token | EndToken deriving (Eq, Show, Ord)
 
 extend :: Grammar -> Grammar
-extend (Grammar start rules) = Grammar Start ((Rule Start [NonTerm start]):rules)
+extend (Grammar start rules) = Grammar Start ((Rule Start [NonTerm start])|||(\xs -> (Inter.NOP, xs!!0, Inter.Nil)):rules)
 
 getHead :: Rule -> NonTerm
 getHead (Rule head body) = head
@@ -46,18 +48,20 @@ getHead (Rule head body) = head
 getBody :: Rule -> [Symbol]
 getBody (Rule _ body) = body
 
-parse :: Grammar -> [Token] -> ParseTree
-parse _ [] = EmptyTree 
+parse :: Grammar -> [Token] -> [Inter.Quad]
+parse _ [] = []
 parse grammar tokens =
   let
-    (Grammar _ rules) = grammar
+    (Grammar _ rulesSems) = grammar
+    rules = map fst rulesSems
     start = getStart rules
     s = Map.fromAscList . zip [0..] . Set.toAscList $ states rules
     s0 = fst . Map.elemAt 0 $  Map.filter (Set.member $ Item (getStart rules) 0 EndPoint) s
     f = action (gotoItems rules) start s
     g = goto (gotoItems rules) s
+    m = semRuleOf rulesSems
   in
-    parse' f g s0 $ map Token' tokens ++ [EndToken]
+    parse' m f g s0 $ map Token' tokens ++ [EndToken]
 
 action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> State -> Token' -> Action
 action gotoF start states (State n) token =
@@ -124,23 +128,33 @@ goto gotoF states (State n) nt =
     headMaybe [] = Nothing
     headMaybe (x:xs) = Just x
 
-parse' :: (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> ParseTree
-parse' f g s0 tokens = head . snd $ foldl buildTree ([s0], [EmptyTree]) tokens
+parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> [Inter.Quad]
+parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
   where
-    buildTree :: ([Int], [ParseTree]) -> Token' -> ([Int], [ParseTree])
-    buildTree ((state:xs), trees) token = case f (State state) token of
-      Accept -> (xs, trees)
-      Shift n -> ((n:state:xs), ((Leaf . fromToken) token:trees))
+    buildTree :: ([Int], [Inter.Quad], [Inter.Operand], [Inter.Addr]) -> Token' -> ([Int], [Inter.Quad], [Inter.Operand], [Inter.Addr])
+    buildTree ((state:xs), quads, passed, addrNumbers) token = case f (State state) token of
+      Accept -> (xs, quads, passed, addrNumbers)
+      Shift n -> ((n:state:xs), quads, (tokenToOperand (fromToken token):passed), addrNumbers)
       Reduce rule -> let
         bodyLen = length . getBody $ rule
+        (ps1, ps2) = splitAt bodyLen passed
+        semRule = m rule
         (s:ss) = drop bodyLen (state:xs)
-        (t1, t2) = splitAt bodyLen trees in
-        buildTree (((fromState . g (State s)) (getHead rule) : s : ss), (Node (getHead rule) t1 : t2)) token
+        addr = head addrNumbers
+        result = Inter.Point addr
+        triple = semRule ps1
+        quad = Inter.toQuad result triple
+        in
+        buildTree (((fromState . g (State s)) (getHead rule) : s : ss), (quad:quads), (Inter.At addr:ps2), (drop 1 addrNumbers)) token
     fromToken :: Token' -> Token
     fromToken (Token' token) = token
     fromToken EndToken = error "unexpected EndToken"
     fromState :: State -> Int
     fromState (State n) = n
+    tokenToOperand :: Token -> Inter.Operand
+    tokenToOperand (Token (Num, val)) = Inter.Const . read $ val
+    snd' :: (a, b, c, d) -> b
+    snd' (a, b, c, d) = b
 
 ---------- states ----------
 
@@ -263,6 +277,7 @@ justNull :: Rule -> Bool
 justNull (Rule _ []) = True
 justNull _ = False
 
+
 nulls' :: [Rule] -> [NonTerm] -> [NonTerm]
 nulls' [] ns = ns
 nulls' ((Rule head syms):rules) ns
@@ -287,18 +302,21 @@ head >:> body = Rule (Var head) body
 refer :: String -> Symbol
 refer = NonTerm . Var
 
+type SemanticRule = [Inter.Operand] -> Inter.Triple
+
+semRuleOf :: [(Rule, SemanticRule)] -> Rule -> SemanticRule
+semRuleOf ruleSet prodRule =
+  case find (\(p, s) -> if p == prodRule then True else False) ruleSet of
+    Just (p, s) -> s
+    Nothing -> error $ "unexpected error: the semantic rule corresponding to " ++ show prodRule
+
+infix 8 |||
+(|||) :: Rule -> SemanticRule -> (Rule, SemanticRule)
+rule ||| sem = (rule, sem)
+
 exampleGrammar :: Grammar
 exampleGrammar = Grammar (Var "expr")
-  [ "expr" >:> [ refer "term", Term Num, Term Add, refer "expr" ]
-  , "expr" >:> [ refer "term" ]
-  , "term" >:> [ refer "factor", Term Sub, Term Num, refer "term" ]
-  , "term" >:> []
-  , "factor" >:> [ refer "expr", refer "term", Term Ident ]
-  ]
-
-exampleGrammar2 :: Grammar
-exampleGrammar2 = Grammar (Var "S")
-  [ "S" >:> [ refer "C", refer "C" ]
-  , "C" >:> [ Term Add, refer "C" ]
-  , "C" >:> [ Term Sub ]
+  [ "expr" >:> [ refer "expr", Term Add, Term Num] ||| (\xs -> (Inter.Arith Inter.Add, (xs!!0), (xs!!2)))
+  , "expr" >:> [ refer "expr", Term Sub, Term Num] ||| (\xs -> (Inter.Arith Inter.Sub, (xs!!0), (xs!!2)))
+  , "expr" >:> [ Term Num ] ||| (\xs -> (Inter.NOP, xs!!0, Inter.Nil))
   ]
