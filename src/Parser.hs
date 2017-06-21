@@ -4,7 +4,6 @@ module Parser
     , Grammar(..)
     , NonTerm(..)
     , Symbol(..)
-    
     , (>:>)
     , refer
     , (|||)
