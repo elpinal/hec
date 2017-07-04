@@ -35,10 +35,9 @@ data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show, Ord)
 type SemanticRule = [Inter.Operand] -> Inter.Triple
 
 semRuleOf :: Map.Map Rule SemanticRule -> Rule -> SemanticRule
-semRuleOf ruleSet prodRule =
-  case Map.lookup prodRule ruleSet of
-    Just s -> s
-    Nothing -> error $ "unexpected error: the semantic rule corresponding to " ++ show prodRule
+semRuleOf ruleSet prodRule = fromMaybe
+                             (error $ "unexpected error: the semantic rule corresponding to " ++ show prodRule) $
+                             Map.lookup prodRule ruleSet
 
 -- LR(1) Item
 type Items = Set.Set Item
@@ -46,7 +45,7 @@ data Item = Item Rule Int LookAhead deriving (Eq, Show, Ord)
 
 data LookAhead = LookAhead Term | EndPoint deriving (Eq, Show, Ord)
 
-data State = State Int deriving Show
+newtype State = State Int deriving Show
 
 data Action =
     Shift Int
@@ -63,7 +62,7 @@ getRules :: Grammar -> Map.Map Rule SemanticRule
 getRules (Grammar _ rules) = rules
 
 getHead :: Rule -> NonTerm
-getHead (Rule head body) = head
+getHead (Rule head _) = head
 
 getBody :: Rule -> [Symbol]
 getBody (Rule _ body) = body
@@ -92,11 +91,11 @@ action gotoF start states (State n) token =
   in
     case token of
       EndToken -> atEnd gotoF start states state
-      otherwise -> action' gotoF states state token
+      _ -> action' gotoF states state token
 
 atEnd :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> Items -> Action
 atEnd gotoF start states current
-  | (Item start 1 EndPoint) `Set.member` current = Accept
+  | Item start 1 EndPoint `Set.member` current = Accept
   | otherwise = action' gotoF states current EndToken
 
 action' :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> Items -> Token' -> Action
@@ -104,7 +103,7 @@ action' gotoF states current token
   | not $ Set.null matchReduce
     = Reduce . getRule . head . Set.toList $ matchReduce
   | not $ Set.null matchShift
-    = fromJust $ return . Shift =<< getID states =<< (gotoF current $ fromToken' token)
+    = fromJust $ fmap Shift (getID states =<< gotoF current (fromToken' token))
   | otherwise
     = error $ "unexpected error: " ++ show token
   where
@@ -117,9 +116,9 @@ action' gotoF states current token
       let (Item (Rule _ body) n _) = item in
         case body `atMay` n of
           Just (Term t) -> Just t
-          otherwise -> Nothing
+          _ -> Nothing
     matchShift :: Items
-    matchShift = Set.filter (\i -> fromMaybe False $ next i >>= return . (`eqLaToken` token) . LookAhead) current
+    matchShift = Set.filter (maybe False ((`eqLaToken` token) . LookAhead) . next) current
     fromToken' :: Token' -> Symbol
     fromToken' (Token' (Token (term, _))) = Term term
     getID :: Map.Map Int Items -> Items -> Maybe Int
@@ -148,15 +147,15 @@ goto gotoF states (State n) nt =
     getID states items = headMaybe . Map.keys . Map.filter (==items) $ states
     headMaybe :: [a] -> Maybe a
     headMaybe [] = Nothing
-    headMaybe (x:xs) = Just x
+    headMaybe (x:_) = Just x
 
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> [Inter.Quad]
 parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
   where
     buildTree :: ([Int], [Inter.Quad], [Inter.Operand], [Inter.Addr]) -> Token' -> ([Int], [Inter.Quad], [Inter.Operand], [Inter.Addr])
-    buildTree ((state:xs), quads, passed, addrNumbers) token = case f (State state) token of
+    buildTree (state:xs, quads, passed, addrNumbers) token = case f (State state) token of
       Accept -> (xs, quads, passed, addrNumbers)
-      Shift n -> ((n:state:xs), quads, (tokenToOperand (fromToken token):passed), addrNumbers)
+      Shift n -> (n:state:xs, quads, tokenToOperand (fromToken token):passed, addrNumbers)
       Reduce rule -> let
         bodyLen = length . getBody $ rule
         (ps1, ps2) = splitAt bodyLen passed
@@ -167,7 +166,7 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
         triple = semRule $ reverse ps1
         quad = Inter.toQuad result triple
         in
-        buildTree (((fromState . g (State s)) (getHead rule) : s : ss), (quad:quads), (Inter.At addr:ps2), (drop 1 addrNumbers)) token
+        buildTree ((fromState . g (State s)) (getHead rule) : s : ss, quad:quads, Inter.At addr:ps2, drop 1 addrNumbers) token
     fromToken :: Token' -> Token
     fromToken (Token' token) = token
     fromToken EndToken = error "unexpected EndToken"
@@ -176,7 +175,7 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
     tokenToOperand :: Token -> Inter.Operand
     tokenToOperand (Token (Num, val)) = Inter.Const . read $ val
     snd' :: (a, b, c, d) -> b
-    snd' (a, b, c, d) = b
+    snd' (_, x, _, _) = x
 
 ---------- States ----------
 
@@ -197,7 +196,7 @@ states' rules c = Set.union c . Set.fromList . catMaybes $ do
       syms :: Set.Set Symbol
       syms = Set.fromList . concat $ map syms' rules
       syms' :: Rule -> [Symbol]
-      syms' (Rule Start body) = []
+      syms' (Rule Start _) = []
       syms' (Rule head body) = NonTerm head : body
 
 ---------- goto items ----------
@@ -221,15 +220,15 @@ gotoItems rules items sym =
 ---------- Closure ----------
 
 closure :: [Rule] -> Items -> Items
-closure rules items = converge (closure' rules) items
+closure rules = converge (closure' rules)
 
 closure' :: [Rule] -> Items -> Items
 closure' rules items = Set.foldl Set.union Set.empty $ Set.map (closeItem rules) items
 
 closeItem :: [Rule] -> Item -> Items
-closeItem rules item@(Item (Rule _ body) n _)
+closeItem _ item@(Item (Rule _ body) n _)
   | length body <= n = Set.singleton item
-closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- ((la1 . map LookAhead . Set.toList . firstOfSymbols rules) afterNext) ] | rule@(Rule head body) <- rules, (NonTerm head) == next ]
+closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- (la1 . map LookAhead . Set.toList . firstOfSymbols rules) afterNext ] | rule@(Rule head _) <- rules, NonTerm head == next ]
   where
     next :: Symbol
     next = let (Item (Rule _ body) n _) = item in body `at` n
@@ -246,7 +245,7 @@ firstOfSymbols :: [Rule] -> [Symbol] -> Set.Set Term
 firstOfSymbols rules symbols = Set.unions $ map m $ takeUpToNot (nullable rules) symbols
   where
     m :: Symbol -> Set.Set Term
-    m (NonTerm t) = maybe Set.empty id $ Map.lookup t $ firstS rules
+    m (NonTerm t) = fromMaybe Set.empty $ Map.lookup t $ firstS rules
     m (Term t) = Set.singleton t
 
 firstS :: [Rule] -> Map.Map NonTerm (Set.Set Term)
@@ -256,8 +255,8 @@ first :: [Rule] -> Map.Map NonTerm (Set.Set Term) -> Map.Map NonTerm (Set.Set Te
 first rules stack = Map.fromListWith Set.union [ (head, first' (nullable rules) body stack) | (Rule head body) <- rules ]
 
 first' :: (Symbol -> Bool) -> [Symbol] -> Map.Map NonTerm (Set.Set Term) -> Set.Set Term
-first' f [] _ = Set.empty
-first' f ((Term x):_) _ = Set.singleton x
+first' _ [] _ = Set.empty
+first' _ (Term x:_) _ = Set.singleton x
 first' f body stack =
   let
     xs = takeUpToNot f body
@@ -265,11 +264,7 @@ first' f body stack =
     x <- xs
     return $ case x of
       Term t -> Set.singleton t
-      NonTerm t -> maybe Set.empty id $ Map.lookup t stack
-  where
-    isTerm :: Symbol -> Bool
-    isTerm (Term t) = True
-    isTerm _ = False
+      NonTerm t -> fromMaybe Set.empty $ Map.lookup t stack
 
 takeUpToNot :: (a -> Bool) -> [a] -> [a]
 takeUpToNot f xs =
@@ -278,12 +273,12 @@ takeUpToNot f xs =
   in
     case r of
       [] -> l
-      otherwise -> l ++ [head r]
+      _ -> l ++ [head r]
 
 ---------- Nulls ----------
 
 nullable :: [Rule] -> Symbol -> Bool
-nullable rules (NonTerm x) = x `elem` (nulls rules)
+nullable rules (NonTerm x) = x `elem` nulls rules
 nullable _ _ = False
 
 nulls :: [Rule] -> [NonTerm]
@@ -302,7 +297,7 @@ justNull _ = False
 
 nulls' :: [Rule] -> [NonTerm] -> [NonTerm]
 nulls' [] ns = ns
-nulls' ((Rule head syms):rules) ns
+nulls' (Rule head syms:rules) ns
   | head `notElem` ns && all f syms = nulls' rules (head:ns)
   | otherwise = nulls' rules ns
     where
