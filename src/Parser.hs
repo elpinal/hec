@@ -121,11 +121,13 @@ action' gotoF states current token
     matchShift = Set.filter (maybe False ((`eqLaToken` token) . LookAhead) . next) current
     fromToken' :: Token' -> Symbol
     fromToken' (Token' (Token (term, _))) = Term term
-    getID :: Map.Map Int Items -> Items -> Maybe Int
-    getID states items = headMaybe . Map.keys . Map.filter (==items) $ states
+
+getID :: Map.Map Int Items -> Items -> Maybe Int
+getID states items = headMaybe . Map.keys . Map.filter (==items) $ states
+  where
     headMaybe :: [a] -> Maybe a
     headMaybe [] = Nothing
-    headMaybe (x:xs) = Just x
+    headMaybe (x:_) = Just x
 
 eqLaToken :: LookAhead -> Token' -> Bool
 eqLaToken EndPoint EndToken = True
@@ -142,12 +144,6 @@ goto gotoF states (State n) nt =
     case j of
       Nothing -> error $ "unexpected " ++ show nt
       (Just j') -> State . fromJust $ getID states j'
-  where
-    getID :: Map.Map Int Items -> Items -> Maybe Int
-    getID states items = headMaybe . Map.keys . Map.filter (==items) $ states
-    headMaybe :: [a] -> Maybe a
-    headMaybe [] = Nothing
-    headMaybe (x:_) = Just x
 
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> [Inter.Quad]
 parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
