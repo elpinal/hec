@@ -1,5 +1,6 @@
 module Scanner
-    ( Token(..)
+    ( scan
+    , Token(..)
     , Term(..)
     ) where
 
