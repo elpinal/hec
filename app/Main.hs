@@ -1,6 +1,9 @@
 module Main where
 
-import Lib
+import Compile
 
 main :: IO ()
-main = compile
+main = do
+  interact $ \x -> case compile x of
+             Right asm -> asm
+             Left err -> show err

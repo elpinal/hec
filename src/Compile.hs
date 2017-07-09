@@ -15,8 +15,15 @@ compile s = case scan s of
             Left err -> Left $ show err
             Right tokens -> let
                               quads = reverse $ parse grammar tokens
+                              asm = Foldable.foldl ((++) . (++ "\n")) "" . Gen.codeToString . fst . Gen.generate $ quads
                             in
-                              return . Foldable.foldl ((++) . (++ "\n")) "" . Gen.codeToString . fst . Gen.generate $ quads
+                              return . foldl1 (++) $
+                              [ ".text\n"
+                              , ".global _intfn\n"
+                              , "_intfn:"
+                              , asm
+                              , "\nret\n"
+                              ]
 
 grammar :: Grammar
 grammar = extend $ Grammar (Var "expr") $ Map.fromList
