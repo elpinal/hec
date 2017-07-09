@@ -60,7 +60,7 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
              Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
              pre -> let
                       (codes2, reg2) = gen pre m $ Set.delete reg1 registers
-                    in ((codes1 >< codes2) |> Code (instr op) [Reg reg1, Reg reg2], reg1)
+                    in ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
   else
     case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr2) xs of
     Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr1
@@ -71,23 +71,23 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
                Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
                pre -> let
                         (codes2, reg2) = gen pre m $ Set.delete reg1 registers
-                      in ((codes1 >< codes2) |> Code (instr op) [Reg reg1, Reg reg2], reg1)
+                      in ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
   where (.>) = liftA2 (>)
 gen (_:>(_, op, Inter.Const v1, Inter.Const v2)) _ registers =
   let reg = Set.findMin registers
-    in (Sequence.fromList [Code Mov [Const v1, Reg reg], Code (instr op) [Reg reg, Const v2]], reg)
+    in (Sequence.fromList [Code Mov [Const v1, Reg reg], Code (instr op) [Const v2, Reg reg]], reg)
 gen (xs:>(_, op, Inter.At addr, Inter.Const v)) m registers =
   case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
   Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr
   pre -> let (codes, reg) = gen pre m registers
-    in (codes |> Code (instr op) [Reg reg, Const v], reg)
+    in (codes |> Code (instr op) [Const v, Reg reg], reg)
 gen (xs:>(_, op, Inter.Const v, Inter.At addr)) m registers =
   case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
   Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr
   pre -> let
     (codes, reg) = gen pre m registers
     reg1 = Set.findMin registers
-    in (codes |> Code Mov [Const v, Reg reg1] |> Code (instr op) [Reg reg1, Reg reg], reg)
+    in (codes |> Code Mov [Const v, Reg reg1] |> Code (instr op) [Reg reg, Reg reg1], reg1)
 gen (_:>(_, Inter.NOP, Inter.Const v, Inter.Nil)) _ registers =
   let reg = Set.findMin registers
     in (singleton $ Code Mov [Const v, Reg reg], reg)
