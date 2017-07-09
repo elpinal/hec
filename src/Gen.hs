@@ -1,6 +1,7 @@
 module Gen where
 
 import Control.Applicative (liftA2)
+import Data.Char
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import Data.Sequence as Sequence
@@ -32,6 +33,17 @@ instr ( Inter.Arith Inter.Add ) = Add
 instr ( Inter.Arith Inter.Sub ) = Sub
 instr Inter.NOP = error "not implemented yet"
 instr op = error $ "no corresponding instruction" ++ show op
+
+codeToString :: Seq Code -> Seq String
+codeToString = fmap str
+  where
+    str :: Code -> String
+    str (Code Mov xs) = "mov " ++ unwords (map strArg xs)
+    str (Code op xs) = map toLower (show op) ++ " " ++ unwords (map strArg xs)
+
+    strArg :: Arg -> String
+    strArg (Reg reg) = map toLower $ show reg
+    strArg (Const v) = '#' : show v
 
 generate :: Block -> (Seq Code, Register)
 generate block = uncurry (gen . viewr) (checkLabel block) $ Set.fromList [EAX, EBX, ECX, EDX]
