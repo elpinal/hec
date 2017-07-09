@@ -44,6 +44,8 @@ test intfn 3 '1+2'
 test intfn 3 '1 + 2'
 test intfn 10 '1+2+3+4'
 
+test intfn 2302 '1 + 2 - 11 + 11 * 210'
+
 testfail intfn '0abc'
 testfail intfn '1+'
 

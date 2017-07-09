@@ -14,6 +14,7 @@ type Block = [Inter.Quad]
 data Instr = Add
            | Sub
            | Mov
+           | IMul
            deriving (Show)
 
 data Arg = Reg Register
@@ -31,6 +32,7 @@ data Code = Code Instr [Arg] deriving (Show)
 instr :: Inter.Op -> Instr
 instr ( Inter.Arith Inter.Add ) = Add
 instr ( Inter.Arith Inter.Sub ) = Sub
+instr ( Inter.Arith Inter.Mul ) = IMul
 instr Inter.NOP = error "not implemented yet"
 instr op = error $ "no corresponding instruction" ++ show op
 
@@ -91,6 +93,11 @@ gen (xs:>(_, op, Inter.Const v, Inter.At addr)) m registers =
 gen (_:>(_, Inter.NOP, Inter.Const v, Inter.Nil)) _ registers =
   let reg = Set.findMin registers
     in (singleton $ Code Mov [Const v, Reg reg], reg)
+gen (xs:>(_, Inter.NOP, Inter.At addr, Inter.Nil)) m registers =
+  case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
+  Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr
+  pre -> gen pre m registers
+gen xs m registers = error $ "unexpected error: " ++ show xs ++ show m ++ show registers
 
 checkLabel :: Block -> (Seq Inter.Quad, Map.Map Inter.Addr Int)
 checkLabel block = foldl checkLabel' (empty, Map.empty) block

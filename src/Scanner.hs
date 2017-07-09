@@ -17,6 +17,7 @@ data Term =
   | Str
   | Add
   | Sub
+  | Mul
   | WhiteSpace
     deriving (Eq, Show, Ord)
 
@@ -44,6 +45,7 @@ scanExpr =
   <|> (scanString >>= return . curry Token Str)
   <|> (char '+' >>= return . curry Token Add . (:[]))
   <|> (char '-' >>= return . curry Token Sub . (:[]))
+  <|> (char '*' >>= return . curry Token Mul. (:[]))
   <|> (many1 space >>= return . curry Token WhiteSpace)
 
 scanString :: GenParser Char st String
