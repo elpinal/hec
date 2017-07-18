@@ -16,9 +16,8 @@ then, you can see `~/.local/bin/hec`.
 
 ## What is Hec?
 
-Hec is a compiler of Elacht programming language. The main purpose of
-developing Elacht is to create a text editor.
-
+Hec is a compiler of the [Elacht](https://github.com/elpinal/elacht)
+programming language.
 
 ## Contribution
 
