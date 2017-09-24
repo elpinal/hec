@@ -136,11 +136,7 @@ action' gotoF states current token
     fromToken' (Token' (Token (term, _))) = Term term
 
 getID :: Map.Map Int Items -> Items -> Maybe Int
-getID states items = headMaybe . Map.keys . Map.filter (==items) $ states
-  where
-    headMaybe :: [a] -> Maybe a
-    headMaybe [] = Nothing
-    headMaybe (x:_) = Just x
+getID states items = headMay . Map.keys . Map.filter (==items) $ states
 
 eqLaToken :: LookAhead -> Token' -> Bool
 eqLaToken EndPoint EndToken = True
