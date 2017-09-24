@@ -40,13 +40,13 @@ lexeme = do
 
 scanExpr :: GenParser Char st Token
 scanExpr =
-  (many1 digit >>= return . curry Token Num)
-  <|> (many1 (letter <|> digit) >>= return . curry Token Ident)
-  <|> (scanString >>= return . curry Token Str)
-  <|> (char '+' >>= return . curry Token Add . (:[]))
-  <|> (char '-' >>= return . curry Token Sub . (:[]))
-  <|> (char '*' >>= return . curry Token Mul. (:[]))
-  <|> (many1 space >>= return . curry Token WhiteSpace)
+  (curry Token Num <$> many1 digit)
+  <|> (curry Token Ident <$> many1 (letter <|> digit))
+  <|> (curry Token Str <$> scanString)
+  <|> (curry Token Add . (:[]) <$> char '+')
+  <|> (curry Token Sub . (:[]) <$> char '-')
+  <|> (curry Token Mul . (:[]) <$> char '*')
+  <|> (curry Token WhiteSpace <$> many1 space)
 
 scanString :: GenParser Char st String
 scanString = do
