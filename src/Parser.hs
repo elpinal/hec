@@ -104,7 +104,7 @@ atEnd gotoF start states current
 action' :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> Items -> Token' -> Action
 action' gotoF states current token
   | not $ Set.null matchReduce
-    = reduce . head . Set.toList $ matchReduce
+    = reduce . Set.findMin $ matchReduce
   | not $ Set.null matchShift
     = fromJust $ fmap Shift $ getID states =<< gotoF current (fromToken' token)
   | otherwise
