@@ -73,6 +73,9 @@ getBody (Rule _ body) = body
 getNextSym :: Item -> Maybe Symbol
 getNextSym (Item (Rule _ body) n _) = body `atMay` n
 
+nextSym :: Item -> Symbol
+nextSym (Item (Rule _ body) n _) = body `at` n
+
 ---------- Parse ----------
 
 parse :: Grammar -> [Token] -> [Inter.Quad]
@@ -223,12 +226,9 @@ gotoItems rules items sym =
     else
       return . closure rules . Set.map inc $ xs
   where
-    next :: Item -> Symbol
-    next item = let (Item (Rule _ body) n _) = item in body `at` n
-
     filterFunc :: Item -> Bool
     filterFunc (Item (Rule _ body) n _) | length body <= n = False
-    filterFunc item = next item == sym
+    filterFunc item = nextSym item == sym
 
     inc :: Item -> Item
     inc (Item r n l) = Item r (n + 1) l
@@ -248,12 +248,9 @@ closeItem rules item = Set.fromList $
   item : concat [ [ Item rule 0 la
                   | la <- la1 . map LookAhead . Set.toList . firstOfSymbols rules $ afterNext
                   ]
-                | rule@(Rule head _) <- rules, NonTerm head == next
+                | rule@(Rule head _) <- rules, NonTerm head == nextSym item
                 ]
   where
-    next :: Symbol
-    next = let (Item (Rule _ body) n _) = item in body `at` n
-
     afterNext :: [Symbol]
     afterNext = let (Item (Rule _ body) n _) = item in drop (n + 1) body
 
