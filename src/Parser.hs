@@ -236,7 +236,7 @@ gotoItems rules items sym =
 ---------- Closure ----------
 
 closure :: [Rule] -> Items -> Items
-closure rules = converge (closure' rules)
+closure rules = converge $ closure' rules
 
 closure' :: [Rule] -> Items -> Items
 closure' rules items = Set.foldl Set.union Set.empty $ Set.map (closeItem rules) items
