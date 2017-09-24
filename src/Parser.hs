@@ -112,16 +112,20 @@ action' gotoF states current token
   where
     matchReduce :: Items
     matchReduce = Set.filter (\(Item rule n la) -> la `eqLaToken` token && length (getBody rule) == n) current
+
     getRule :: Item -> Rule
     getRule (Item rule _ _) = rule
+
     next :: Item -> Maybe Term
     next item =
       let (Item (Rule _ body) n _) = item in
         case body `atMay` n of
           Just (Term t) -> Just t
           _ -> Nothing
+
     matchShift :: Items
     matchShift = Set.filter (maybe False ((`eqLaToken` token) . LookAhead) . next) current
+
     fromToken' :: Token' -> Symbol
     fromToken' (Token' (Token (term, _))) = Term term
 
@@ -166,13 +170,17 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
         quad = Inter.toQuad result triple
         in
         buildTree ((fromState . g (State s)) (getHead rule) : s : ss, quad:quads, Inter.At addr:ps2, drop 1 addrNumbers) token
+
     fromToken :: Token' -> Token
     fromToken (Token' token) = token
     fromToken EndToken = error "unexpected EndToken"
+
     fromState :: State -> Int
     fromState (State n) = n
+
     tokenToOperand :: Token -> Inter.Operand
     tokenToOperand (Token (Num, val)) = Inter.Const . read $ val
+
     snd' :: (a, b, c, d) -> b
     snd' (_, x, _, _) = x
 
@@ -191,12 +199,13 @@ states' rules c = Set.union c . Set.fromList . catMaybes $ do
   items <- Set.toList c
   sym <- Set.toList syms
   return $ gotoItems rules items sym
-    where
-      syms :: Set.Set Symbol
-      syms = Set.fromList . concat $ map syms' rules
-      syms' :: Rule -> [Symbol]
-      syms' (Rule Start _) = []
-      syms' (Rule head body) = NonTerm head : body
+  where
+    syms :: Set.Set Symbol
+    syms = Set.fromList . concat $ map syms' rules
+
+    syms' :: Rule -> [Symbol]
+    syms' (Rule Start _) = []
+    syms' (Rule head body) = NonTerm head : body
 
 ---------- goto items ----------
 
@@ -210,9 +219,11 @@ gotoItems rules items sym =
   where
     next :: Item -> Symbol
     next item = let (Item (Rule _ body) n _) = item in body `at` n
+
     filterFunc :: Item -> Bool
     filterFunc (Item (Rule _ body) n _) | length body <= n = False
     filterFunc item = next item == sym
+
     inc :: Item -> Item
     inc (Item r n l) = Item r (n+1) l
 
@@ -231,8 +242,10 @@ closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- (
   where
     next :: Symbol
     next = let (Item (Rule _ body) n _) = item in body `at` n
+
     afterNext :: [Symbol]
     afterNext = let (Item (Rule _ body) n _) = item in drop (n+1) body
+
     la1 :: [LookAhead] -> [LookAhead]
     la1 x
       | all (nullable rules) afterNext = let (Item _ _ a) = item in a : x
@@ -299,9 +312,9 @@ nulls' [] ns = ns
 nulls' (Rule head syms:rules) ns
   | head `notElem` ns && all f syms = nulls' rules (head:ns)
   | otherwise = nulls' rules ns
-    where
-      f (NonTerm t) = t `elem` ns
-      f _ = False
+  where
+    f (NonTerm t) = t `elem` ns
+    f _ = False
 
 converge :: Eq a => (a -> a) -> a -> a
 converge f x = let r = f x in
