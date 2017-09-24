@@ -70,6 +70,9 @@ getHead (Rule head _) = head
 getBody :: Rule -> [Symbol]
 getBody (Rule _ body) = body
 
+getNextSym :: Item -> Maybe Symbol
+getNextSym (Item (Rule _ body) n _) = body `atMay` n
+
 ---------- Parse ----------
 
 parse :: Grammar -> [Token] -> [Inter.Quad]
@@ -120,11 +123,11 @@ action' gotoF states current token
     reduce (Item rule _ _) = Reduce rule
 
     next :: Item -> Maybe Term
-    next item =
-      let (Item (Rule _ body) n _) = item in
-        case body `atMay` n of
-          Just (Term t) -> Just t
-          _ -> Nothing
+    next item = getNextSym item >>= fromTerm
+
+    fromTerm :: Symbol -> Maybe Term
+    fromTerm (Term t) = return t
+    fromTerm _ = Nothing
 
     matchShift :: Items
     matchShift = Set.filter (maybe False ((`eqLaToken` token) . LookAhead) . next) current
