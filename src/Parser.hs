@@ -104,7 +104,7 @@ atEnd gotoF start states current
 action' :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> Items -> Token' -> Action
 action' gotoF states current token
   | not $ Set.null matchReduce
-    = Reduce . getRule . head . Set.toList $ matchReduce
+    = reduce . head . Set.toList $ matchReduce
   | not $ Set.null matchShift
     = fromJust $ fmap Shift $ getID states =<< gotoF current (fromToken' token)
   | otherwise
@@ -116,8 +116,8 @@ action' gotoF states current token
     f :: Item -> Bool
     f (Item rule n la) = la `eqLaToken` token && length (getBody rule) == n
 
-    getRule :: Item -> Rule
-    getRule (Item rule _ _) = rule
+    reduce :: Item -> Action
+    reduce (Item rule _ _) = Reduce rule
 
     next :: Item -> Maybe Term
     next item =
