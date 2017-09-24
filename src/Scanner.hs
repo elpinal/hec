@@ -50,6 +50,6 @@ scanExpr =
 scanString :: GenParser Char st String
 scanString = do
   char '"'
-  s <- many (noneOf "\"")
+  s <- many $ noneOf "\""
   char '"'
   return s
