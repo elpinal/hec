@@ -106,7 +106,7 @@ action' gotoF states current token
   | not $ Set.null matchReduce
     = reduce . Set.findMin $ matchReduce
   | not $ Set.null matchShift
-    = fromJust $ fmap Shift $ getID states =<< gotoF current (fromToken' token)
+    = fromJust . fmap Shift $ getID states =<< gotoF current (fromToken' token)
   | otherwise
     = error $ "unexpected error: " ++ show token
   where
@@ -257,10 +257,10 @@ closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- (
 ---------- First ----------
 
 firstOfSymbols :: [Rule] -> [Symbol] -> Set.Set Term
-firstOfSymbols rules symbols = Set.unions $ map m $ takeUpToNot (nullable rules) symbols
+firstOfSymbols rules symbols = Set.unions . map m $ takeUpToNot (nullable rules) symbols
   where
     m :: Symbol -> Set.Set Term
-    m (NonTerm t) = fromMaybe Set.empty $ Map.lookup t $ firstS rules
+    m (NonTerm t) = fromMaybe Set.empty . Map.lookup t $ firstS rules
     m (Term t) = Set.singleton t
 
 firstS :: [Rule] -> Map.Map NonTerm (Set.Set Term)
