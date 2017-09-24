@@ -231,7 +231,7 @@ gotoItems rules items sym =
     filterFunc item = next item == sym
 
     inc :: Item -> Item
-    inc (Item r n l) = Item r (n+1) l
+    inc (Item r n l) = Item r (n + 1) l
 
 ---------- Closure ----------
 
@@ -250,7 +250,7 @@ closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- (
     next = let (Item (Rule _ body) n _) = item in body `at` n
 
     afterNext :: [Symbol]
-    afterNext = let (Item (Rule _ body) n _) = item in drop (n+1) body
+    afterNext = let (Item (Rule _ body) n _) = item in drop (n + 1) body
 
     la1 :: [LookAhead] -> [LookAhead]
     la1 x
