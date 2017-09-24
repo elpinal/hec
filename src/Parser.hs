@@ -148,7 +148,7 @@ goto :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> State -> NonTer
 goto gotoF states (State n) nt =
   let
     state = fromJust $ Map.lookup n states
-    j = gotoF state (NonTerm nt)
+    j = gotoF state $ NonTerm nt
   in
     case j of
       Nothing -> error $ "unexpected " ++ show nt
