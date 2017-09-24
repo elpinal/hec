@@ -171,7 +171,7 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
         quad = Inter.toQuad result triple
         in
         flip buildTree token
-                       ( (fromState . g (State s)) (getHead rule) : s : ss
+                       ( (getIdx . g (State s)) (getHead rule) : s : ss
                        , quad : quads
                        , Inter.At addr : ps2
                        , drop 1 addrNumbers
@@ -181,8 +181,8 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
     fromToken (Token' token) = token
     fromToken EndToken = error "unexpected EndToken"
 
-    fromState :: State -> Int
-    fromState (State n) = n
+    getIdx :: State -> Int
+    getIdx (State n) = n
 
     tokenToOperand :: Token -> Inter.Operand
     tokenToOperand (Token (Num, val)) = Inter.Const . read $ val
