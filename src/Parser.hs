@@ -111,7 +111,10 @@ action' gotoF states current token
     = error $ "unexpected error: " ++ show token
   where
     matchReduce :: Items
-    matchReduce = Set.filter (\(Item rule n la) -> la `eqLaToken` token && length (getBody rule) == n) current
+    matchReduce = Set.filter f current
+
+    f :: Item -> Bool
+    f (Item rule n la) = la `eqLaToken` token && length (getBody rule) == n
 
     getRule :: Item -> Rule
     getRule (Item rule _ _) = rule
