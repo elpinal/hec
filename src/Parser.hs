@@ -318,7 +318,7 @@ justNull _ = False
 nulls' :: [Rule] -> [NonTerm] -> [NonTerm]
 nulls' [] ns = ns
 nulls' (Rule head syms:rules) ns
-  | head `notElem` ns && all f syms = nulls' rules (head:ns)
+  | head `notElem` ns && all f syms = nulls' rules $ head : ns
   | otherwise = nulls' rules ns
   where
     f (NonTerm t) = t `elem` ns
