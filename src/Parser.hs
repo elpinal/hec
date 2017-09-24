@@ -146,13 +146,12 @@ eqLaToken (LookAhead term) (Token' (Token (token, _))) = term == token
 
 goto :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> State -> NonTerm -> State
 goto gotoF states (State n) nt =
-  let
+  maybe (error $ "unexpected " ++ show nt)
+        (State . fromJust . getID states) $
+        gotoF state $ NonTerm nt
+  where
+    state :: Items
     state = fromJust $ Map.lookup n states
-    j = gotoF state $ NonTerm nt
-  in
-    case j of
-      Nothing -> error $ "unexpected " ++ show nt
-      (Just j') -> State . fromJust $ getID states j'
 
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> [Inter.Quad]
 parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
