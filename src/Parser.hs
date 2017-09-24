@@ -89,12 +89,12 @@ parse grammar tokens =
 
 action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> State -> Token' -> Action
 action gotoF start states (State n) token =
-  let
+  case token of
+    EndToken -> atEnd gotoF start states state
+    _ -> action' gotoF states state token
+  where
+    state :: Items
     state = fromJust $ Map.lookup n states
-  in
-    case token of
-      EndToken -> atEnd gotoF start states state
-      _ -> action' gotoF states state token
 
 atEnd :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> Items -> Action
 atEnd gotoF start states current
