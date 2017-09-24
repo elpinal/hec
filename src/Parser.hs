@@ -170,7 +170,12 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
         triple = semRule $ reverse ps1
         quad = Inter.toQuad result triple
         in
-        buildTree ((fromState . g (State s)) (getHead rule) : s : ss, quad:quads, Inter.At addr:ps2, drop 1 addrNumbers) token
+        flip buildTree token
+                       ( (fromState . g (State s)) (getHead rule) : s : ss
+                       , quad : quads
+                       , Inter.At addr : ps2
+                       , drop 1 addrNumbers
+                       )
 
     fromToken :: Token' -> Token
     fromToken (Token' token) = token
