@@ -244,7 +244,12 @@ closure' rules items = Set.foldl Set.union Set.empty $ Set.map (closeItem rules)
 closeItem :: [Rule] -> Item -> Items
 closeItem _ item@(Item (Rule _ body) n _)
   | length body <= n = Set.singleton item
-closeItem rules item = Set.fromList $ item : concat [ [ Item rule 0 la | la <- (la1 . map LookAhead . Set.toList . firstOfSymbols rules) afterNext ] | rule@(Rule head _) <- rules, NonTerm head == next ]
+closeItem rules item = Set.fromList $
+  item : concat [ [ Item rule 0 la
+                  | la <- la1 . map LookAhead . Set.toList . firstOfSymbols rules $ afterNext
+                  ]
+                | rule@(Rule head _) <- rules, NonTerm head == next
+                ]
   where
     next :: Symbol
     next = let (Item (Rule _ body) n _) = item in body `at` n
