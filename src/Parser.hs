@@ -106,7 +106,7 @@ action' gotoF states current token
   | not $ Set.null matchReduce
     = Reduce . getRule . head . Set.toList $ matchReduce
   | not $ Set.null matchShift
-    = fromJust $ fmap Shift (getID states =<< gotoF current (fromToken' token))
+    = fromJust $ fmap Shift $ getID states =<< gotoF current (fromToken' token)
   | otherwise
     = error $ "unexpected error: " ++ show token
   where
