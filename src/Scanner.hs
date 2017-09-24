@@ -22,12 +22,11 @@ data Term =
     deriving (Eq, Show, Ord)
 
 scan :: String -> Either ParseError [Token]
-scan src =
-  case scan' src of
-    Right ts -> Right $ filter isNotWhiteSpace ts
-    x -> x
-  where isNotWhiteSpace (Token (WhiteSpace, _)) = False
-        isNotWhiteSpace _ = True
+scan src = filter isNotWhiteSpace <$> scan' src
+  where
+    isNotWhiteSpace :: Token -> Bool
+    isNotWhiteSpace (Token (WhiteSpace, _)) = False
+    isNotWhiteSpace _ = True
 
 scan' :: String -> Either ParseError [Token]
 scan' = parse lexeme "<unknown>"
