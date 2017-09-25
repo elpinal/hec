@@ -77,7 +77,9 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
                  pre -> let
                           (codes2, reg2) = gen pre m $ Set.delete reg1 registers
                         in ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
-  where (.>) = liftA2 (>)
+  where
+    (.>) :: (Applicative f, Ord a) => f a -> f a -> f Bool
+    (.>) = liftA2 (>)
 
 gen (_:>(_, op, Inter.Const v1, Inter.Const v2)) _ registers =
   let reg = Set.findMin registers
@@ -113,7 +115,9 @@ checkLabel block = foldl checkLabel' (empty, Map.empty) block
 
 checkLabel' :: (Seq Inter.Quad, Map.Map Inter.Addr Int) -> Inter.Quad -> (Seq Inter.Quad, Map.Map Inter.Addr Int)
 checkLabel' (xs, m) x@(Inter.Point addr,_,_,_) = (xs |> x, Map.insert addr l m)
-  where l = label x m
+  where
+    l :: Int
+    l = label x m
 
 label :: Inter.Quad -> Map.Map Inter.Addr Int -> Int
 label (_, Inter.NOP, _, Inter.Nil) _ = 1
