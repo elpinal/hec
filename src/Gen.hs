@@ -71,13 +71,13 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
                 ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
   else
     case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr2) xs of
-      Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr1
+      Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
       pre ->
         let
           (codes1, reg1) = gen pre m registers
         in
           case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr1) xs of
-            Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
+            Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr1
             pre ->
               let
                 (codes2, reg2) = gen pre m $ Set.delete reg1 registers
