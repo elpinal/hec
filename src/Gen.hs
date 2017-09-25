@@ -56,6 +56,10 @@ generate block = uncurry (gen . viewr) (checkLabel block) $ Set.fromList [EAX, E
 noAddr :: Show a => a -> b
 noAddr x = error $ "unexpected error: no such address: " ++ show x
 
+withDefault :: ViewR Inter.Quad -> a -> (ViewR Inter.Quad -> a) -> a
+withDefault Sequence.EmptyR e _ = e
+withDefault pre _ f = f pre
+
 gen :: ViewR Inter.Quad -> Map.Map Inter.Addr Int -> Set.Set Register -> (Seq Code, Register)
 gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
   if fromMaybe (error "unexpected error") $ Map.lookup addr1 m .> Map.lookup addr2 m then
@@ -68,9 +72,9 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
 
     g :: Inter.Addr -> Inter.Addr -> (Seq Code, Register)
     g a b =
-      h (declOfAddrR a) (noAddr a) $
+      withDefault (declOfAddrR a) (noAddr a) $
         \pre1 ->
-          h (declOfAddrR b) (noAddr b) $
+          withDefault (declOfAddrR b) (noAddr b) $
             \pre2 -> uncurry (f pre2) $ gen pre1 m registers
 
     declOfAddrR :: Inter.Addr -> ViewR Inter.Quad
@@ -79,10 +83,6 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
     resultAddr :: Inter.Quad -> Maybe (Inter.Addr)
     resultAddr (Inter.Point addr, _, _, _) = Just addr
     resultAddr _ = Nothing
-
-    h :: ViewR Inter.Quad -> a -> (ViewR Inter.Quad -> a) -> a
-    h Sequence.EmptyR e _ = e
-    h pre _ f = f pre
 
     f :: ViewR Inter.Quad -> Seq Code -> Register -> (Seq Code, Register)
     f pre codes1 reg1 =
@@ -98,18 +98,20 @@ gen (_:>(_, op, Inter.Const v1, Inter.Const v2)) _ registers =
     reg = Set.findMin registers
 
 gen (xs:>(_, op, Inter.At addr, Inter.Const v)) m registers =
-  case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
-    Sequence.EmptyR -> noAddr addr
-    pre ->
+  withDefault
+    (viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs)
+    (noAddr addr) $
+    \pre ->
       let
         (codes, reg) = gen pre m registers
       in
         (codes |> Code (instr op) [Const v, Reg reg], reg)
 
 gen (xs:>(_, op, Inter.Const v, Inter.At addr)) m registers =
-  case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
-    Sequence.EmptyR -> noAddr addr
-    pre ->
+  withDefault
+    (viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs)
+    (noAddr addr) $
+    \pre ->
       let
         (codes, reg) = gen pre m registers
         reg1 = Set.findMin registers
@@ -123,9 +125,10 @@ gen (_:>(_, Inter.NOP, Inter.Const v, Inter.Nil)) _ registers =
     reg = Set.findMin registers
 
 gen (xs:>(_, Inter.NOP, Inter.At addr, Inter.Nil)) m registers =
-  case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
-    Sequence.EmptyR -> noAddr addr
-    pre -> gen pre m registers
+  withDefault
+    (viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs)
+    (noAddr addr) $
+    \pre -> gen pre m registers
 
 gen xs m registers = error $ "unexpected error: " ++ show xs ++ show m ++ show registers
 
