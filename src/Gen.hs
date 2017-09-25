@@ -113,10 +113,10 @@ gen (xs:>(_, op, Inter.Const v, Inter.At addr)) m registers =
         (codes |> Code Mov [Const v, Reg reg1] |> Code (instr op) [Reg reg, Reg reg1], reg1)
 
 gen (_:>(_, Inter.NOP, Inter.Const v, Inter.Nil)) _ registers =
-  let
+  (singleton $ Code Mov [Const v, Reg reg], reg)
+  where
+    reg :: Register
     reg = Set.findMin registers
-  in
-    (singleton $ Code Mov [Const v, Reg reg], reg)
 
 gen (xs:>(_, Inter.NOP, Inter.At addr, Inter.Nil)) m registers =
   case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
