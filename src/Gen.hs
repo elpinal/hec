@@ -34,7 +34,7 @@ instr (Inter.Arith Inter.Add) = Add
 instr (Inter.Arith Inter.Sub) = Sub
 instr (Inter.Arith Inter.Mul) = IMul
 instr Inter.NOP = error "not implemented yet"
-instr op = error $ "no corresponding instruction" ++ show op
+instr op = error $ "no corresponding instruction: " ++ show op
 
 codeToString :: Seq Code -> Seq String
 codeToString = fmap str
