@@ -56,28 +56,24 @@ generate block = uncurry (gen . viewr) (checkLabel block) $ Set.fromList [EAX, E
 gen :: ViewR Inter.Quad -> Map.Map Inter.Addr Int -> Set.Set Register -> (Seq Code, Register)
 gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
   if fromMaybe (error "unexpected error") $ Map.lookup addr1 m .> Map.lookup addr2 m then
-    case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr1) xs of
-      Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr1
-      pre ->
-        let
-          (codes1, reg1) = gen pre m registers
-        in
-          case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr2) xs of
-            Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
-            pre -> f pre codes1 reg1
+    g addr1 addr2
   else
-    case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr2) xs of
-      Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
-      pre ->
-        let
-          (codes1, reg1) = gen pre m registers
-        in
-          case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr1) xs of
-            Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr1
-            pre -> f pre codes1 reg1
+    g addr2 addr1
   where
     (.>) :: (Applicative f, Ord a) => f a -> f a -> f Bool
     (.>) = liftA2 (>)
+
+    g :: Inter.Addr -> Inter.Addr -> (Seq Code, Register)
+    g a b =
+      case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= a) xs of
+        Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show a
+        pre ->
+          let
+            (codes1, reg1) = gen pre m registers
+          in
+            case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= b) xs of
+              Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show b
+              pre -> f pre codes1 reg1
 
     f :: ViewR Inter.Quad -> Seq Code -> Register -> (Seq Code, Register)
     f pre codes1 reg1 =
