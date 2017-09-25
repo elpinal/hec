@@ -60,6 +60,13 @@ withDefault :: ViewR Inter.Quad -> a -> (ViewR Inter.Quad -> a) -> a
 withDefault Sequence.EmptyR e _ = e
 withDefault pre _ f = f pre
 
+declOfAddrR :: Inter.Addr -> Seq Inter.Quad -> ViewR Inter.Quad
+declOfAddrR a xs = viewr $ dropWhileR (maybe False (/= a) . resultAddr) xs
+  where
+    resultAddr :: Inter.Quad -> Maybe (Inter.Addr)
+    resultAddr (Inter.Point addr, _, _, _) = Just addr
+    resultAddr _ = Nothing
+
 gen :: ViewR Inter.Quad -> Map.Map Inter.Addr Int -> Set.Set Register -> (Seq Code, Register)
 gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
   if fromMaybe (error "unexpected error") $ Map.lookup addr1 m .> Map.lookup addr2 m then
@@ -72,17 +79,10 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
 
     g :: Inter.Addr -> Inter.Addr -> (Seq Code, Register)
     g a b =
-      withDefault (declOfAddrR a) (noAddr a) $
+      withDefault (declOfAddrR a xs) (noAddr a) $
         \pre1 ->
-          withDefault (declOfAddrR b) (noAddr b) $
+          withDefault (declOfAddrR b xs) (noAddr b) $
             \pre2 -> uncurry (f pre2) $ gen pre1 m registers
-
-    declOfAddrR :: Inter.Addr -> ViewR Inter.Quad
-    declOfAddrR a = viewr $ dropWhileR (maybe False (/= a) . resultAddr) xs
-
-    resultAddr :: Inter.Quad -> Maybe (Inter.Addr)
-    resultAddr (Inter.Point addr, _, _, _) = Just addr
-    resultAddr _ = Nothing
 
     f :: ViewR Inter.Quad -> Seq Code -> Register -> (Seq Code, Register)
     f pre codes1 reg1 =
@@ -99,7 +99,7 @@ gen (_:>(_, op, Inter.Const v1, Inter.Const v2)) _ registers =
 
 gen (xs:>(_, op, Inter.At addr, Inter.Const v)) m registers =
   withDefault
-    (viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs)
+    (declOfAddrR addr xs)
     (noAddr addr) $
     \pre ->
       let
@@ -109,7 +109,7 @@ gen (xs:>(_, op, Inter.At addr, Inter.Const v)) m registers =
 
 gen (xs:>(_, op, Inter.Const v, Inter.At addr)) m registers =
   withDefault
-    (viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs)
+    (declOfAddrR addr xs)
     (noAddr addr) $
     \pre ->
       let
@@ -126,7 +126,7 @@ gen (_:>(_, Inter.NOP, Inter.Const v, Inter.Nil)) _ registers =
 
 gen (xs:>(_, Inter.NOP, Inter.At addr, Inter.Nil)) m registers =
   withDefault
-    (viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs)
+    (declOfAddrR addr xs)
     (noAddr addr) $
     \pre -> gen pre m registers
 
