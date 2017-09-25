@@ -130,7 +130,11 @@ gen (xs:>(_, Inter.NOP, Inter.At addr, Inter.Nil)) m registers =
     (noAddr addr) $
     \pre -> gen pre m registers
 
-gen xs m registers = error $ "unexpected error: " ++ show xs ++ show m ++ show registers
+gen xs m registers = error $
+  "gen: unsupported arguments: " ++ foldl joinWithSpace [] [show xs, show m, show registers]
+  where
+    joinWithSpace :: String -> String -> String
+    joinWithSpace s t = s ++ " " ++ t
 
 checkLabel :: Block -> (Seq Inter.Quad, Map.Map Inter.Addr Int)
 checkLabel = foldl checkLabel' (empty, Map.empty)
