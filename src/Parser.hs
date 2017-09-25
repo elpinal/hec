@@ -35,9 +35,7 @@ data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show, Ord)
 type SemanticRule = [Inter.Operand] -> Inter.Triple
 
 semRuleOf :: Map.Map Rule SemanticRule -> Rule -> SemanticRule
-semRuleOf ruleSet prodRule =
-  fromMaybe (error msg) $
-            Map.lookup prodRule ruleSet
+semRuleOf ruleSet prodRule = Map.findWithDefault (error msg) prodRule ruleSet
   where
     msg :: String
     msg = "unexpected error: the semantic rule corresponding to " ++ show prodRule
