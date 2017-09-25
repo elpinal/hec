@@ -40,8 +40,11 @@ codeToString :: Seq Code -> Seq String
 codeToString = fmap str
   where
     str :: Code -> String
-    str (Code Mov xs) = "mov " ++ foldl1 ((++) . (++ ", ")) (map strArg xs)
-    str (Code op xs) = map toLower (show op) ++ " " ++ foldl1 ((++) . (++ ", ")) (map strArg xs)
+    str (Code Mov xs) = "mov " ++ foldl1 joinWithComma (map strArg xs)
+    str (Code op xs) = map toLower (show op) ++ " " ++ foldl1 joinWithComma (map strArg xs)
+
+    joinWithComma :: String -> String -> String
+    joinWithComma s t = s ++ ", " ++ t
 
     strArg :: Arg -> String
     strArg (Reg reg) = '%' : map toLower (show reg)
