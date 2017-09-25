@@ -58,50 +58,65 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
   if fromMaybe (error "unexpected error") $ Map.lookup addr1 m .> Map.lookup addr2 m then
     case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr1) xs of
       Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr1
-      pre -> let
-               (codes1, reg1) = gen pre m registers
-             in
-               case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr2) xs of
-                 Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
-                 pre -> let
-                          (codes2, reg2) = gen pre m $ Set.delete reg1 registers
-                        in ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
+      pre ->
+        let
+          (codes1, reg1) = gen pre m registers
+        in
+          case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr2) xs of
+            Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
+            pre ->
+              let
+                (codes2, reg2) = gen pre m $ Set.delete reg1 registers
+              in
+                ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
   else
     case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr2) xs of
       Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr1
-      pre -> let
-               (codes1, reg1) = gen pre m registers
-             in
-               case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr1) xs of
-                 Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
-                 pre -> let
-                          (codes2, reg2) = gen pre m $ Set.delete reg1 registers
-                        in ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
+      pre ->
+        let
+          (codes1, reg1) = gen pre m registers
+        in
+          case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr1) xs of
+            Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
+            pre ->
+              let
+                (codes2, reg2) = gen pre m $ Set.delete reg1 registers
+              in
+                ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
   where
     (.>) :: (Applicative f, Ord a) => f a -> f a -> f Bool
     (.>) = liftA2 (>)
 
 gen (_:>(_, op, Inter.Const v1, Inter.Const v2)) _ registers =
-  let reg = Set.findMin registers
-    in (Sequence.fromList [Code Mov [Const v1, Reg reg], Code (instr op) [Const v2, Reg reg]], reg)
+  (Sequence.fromList [Code Mov [Const v1, Reg reg], Code (instr op) [Const v2, Reg reg]], reg)
+  where
+    reg :: Register
+    reg = Set.findMin registers
 
 gen (xs:>(_, op, Inter.At addr, Inter.Const v)) m registers =
   case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
     Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr
-    pre -> let (codes, reg) = gen pre m registers
-      in (codes |> Code (instr op) [Const v, Reg reg], reg)
+    pre ->
+      let
+        (codes, reg) = gen pre m registers
+      in
+        (codes |> Code (instr op) [Const v, Reg reg], reg)
 
 gen (xs:>(_, op, Inter.Const v, Inter.At addr)) m registers =
   case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
     Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr
-    pre -> let
-      (codes, reg) = gen pre m registers
-      reg1 = Set.findMin registers
-      in (codes |> Code Mov [Const v, Reg reg1] |> Code (instr op) [Reg reg, Reg reg1], reg1)
+    pre ->
+      let
+        (codes, reg) = gen pre m registers
+        reg1 = Set.findMin registers
+      in
+        (codes |> Code Mov [Const v, Reg reg1] |> Code (instr op) [Reg reg, Reg reg1], reg1)
 
 gen (_:>(_, Inter.NOP, Inter.Const v, Inter.Nil)) _ registers =
-  let reg = Set.findMin registers
-    in (singleton $ Code Mov [Const v, Reg reg], reg)
+  let
+    reg = Set.findMin registers
+  in
+    (singleton $ Code Mov [Const v, Reg reg], reg)
 
 gen (xs:>(_, Inter.NOP, Inter.At addr, Inter.Nil)) m registers =
   case viewr $ dropWhileR (\(Inter.Point a, _, _, _) -> a /= addr) xs of
