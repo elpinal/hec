@@ -64,11 +64,7 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
         in
           case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr2) xs of
             Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
-            pre ->
-              let
-                (codes2, reg2) = gen pre m $ Set.delete reg1 registers
-              in
-                ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
+            pre -> f pre codes1 reg1
   else
     case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr2) xs of
       Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr2
@@ -78,14 +74,17 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
         in
           case viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= addr1) xs of
             Sequence.EmptyR -> error $ "unexpected error: no such address: " ++ show addr1
-            pre ->
-              let
-                (codes2, reg2) = gen pre m $ Set.delete reg1 registers
-              in
-                ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
+            pre -> f pre codes1 reg1
   where
     (.>) :: (Applicative f, Ord a) => f a -> f a -> f Bool
     (.>) = liftA2 (>)
+
+    f :: ViewR Inter.Quad -> Seq Code -> Register -> (Seq Code, Register)
+    f pre codes1 reg1 =
+      let
+        (codes2, reg2) = gen pre m $ Set.delete reg1 registers
+      in
+        ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
 
 gen (_:>(_, op, Inter.Const v1, Inter.Const v2)) _ registers =
   (Sequence.fromList [Code Mov [Const v1, Reg reg], Code (instr op) [Const v2, Reg reg]], reg)
