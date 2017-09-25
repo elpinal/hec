@@ -63,7 +63,7 @@ withDefault pre _ f = f pre
 declOfAddrR :: Inter.Addr -> Seq Inter.Quad -> ViewR Inter.Quad
 declOfAddrR a xs = viewr $ dropWhileR (maybe False (/= a) . resultAddr) xs
   where
-    resultAddr :: Inter.Quad -> Maybe (Inter.Addr)
+    resultAddr :: Inter.Quad -> Maybe Inter.Addr
     resultAddr (Inter.Point addr, _, _, _) = Just addr
     resultAddr _ = Nothing
 
@@ -133,7 +133,7 @@ gen (xs:>(_, Inter.NOP, Inter.At addr, Inter.Nil)) m registers =
 gen xs m registers = error $ "unexpected error: " ++ show xs ++ show m ++ show registers
 
 checkLabel :: Block -> (Seq Inter.Quad, Map.Map Inter.Addr Int)
-checkLabel block = foldl checkLabel' (empty, Map.empty) block
+checkLabel = foldl checkLabel' (empty, Map.empty)
 
 checkLabel' :: (Seq Inter.Quad, Map.Map Inter.Addr Int) -> Inter.Quad -> (Seq Inter.Quad, Map.Map Inter.Addr Int)
 checkLabel' (xs, m) x@(Inter.Point addr,_,_,_) = (xs |> x, Map.insert addr l m)
