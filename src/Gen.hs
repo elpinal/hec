@@ -66,12 +66,9 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
     g :: Inter.Addr -> Inter.Addr -> (Seq Code, Register)
     g a b =
       h (declOfAddrR a) (noAddr a) $
-        \pre ->
-          let
-            (codes1, reg1) = gen pre m registers
-          in
+        \pre1 ->
             h (declOfAddrR b) (noAddr b) $
-              \pre -> f pre codes1 reg1
+              \pre2 -> uncurry (f pre2) $ gen pre1 m registers
 
     declOfAddrR :: Inter.Addr -> ViewR Inter.Quad
     declOfAddrR a = viewr $ dropWhileR (maybe False (/= a) . resultAddr) xs
