@@ -66,14 +66,17 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
     g :: Inter.Addr -> Inter.Addr -> (Seq Code, Register)
     g a b =
       h (viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= a) xs)
-        (error $ "unexpected error: no such address: " ++ show a) $
+        (noAddr a) $
         \pre ->
           let
             (codes1, reg1) = gen pre m registers
           in
             h (viewr $ dropWhileR (\(Inter.Point addr, _, _, _) -> addr /= b) xs)
-              (error $ "unexpected error: no such address: " ++ show b)
-              (\pre -> f pre codes1 reg1)
+              (noAddr b) $
+              \pre -> f pre codes1 reg1
+
+    noAddr :: Show a => a -> b
+    noAddr x = error $ "unexpected error: no such address: " ++ show x
 
     h :: ViewR Inter.Quad -> a -> (ViewR Inter.Quad -> a) -> a
     h Sequence.EmptyR e _ = e
