@@ -1,6 +1,7 @@
 module Scanner
     ( scan
     , Token
+    , Token1(..) -- exported for testing
     , Term(..)
     , createToken
     , getTerm
@@ -29,6 +30,9 @@ instance Functor Token1 where
 
 newtype Token = Token (Token1 Term)
   deriving (Eq, Show, Ord)
+
+createToken :: String -> Term -> Token
+createToken lit t = Token (Token1 lit t)
 
 getTerm :: Token -> Term
 getTerm (Token (Token1 _ term)) = term
