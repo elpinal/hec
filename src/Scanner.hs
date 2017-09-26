@@ -2,6 +2,7 @@ module Scanner
     ( scan
     , Token
     , Term(..)
+    , createToken
     , getTerm
     , fromNum
     ) where

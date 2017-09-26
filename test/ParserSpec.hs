@@ -14,7 +14,7 @@ spec :: Spec
 spec = do
   describe "parse" $ do
     it "parse" $
-      parse (extend testGrammar) [Token (Num,"1"), Token (Sub, "-"), Token (Num, "22")]
+      parse (extend testGrammar) [createToken "1" Num, createToken "-" Sub, createToken "22" Num]
       `shouldBe`
       [ (Inter.Point 2, Inter.Arith Inter.Sub, Inter.At 1, Inter.Const 22)
       , (Inter.Point 1, Inter.NOP, Inter.Const 1, Inter.Nil)
