@@ -1,7 +1,7 @@
 module Gen where
 
 import Control.Applicative (liftA2)
-import Control.Arrow (second)
+import Control.Arrow
 import Data.Char
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
@@ -102,22 +102,16 @@ gen registers m (xs:>(_, op, Inter.At addr, Inter.Const v)) =
   withDefault
     (declOfAddrR addr xs)
     (noAddr addr) $
-    \pre ->
-      let
-        (codes, reg) = gen registers m pre
-      in
-        (codes |> Code (instr op) [Const v, Reg reg], reg)
+    (uncurry (flip (flip (|>) . Code (instr op) . (Const v :) . return . Reg)) &&& snd) . gen registers m
 
 gen registers m (xs:>(_, op, Inter.Const v, Inter.At addr)) =
   withDefault
     (declOfAddrR addr xs)
     (noAddr addr) $
-    \pre ->
-      let
-        (codes, reg) = gen registers m pre
-        reg1 = Set.findMin registers
-      in
-        (codes |> Code Mov [Const v, Reg reg1] |> Code (instr op) [Reg reg, Reg reg1], reg1)
+    flip (,) reg1 . uncurry (flip (flip ((|>) . (|> Code Mov [Const v, Reg reg1])) . Code (instr op) . (: [Reg reg1]) . Reg)) . gen registers m
+  where
+    reg1 :: Register
+    reg1 = Set.findMin registers
 
 gen registers _ (_:>(_, Inter.NOP, Inter.Const v, Inter.Nil)) =
   (singleton $ Code Mov [Const v, Reg reg], reg)
