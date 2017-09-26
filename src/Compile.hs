@@ -12,7 +12,7 @@ import qualified Inter
 
 compile :: String -> Either String String
 compile s = case scan s of
-            Left err -> error $ show err
+            Left err -> Left $ show err
             Right tokens -> let
                               quads = reverse $ parse grammar tokens
                               asm = Foldable.foldl ((++) . (++ "\n")) "" . Gen.codeToString . fst . Gen.generate $ quads
