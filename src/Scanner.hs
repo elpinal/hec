@@ -1,6 +1,6 @@
 module Scanner
     ( scan
-    , Token(..)
+    , Token
     , Term(..)
     , getTerm
     , fromNum
