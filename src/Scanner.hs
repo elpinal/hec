@@ -54,7 +54,7 @@ lexeme = do
 
 scanExpr :: GenParser Char st Token
 scanExpr = (Token <$>) $
-  (Token1 <$> many1 digit) <*> return Num
+      (Token1 <$> many1 digit) <*> return Num
   <|> (Token1 <$> many1 (letter <|> digit)) <*> return Ident
   <|> (Token1 <$> scanString) <*> return Str
   <|> (Token1 . (:[]) <$> char '+') <*> return Add
