@@ -11,23 +11,27 @@ import qualified Inter
 
 type Block = [Inter.Quad]
 
-data Instr = Add
-           | Sub
-           | Mov
-           | IMul
-           deriving (Show)
+data Instr =
+    Add
+  | Sub
+  | Mov
+  | IMul
+    deriving (Show)
 
-data Arg = Reg Register
-         | Const Int
-         deriving (Show)
+data Arg =
+    Reg Register
+  | Const Int
+    deriving (Show)
 
-data Register = EAX
-              | EBX
-              | ECX
-              | EDX
-              deriving (Show, Eq, Ord)
+data Register =
+    EAX
+  | EBX
+  | ECX
+  | EDX
+    deriving (Show, Eq, Ord)
 
-data Code = Code Instr [Arg] deriving (Show)
+data Code = Code Instr [Arg]
+  deriving Show
 
 instr :: Inter.Op -> Instr
 instr (Inter.Arith Inter.Add) = Add

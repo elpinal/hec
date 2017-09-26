@@ -26,11 +26,18 @@ data Grammar = Grammar NonTerm (Map.Map Rule SemanticRule)
 instance Show Grammar where
   show (Grammar x xs) = "(Grammar " ++ show x ++ " " ++ (show . Map.keys) xs ++ ")"
 
-data NonTerm = Var String | Start deriving (Eq, Show, Ord)
+data NonTerm =
+    Var String
+  | Start
+    deriving (Eq, Show, Ord)
 
-data Rule = Rule NonTerm [Symbol] deriving (Eq, Show, Ord)
+data Rule = Rule NonTerm [Symbol]
+  deriving (Eq, Show, Ord)
 
-data Symbol = Term Term | NonTerm NonTerm deriving (Eq, Show, Ord)
+data Symbol =
+    Term Term
+  | NonTerm NonTerm
+    deriving (Eq, Show, Ord)
 
 type SemanticRule = [Inter.Operand] -> Inter.Triple
 
@@ -42,11 +49,16 @@ semRuleOf ruleSet prodRule = Map.findWithDefault (error msg) prodRule ruleSet
 
 -- LR(1) Item
 type Items = Set.Set Item
-data Item = Item Rule Int LookAhead deriving (Eq, Show, Ord)
+data Item = Item Rule Int LookAhead
+  deriving (Eq, Show, Ord)
 
-data LookAhead = LookAhead Term | EndPoint deriving (Eq, Show, Ord)
+data LookAhead =
+    LookAhead Term
+  | EndPoint
+    deriving (Eq, Show, Ord)
 
-newtype State = State Int deriving Show
+newtype State = State Int
+  deriving Show
 
 data Action =
     Shift Int
@@ -54,7 +66,10 @@ data Action =
   | Accept
     deriving Show
 
-data Token' = Token' Token | EndToken deriving (Eq, Show, Ord)
+data Token' =
+    Token' Token
+  | EndToken
+    deriving (Eq, Show, Ord)
 
 extend :: Grammar -> Grammar
 extend (Grammar start rules) = Grammar Start $ Map.insert (Rule Start [NonTerm start]) (\xs -> (Inter.NOP, xs`at`0, Inter.Nil)) rules
