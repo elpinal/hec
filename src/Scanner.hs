@@ -2,14 +2,13 @@ module Scanner
     ( scan
     , Token(..)
     , Term(..)
+    , getTerm
+    , fromNum
     ) where
 
 import Text.ParserCombinators.Parsec
 
 ---------- Tokenizer ----------
-
-newtype Token = Token (Term, String)
-  deriving (Eq, Show, Ord)
 
 data Term =
     Num
@@ -21,11 +20,27 @@ data Term =
   | WhiteSpace
     deriving (Eq, Show, Ord)
 
+data Token1 a = Token1 String a
+  deriving (Eq, Show, Ord)
+
+instance Functor Token1 where
+  fmap f (Token1 s t) = Token1 s $ f t
+
+newtype Token = Token (Token1 Term)
+  deriving (Eq, Show, Ord)
+
+getTerm :: Token -> Term
+getTerm (Token (Token1 _ term)) = term
+
+fromNum :: (Read a, Num a) => Token -> a
+fromNum (Token (Token1 val Num)) = read $ val
+fromNum t = error $ "not a number: " ++ show t
+
 scan :: String -> Either ParseError [Token]
 scan src = filter isNotWhiteSpace <$> scan' src
   where
     isNotWhiteSpace :: Token -> Bool
-    isNotWhiteSpace (Token (WhiteSpace, _)) = False
+    isNotWhiteSpace (Token (Token1 _ WhiteSpace)) = False
     isNotWhiteSpace _ = True
 
 scan' :: String -> Either ParseError [Token]
@@ -38,14 +53,14 @@ lexeme = do
   return expr
 
 scanExpr :: GenParser Char st Token
-scanExpr =
-  (curry Token Num <$> many1 digit)
-  <|> (curry Token Ident <$> many1 (letter <|> digit))
-  <|> (curry Token Str <$> scanString)
-  <|> (curry Token Add . (:[]) <$> char '+')
-  <|> (curry Token Sub . (:[]) <$> char '-')
-  <|> (curry Token Mul . (:[]) <$> char '*')
-  <|> (curry Token WhiteSpace <$> many1 space)
+scanExpr = (Token <$>) $
+  (Token1 <$> many1 digit) <*> return Num
+  <|> (Token1 <$> many1 (letter <|> digit)) <*> return Ident
+  <|> (Token1 <$> scanString) <*> return Str
+  <|> (Token1 . (:[]) <$> char '+') <*> return Add
+  <|> (Token1 . (:[]) <$> char '-') <*> return Sub
+  <|> (Token1 . (:[]) <$> char '*') <*> return Mul
+  <|> (Token1 <$> many1 space) <*> return WhiteSpace
 
 scanString :: GenParser Char st String
 scanString = do

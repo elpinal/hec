@@ -17,7 +17,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 
 import qualified Inter
-import Scanner (Token(..), Term(..))
+import Scanner
 
 ---------- Data structures ----------
 
@@ -149,7 +149,7 @@ action' gotoF states current token
     matchShift = Set.filter (maybe False ((`eqLaToken` token) . LookAhead) . next) current
 
     fromToken' :: Token' -> Symbol
-    fromToken' (Token' (Token (term, _))) = Term term
+    fromToken' (Token' t) = Term $ getTerm t
 
 getID :: Map.Map Int Items -> Items -> Maybe Int
 getID states items = headMay . Map.keys . Map.filter (== items) $ states
@@ -158,7 +158,7 @@ eqLaToken :: LookAhead -> Token' -> Bool
 eqLaToken EndPoint EndToken = True
 eqLaToken EndPoint _ = False
 eqLaToken _ EndToken = False
-eqLaToken (LookAhead term) (Token' (Token (token, _))) = term == token
+eqLaToken (LookAhead term) (Token' t) = term == getTerm t
 
 goto :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> State -> NonTerm -> State
 goto gotoF states (State n) nt =
@@ -201,7 +201,7 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
     getIdx (State n) = n
 
     tokenToOperand :: Token -> Inter.Operand
-    tokenToOperand (Token (Num, val)) = Inter.Const . read $ val
+    tokenToOperand = Inter.Const . fromNum
 
     snd' :: (a, b, c, d) -> b
     snd' (_, x, _, _) = x
