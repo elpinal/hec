@@ -98,7 +98,7 @@ gen registers m (xs:>(_, op, Inter.At addr, Inter.Const v)) =
   withDefault
     (declOfAddrR addr xs)
     (noAddr addr) $
-    (uncurry (flip (flip (|>) . Code (instr op) . (Const v :) . return . Reg)) &&& snd) . gen registers m
+    (uncurry (flip $ flip (|>) . Code (instr op) . (Const v :) . return . Reg) &&& snd) . gen registers m
 
 gen registers m (xs:>(_, op, Inter.Const v, Inter.At addr)) =
   withDefault
