@@ -1,6 +1,7 @@
 module Gen where
 
 import Control.Applicative (liftA2)
+import Control.Arrow (second)
 import Data.Char
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
@@ -51,7 +52,7 @@ codeToString = fmap str
     strArg (Const v) = '$' : show v
 
 generate :: Block -> (Seq Code, Register)
-generate block = uncurry (gen . viewr) (checkLabel block) $ Set.fromList [EAX, EBX, ECX, EDX]
+generate block = uncurry (gen . Set.fromList $ [EAX, EBX, ECX, EDX]) . second viewr $ checkLabel block
 
 noAddr :: Show a => a -> b
 noAddr x = error $ "unexpected error: no such address: " ++ show x
@@ -67,8 +68,8 @@ declOfAddrR a xs = viewr $ dropWhileR (maybe False (/= a) . resultAddr) xs
     resultAddr (Inter.Point addr, _, _, _) = Just addr
     resultAddr _ = Nothing
 
-gen :: ViewR Inter.Quad -> Map.Map Inter.Addr Int -> Set.Set Register -> (Seq Code, Register)
-gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
+gen :: Set.Set Register -> Map.Map Inter.Addr Int -> ViewR Inter.Quad -> (Seq Code, Register)
+gen registers m (xs:>(_, op, Inter.At addr1, Inter.At addr2)) =
   if fromMaybe (error "unexpected error") $ Map.lookup addr1 m .> Map.lookup addr2 m then
     g addr1 addr2
   else
@@ -82,65 +83,65 @@ gen (xs:>(_, op, Inter.At addr1, Inter.At addr2)) m registers =
       withDefault (declOfAddrR a xs) (noAddr a) $
         \pre1 ->
           withDefault (declOfAddrR b xs) (noAddr b) $
-            \pre2 -> uncurry (f pre2) $ gen pre1 m registers
+            \pre2 -> uncurry (f pre2) $ gen registers m pre1
 
     f :: ViewR Inter.Quad -> Seq Code -> Register -> (Seq Code, Register)
     f pre codes1 reg1 =
       let
-        (codes2, reg2) = gen pre m $ Set.delete reg1 registers
+        (codes2, reg2) = gen (Set.delete reg1 registers) m pre
       in
         ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
 
-gen (_:>(_, op, Inter.Const v1, Inter.Const v2)) _ registers =
+gen registers _ (_:>(_, op, Inter.Const v1, Inter.Const v2)) =
   (Sequence.fromList [Code Mov [Const v1, Reg reg], Code (instr op) [Const v2, Reg reg]], reg)
   where
     reg :: Register
     reg = Set.findMin registers
 
-gen (xs:>(_, op, Inter.At addr, Inter.Const v)) m registers =
+gen registers m (xs:>(_, op, Inter.At addr, Inter.Const v)) =
   withDefault
     (declOfAddrR addr xs)
     (noAddr addr) $
     \pre ->
       let
-        (codes, reg) = gen pre m registers
+        (codes, reg) = gen registers m pre
       in
         (codes |> Code (instr op) [Const v, Reg reg], reg)
 
-gen (xs:>(_, op, Inter.Const v, Inter.At addr)) m registers =
+gen registers m (xs:>(_, op, Inter.Const v, Inter.At addr)) =
   withDefault
     (declOfAddrR addr xs)
     (noAddr addr) $
     \pre ->
       let
-        (codes, reg) = gen pre m registers
+        (codes, reg) = gen registers m pre
         reg1 = Set.findMin registers
       in
         (codes |> Code Mov [Const v, Reg reg1] |> Code (instr op) [Reg reg, Reg reg1], reg1)
 
-gen (_:>(_, Inter.NOP, Inter.Const v, Inter.Nil)) _ registers =
+gen registers _ (_:>(_, Inter.NOP, Inter.Const v, Inter.Nil)) =
   (singleton $ Code Mov [Const v, Reg reg], reg)
   where
     reg :: Register
     reg = Set.findMin registers
 
-gen (xs:>(_, Inter.NOP, Inter.At addr, Inter.Nil)) m registers =
+gen registers m (xs:>(_, Inter.NOP, Inter.At addr, Inter.Nil)) =
   withDefault
     (declOfAddrR addr xs)
     (noAddr addr) $
-    \pre -> gen pre m registers
+    gen registers m
 
-gen xs m registers = error $
-  "gen: unsupported arguments: " ++ foldl joinWithSpace [] [show xs, show m, show registers]
+gen registers m xs = error $
+  "gen: unsupported arguments: " ++ foldl joinWithSpace [] [show registers, show m, show xs]
   where
     joinWithSpace :: String -> String -> String
     joinWithSpace s t = s ++ " " ++ t
 
-checkLabel :: Block -> (Seq Inter.Quad, Map.Map Inter.Addr Int)
-checkLabel = foldl checkLabel' (empty, Map.empty)
+checkLabel :: Block -> (Map.Map Inter.Addr Int, Seq Inter.Quad)
+checkLabel = foldl checkLabel' (Map.empty, empty)
 
-checkLabel' :: (Seq Inter.Quad, Map.Map Inter.Addr Int) -> Inter.Quad -> (Seq Inter.Quad, Map.Map Inter.Addr Int)
-checkLabel' (xs, m) x@(Inter.Point addr,_,_,_) = (xs |> x, Map.insert addr l m)
+checkLabel' :: (Map.Map Inter.Addr Int, Seq Inter.Quad) -> Inter.Quad -> (Map.Map Inter.Addr Int, Seq Inter.Quad)
+checkLabel' (m, xs) x@(Inter.Point addr,_,_,_) = (Map.insert addr l m, xs |> x)
   where
     l :: Int
     l = label x m
