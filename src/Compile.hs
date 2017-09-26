@@ -14,12 +14,11 @@ compile :: String -> Either String String
 compile s = either (Left . show) f $ scan s
   where
     f :: [Token] -> Either String String
-    f tokens = return . foldl1 (++) $
-                 [ ".text\n"
-                 , ".global _intfn\n"
-                 , "_intfn:"
-                 , asm tokens
-                 , "\nret\n"
+    f tokens = return $ unlines
+                 [ ".text"
+                 , ".global _intfn"
+                 , "_intfn:" ++ asm tokens
+                 , "ret"
                  ]
 
     quads :: [Token] -> [Inter.Quad]
