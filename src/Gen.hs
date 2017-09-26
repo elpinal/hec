@@ -86,7 +86,7 @@ gen registers m (xs:>(_, op, Inter.At addr1, Inter.At addr2)) =
 
     f :: Seq Code -> Register -> ViewR Inter.Quad -> (Seq Code, Register)
     f codes1 reg1 =
-      flip (,) reg1 . uncurry (flip (flip ((|>) . (codes1 ><)) . Code (instr op) . (: [Reg reg1]) . Reg)) . gen (Set.delete reg1 registers) m
+      flip (,) reg1 . uncurry (flip $ flip ((|>) . (codes1 ><)) . Code (instr op) . (: [Reg reg1]) . Reg) . gen (Set.delete reg1 registers) m
 
 gen registers _ (_:>(_, op, Inter.Const v1, Inter.Const v2)) =
   (Sequence.fromList [Code Mov [Const v1, Reg reg], Code (instr op) [Const v2, Reg reg]], reg)
@@ -104,7 +104,7 @@ gen registers m (xs:>(_, op, Inter.Const v, Inter.At addr)) =
   withDefault
     (declOfAddrR addr xs)
     (noAddr addr) $
-    flip (,) reg1 . uncurry (flip (flip ((|>) . (|> Code Mov [Const v, Reg reg1])) . Code (instr op) . (: [Reg reg1]) . Reg)) . gen registers m
+    flip (,) reg1 . uncurry (flip $ flip ((|>) . (|> Code Mov [Const v, Reg reg1])) . Code (instr op) . (: [Reg reg1]) . Reg) . gen registers m
   where
     reg1 :: Register
     reg1 = Set.findMin registers
