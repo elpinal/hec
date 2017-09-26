@@ -81,16 +81,12 @@ gen registers m (xs:>(_, op, Inter.At addr1, Inter.At addr2)) =
     g :: Inter.Addr -> Inter.Addr -> (Seq Code, Register)
     g a b =
       withDefault (declOfAddrR a xs) (noAddr a) $
-        \pre1 ->
-          withDefault (declOfAddrR b xs) (noAddr b) $
-            \pre2 -> uncurry (f pre2) $ gen registers m pre1
+          withDefault (declOfAddrR b xs) (noAddr b) .
+            uncurry f . gen registers m
 
-    f :: ViewR Inter.Quad -> Seq Code -> Register -> (Seq Code, Register)
-    f pre codes1 reg1 =
-      let
-        (codes2, reg2) = gen (Set.delete reg1 registers) m pre
-      in
-        ((codes1 >< codes2) |> Code (instr op) [Reg reg2, Reg reg1], reg1)
+    f :: Seq Code -> Register -> ViewR Inter.Quad -> (Seq Code, Register)
+    f codes1 reg1 =
+      flip (,) reg1 . uncurry (flip (flip ((|>) . (codes1 ><)) . Code (instr op) . (: [Reg reg1]) . Reg)) . gen (Set.delete reg1 registers) m
 
 gen registers _ (_:>(_, op, Inter.Const v1, Inter.Const v2)) =
   (Sequence.fromList [Code Mov [Const v1, Reg reg], Code (instr op) [Const v2, Reg reg]], reg)
