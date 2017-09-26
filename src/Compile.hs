@@ -25,7 +25,10 @@ compile s = either (Left . show) f $ scan s
     quads = reverse . parse grammar
 
     asm :: [Token] -> String
-    asm = Foldable.foldl ((++) . (++ "\n")) "" . Gen.codeToString . fst . Gen.generate . quads
+    asm = foldl joinWithNL "" . Gen.codeToString . fst . Gen.generate . quads
+
+    joinWithNL :: String -> String -> String
+    joinWithNL s t = s ++ "\n" ++ t
 
 grammar :: Grammar
 grammar = extend $ Grammar (Var "expr") $ Map.fromList
