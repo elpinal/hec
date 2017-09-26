@@ -142,5 +142,5 @@ label (_, _, operand1, operand2) m = 1 + min (labelOf operand1 m) (labelOf opera
 
 labelOf :: Inter.Operand -> Map.Map Inter.Addr Int -> Int
 labelOf (Inter.Const _) _ = 0
-labelOf (Inter.At addr) m = fromMaybe (error $ "no such address in the block: " ++ show addr) $ Map.lookup addr m
+labelOf (Inter.At addr) m = Map.findWithDefault (error $ "no such address in the block: " ++ show addr) addr m
 labelOf Inter.Nil _ = error "unexpected operand: nil"
