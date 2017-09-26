@@ -130,7 +130,7 @@ checkLabel :: Block -> (Map.Map Inter.Addr Int, Seq Inter.Quad)
 checkLabel = foldl checkLabel' (Map.empty, empty)
 
 checkLabel' :: (Map.Map Inter.Addr Int, Seq Inter.Quad) -> Inter.Quad -> (Map.Map Inter.Addr Int, Seq Inter.Quad)
-checkLabel' (m, xs) x@(Inter.Point addr,_,_,_) = (Map.insert addr l m, xs |> x)
+checkLabel' (m, xs) x@(Inter.Point addr,_ ,_ ,_) = (Map.insert addr l m, xs |> x)
   where
     l :: Int
     l = label x m
