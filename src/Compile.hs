@@ -14,17 +14,19 @@ compile :: String -> Either String String
 compile s = either (Left . show) f $ scan s
   where
     f :: [Token] -> Either String String
-    f tokens = let
-                 quads = reverse $ parse grammar tokens
-                 asm = Foldable.foldl ((++) . (++ "\n")) "" . Gen.codeToString . fst . Gen.generate $ quads
-               in
-                 return . foldl1 (++) $
+    f tokens = return . foldl1 (++) $
                  [ ".text\n"
                  , ".global _intfn\n"
                  , "_intfn:"
-                 , asm
+                 , asm tokens
                  , "\nret\n"
                  ]
+
+    quads :: [Token] -> [Inter.Quad]
+    quads = reverse . parse grammar
+
+    asm :: [Token] -> String
+    asm = Foldable.foldl ((++) . (++ "\n")) "" . Gen.codeToString . fst . Gen.generate . quads
 
 grammar :: Grammar
 grammar = extend $ Grammar (Var "expr") $ Map.fromList
