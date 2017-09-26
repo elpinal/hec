@@ -11,19 +11,20 @@ import Scanner
 import qualified Inter
 
 compile :: String -> Either String String
-compile s = case scan s of
-            Left err -> Left $ show err
-            Right tokens -> let
-                              quads = reverse $ parse grammar tokens
-                              asm = Foldable.foldl ((++) . (++ "\n")) "" . Gen.codeToString . fst . Gen.generate $ quads
-                            in
-                              return . foldl1 (++) $
-                              [ ".text\n"
-                              , ".global _intfn\n"
-                              , "_intfn:"
-                              , asm
-                              , "\nret\n"
-                              ]
+compile s = either (Left . show) f $ scan s
+  where
+    f :: [Token] -> Either String String
+    f tokens = let
+                 quads = reverse $ parse grammar tokens
+                 asm = Foldable.foldl ((++) . (++ "\n")) "" . Gen.codeToString . fst . Gen.generate $ quads
+               in
+                 return . foldl1 (++) $
+                 [ ".text\n"
+                 , ".global _intfn\n"
+                 , "_intfn:"
+                 , asm
+                 , "\nret\n"
+                 ]
 
 grammar :: Grammar
 grammar = extend $ Grammar (Var "expr") $ Map.fromList
