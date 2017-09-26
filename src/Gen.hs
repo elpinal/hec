@@ -81,8 +81,8 @@ gen registers m (xs:>(_, op, Inter.At addr1, Inter.At addr2)) =
     g :: Inter.Addr -> Inter.Addr -> (Seq Code, Register)
     g a b =
       withDefault (declOfAddrR a xs) (noAddr a) $
-          withDefault (declOfAddrR b xs) (noAddr b) .
-            uncurry f . gen registers m
+        withDefault (declOfAddrR b xs) (noAddr b) .
+          uncurry f . gen registers m
 
     f :: Seq Code -> Register -> ViewR Inter.Quad -> (Seq Code, Register)
     f codes1 reg1 =
