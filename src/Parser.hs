@@ -24,7 +24,7 @@ import Scanner (Token(..), Term(..))
 data Grammar = Grammar NonTerm (Map.Map Rule SemanticRule)
 
 instance Show Grammar where
-  show (Grammar x xs) = "(Grammar " ++ show x ++ " " ++ (show . Map.keys) xs
+  show (Grammar x xs) = "(Grammar " ++ show x ++ " " ++ (show . Map.keys) xs ++ ")"
 
 data NonTerm = Var String | Start deriving (Eq, Show, Ord)
 
