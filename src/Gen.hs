@@ -1,6 +1,5 @@
 module Gen where
 
-import Control.Applicative (liftA2)
 import Control.Arrow
 import Data.Char
 import qualified Data.Map.Lazy as Map
@@ -70,13 +69,13 @@ declOfAddrR a xs = viewr $ dropWhileR (maybe False (/= a) . resultAddr) xs
 
 gen :: Set.Set Register -> Map.Map Inter.Addr Int -> ViewR Inter.Quad -> (Seq Code, Register)
 gen registers m (xs:>(_, op, Inter.At addr1, Inter.At addr2)) =
-  if fromMaybe (error "unexpected error") $ Map.lookup addr1 m .> Map.lookup addr2 m then
+  if getAddr addr1 > getAddr addr2 then
     g addr1 addr2
   else
     g addr2 addr1
   where
-    (.>) :: (Applicative f, Ord a) => f a -> f a -> f Bool
-    (.>) = liftA2 (>)
+    getAddr :: Inter.Addr -> Int
+    getAddr a = Map.findWithDefault (noAddr a) a m
 
     g :: Inter.Addr -> Inter.Addr -> (Seq Code, Register)
     g a b =
