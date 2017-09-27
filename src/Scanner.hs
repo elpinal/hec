@@ -8,6 +8,8 @@ module Scanner
     , fromNum
     ) where
 
+import Control.Monad
+
 import Text.ParserCombinators.Parsec
 
 ---------- Tokenizer ----------
@@ -41,13 +43,10 @@ fromNum (Token1 val Num) = read val
 fromNum t = error $ "not a number: " ++ show t
 
 scan :: String -> Either ParseError [Token]
-scan src = filter isNotWhiteSpace <$> scan' src
+scan = return . filter isNotWhiteSpace <=< parse lexeme "<input from string>"
   where
     isNotWhiteSpace :: Token -> Bool
     isNotWhiteSpace = (/= WhiteSpace) . getTerm
-
-scan' :: String -> Either ParseError [Token]
-scan' = parse lexeme "<unknown>"
 
 lexeme :: Parser [Token]
 lexeme = do
