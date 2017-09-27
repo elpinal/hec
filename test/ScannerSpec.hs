@@ -76,3 +76,14 @@ spec = do
       parse scanExpr "filename" "\"a\"" `shouldBe` Right (createToken "a" Str)
       parse scanExpr "filename" "+" `shouldBe` Right (createToken "+" Add)
       parse scanExpr "filename" "  " `shouldBe` Right (createToken "  " WhiteSpace)
+
+  describe "scan" $
+    it "scans some tokens" $ do
+      scan "12 +  a s1s" `shouldBe` Right [ createToken "12" Num
+                                          , createToken "+" Add
+                                          , createToken "a" Ident
+                                          , createToken "s1s" Ident
+                                          ]
+      scan "\"1 + 1\" *" `shouldBe` Right [ createToken "1 + 1" Str
+                                          , createToken "*" Mul
+                                          ]
