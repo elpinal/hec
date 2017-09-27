@@ -7,12 +7,16 @@ module Scanner
     , createToken
     , getTerm
     , fromNum
+    , FromNumError(..)
+    , isReadError
+    , isNotNumError
     , scanString
     ) where
 
 import Safe
 
 import Control.Monad
+import Data.Bifunctor
 
 import Text.ParserCombinators.Parsec
 
@@ -42,9 +46,22 @@ createToken = Token1
 getTerm :: Token -> Term
 getTerm (Token1 _ term) = term
 
-fromNum :: (Read a, Num a) => Token -> Either String a
-fromNum (Token1 val Num) = readEitherSafe val
-fromNum t = error $ "not a number: " ++ show t
+data FromNumError =
+    Read String
+  | NotNum
+    deriving Show
+
+isReadError :: FromNumError -> Bool
+isReadError (Read _) = True
+isReadError _ = False
+
+isNotNumError :: FromNumError -> Bool
+isNotNumError NotNum = True
+isNotNumError _ = False
+
+fromNum :: (Read a, Num a) => Token -> Either FromNumError a
+fromNum (Token1 val Num) = first Read $ readEitherSafe val
+fromNum _ = Left NotNum
 
 scanWithFilename :: FilePath -> String -> Either ParseError [Token]
 scanWithFilename = (return . filter isNotWhiteSpace <=<) . parse lexeme

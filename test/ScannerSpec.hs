@@ -15,28 +15,31 @@ spec :: Spec
 spec = do
   describe "fromNum" $ do
     it "extracts a number from a token which have Num as its terminal symbol" $ do
-      fromNum (createToken "0" Num) `shouldBe` Right 0
-      fromNum (createToken "18" Num) `shouldBe` Right 18
-      fromNum (createToken "-18" Num) `shouldBe` Right (-18)
+      let toMaybe :: Either a b -> Maybe b
+          toMaybe (Right x) = Just x
+          toMaybe _ = Nothing
+      fromNum (createToken "0" Num) `shouldSatisfy` (== Just 0) . toMaybe
+      fromNum (createToken "18" Num) `shouldSatisfy` (== Just 18) . toMaybe
+      fromNum (createToken "-18" Num) `shouldSatisfy` (== Just (-18)) . toMaybe
 
-      fromNum (createToken "0x1a" Num) `shouldBe` Right 0x1a
-      fromNum (createToken "0X1a" Num) `shouldBe` Right 0x1a
+      fromNum (createToken "0x1a" Num) `shouldSatisfy` (== Just 0x1a) . toMaybe
+      fromNum (createToken "0X1a" Num) `shouldSatisfy` (== Just 0x1a) . toMaybe
 
-      fromNum (createToken "0o17" Num) `shouldBe` Right 0o17
-      fromNum (createToken "0O17" Num) `shouldBe` Right 0o17
+      fromNum (createToken "0o17" Num) `shouldSatisfy` (== Just 0o17) . toMaybe
+      fromNum (createToken "0O17" Num) `shouldSatisfy` (== Just 0o17) . toMaybe
 
-      fromNum (createToken "3.1" Num) `shouldBe` Right 3.1
-      fromNum (createToken "3.1e+8" Num) `shouldBe` Right 3.1e+8
-      fromNum (createToken "3.1e-8" Num) `shouldBe` Right 3.1e-8
+      fromNum (createToken "3.1" Num) `shouldSatisfy` (== Just 3.1) . toMaybe
+      fromNum (createToken "3.1e+8" Num) `shouldSatisfy` (== Just 3.1e+8) . toMaybe
+      fromNum (createToken "3.1e-8" Num) `shouldSatisfy` (== Just 3.1e-8) . toMaybe
 
     it "returns an error when the terminal symbol in a token is not Num" $ do
-      evaluate (fromNum $ createToken "" Str) `shouldThrow` anyErrorCall
-      evaluate (fromNum $ createToken "" WhiteSpace) `shouldThrow` anyErrorCall
+      fromNum (createToken "" Str) `shouldSatisfy` (== Left True) . first isNotNumError
+      fromNum (createToken "" WhiteSpace) `shouldSatisfy` (== Left True) . first isNotNumError
 
     it "returns an error when the literal in a token is not a valid number" $ do
-      fromNum (createToken "" Num) `shouldSatisfy` isLeft
-      fromNum (createToken "a" Num) `shouldSatisfy` isLeft
-      fromNum (createToken "1a" Num) `shouldSatisfy` isLeft
+      fromNum (createToken "" Num) `shouldSatisfy` (== Left True) . first isReadError
+      fromNum (createToken "a" Num) `shouldSatisfy` (== Left True) . first isReadError
+      fromNum (createToken "1a" Num) `shouldSatisfy` (== Left True) . first isReadError
 
   describe "scanString" $ do
     it "scans a string literal" $ do
