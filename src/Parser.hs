@@ -11,6 +11,7 @@ module Parser
 
 import Safe
 
+import Control.Arrow ((***), (&&&), (<<<), app)
 import qualified Control.Monad.State.Lazy as StateM
 import Data.Foldable
 import Data.List
@@ -171,39 +172,36 @@ goto gotoF states (State n) nt =
     state :: Items
     state = fromJust $ Map.lookup n states
 
-type ParseState = ([Int], [Inter.Quad], [Inter.Operand])
+data ParseState =
+  ParseState
+    [State]         -- ^ State Stack.
+    [Inter.Quad]    -- ^ Generated intermediate codes.
+    [Inter.Operand] -- ^ Shifted intermediate operands some of which may have been reduced.
 
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> [Inter.Quad]
-parse' m f g s0 tokens = snd' . flip StateM.evalState 1 $ foldlM buildTree ([s0], [], []) tokens
+parse' m f g s0 = getQuads . flip StateM.evalState 1 . foldlM buildTree (ParseState [State s0] [] [])
   where
     buildTree :: ParseState -> Token' -> StateM.State Inter.Addr ParseState
-    buildTree (state:xs, quads, passed) token =
-      case f (State state) token of
-        Accept -> return (xs, quads, passed)
-        Shift n -> return (n:state:xs, quads, tokenToOperand (fromToken token):passed)
+    buildTree (ParseState stack@(state:xs) quads passed) token =
+      case f state token of
+        Accept -> return $ ParseState xs quads passed
+        Shift n -> return . ParseState (State n : stack) quads $ tokenToOperand (fromToken token) : passed
         Reduce rule -> do
           addr <- StateM.get
-          StateM.put $ addr + 1
+          StateM.modify (+ 1)
           let
             bodyLen = length . getBody $ rule
             (ps1, ps2) = splitAt bodyLen passed
-            semRule = m rule
-            (s:ss) = drop bodyLen (state:xs)
-            result = Inter.Point addr
-            triple = semRule $ reverse ps1
-            quad = Inter.toQuad result triple
-          flip buildTree token
-                         ( (getIdx . g (State s)) (getHead rule) : s : ss
-                         , quad : quads
-                         , Inter.At addr : ps2
-                         )
+            rest = drop bodyLen stack
+            quad = Inter.toQuad (Inter.Point addr) $ m rule $ reverse ps1
+          flip buildTree token $ ParseState
+            (app $ ((:) <<< uncurry g <<< head *** getHead) &&& fst $ (rest, rule))
+            (quad : quads)
+            (Inter.At addr : ps2)
 
     fromToken :: Token' -> Token
     fromToken (Token' token) = token
     fromToken EndToken = error "unexpected EndToken"
-
-    getIdx :: State -> Int
-    getIdx (State n) = n
 
     tokenToOperand :: Token -> Inter.Operand
     tokenToOperand = Inter.Const . fromRight . fromNum
@@ -212,8 +210,8 @@ parse' m f g s0 tokens = snd' . flip StateM.evalState 1 $ foldlM buildTree ([s0]
     fromRight (Right b) = b
     fromRight _ = error "fromRight: Left value"
 
-    snd' :: (a, b, c) -> b
-    snd' (_, x, _) = x
+    getQuads :: ParseState -> [Inter.Quad]
+    getQuads (ParseState _ quads _) = quads
 
 ---------- States ----------
 
