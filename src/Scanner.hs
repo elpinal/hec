@@ -58,7 +58,7 @@ lexeme = do
   return expr
 
 scanExpr :: GenParser Char st Token
-scanExpr = (Token <$>) $
+scanExpr = fmap Token $
       (Token1 <$> many1 digit) <*> return Num
   <|> (Token1 <$> many1 (letter <|> digit)) <*> return Ident
   <|> (Token1 <$> scanString) <*> return Str
