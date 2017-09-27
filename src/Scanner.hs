@@ -44,8 +44,7 @@ scan :: String -> Either ParseError [Token]
 scan src = filter isNotWhiteSpace <$> scan' src
   where
     isNotWhiteSpace :: Token -> Bool
-    isNotWhiteSpace (Token1 _ WhiteSpace) = False
-    isNotWhiteSpace _ = True
+    isNotWhiteSpace = (/= WhiteSpace) . getTerm
 
 scan' :: String -> Either ParseError [Token]
 scan' = parse lexeme "<unknown>"
