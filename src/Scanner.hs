@@ -7,6 +7,7 @@ module Scanner
     , createToken
     , getTerm
     , fromNum
+    , scanString
     ) where
 
 import Control.Monad
