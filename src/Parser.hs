@@ -61,10 +61,14 @@ data LookAhead =
     deriving (Eq, Show, Ord)
 
 newtype State = State Int
-  deriving Show
+  deriving (Eq, Show, Ord)
+
+instance Enum State where
+  toEnum = State
+  fromEnum (State n) = n
 
 data Action =
-    Shift Int
+    Shift State
   | Reduce Rule
   | Accept
     deriving Show
@@ -101,7 +105,7 @@ parse grammar tokens =
     rulesSems = getRules grammar
     rules = Map.keys rulesSems
     start = getStart rules
-    s = Map.fromAscList . zip [0..] . Set.toAscList $ states rules
+    s = Map.fromAscList . zip [State 0..] . Set.toAscList $ states rules
     s0 = fst . Map.elemAt 0 $ Map.filter (Set.member $ Item (getStart rules) 0 EndPoint) s
     f = action (gotoItems rules) start s
     g = goto (gotoItems rules) s
@@ -109,8 +113,8 @@ parse grammar tokens =
   in
     parse' m f g s0 $ map Token' tokens ++ [EndToken]
 
-action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> State -> Token' -> Action
-action gotoF start states (State n) token =
+action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map State Items -> State -> Token' -> Action
+action gotoF start states n token =
   case token of
     EndToken -> atEnd gotoF start states state
     _ -> action' gotoF states state token
@@ -118,12 +122,12 @@ action gotoF start states (State n) token =
     state :: Items
     state = fromJust $ Map.lookup n states
 
-atEnd :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map Int Items -> Items -> Action
+atEnd :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map State Items -> Items -> Action
 atEnd gotoF start states current
   | Item start 1 EndPoint `Set.member` current = Accept
   | otherwise = action' gotoF states current EndToken
 
-action' :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> Items -> Token' -> Action
+action' :: (Items -> Symbol -> Maybe Items) -> Map.Map State Items -> Items -> Token' -> Action
 action' gotoF states current token
   | not $ Set.null matchReduce
     = reduce . Set.findMin $ matchReduce
@@ -154,7 +158,7 @@ action' gotoF states current token
     fromToken' :: Token' -> Symbol
     fromToken' (Token' t) = Term $ getTerm t
 
-getID :: Map.Map Int Items -> Items -> Maybe Int
+getID :: Map.Map State Items -> Items -> Maybe State
 getID states items = headMay . Map.keys . Map.filter (== items) $ states
 
 eqLaToken :: LookAhead -> Token' -> Bool
@@ -163,10 +167,10 @@ eqLaToken EndPoint _ = False
 eqLaToken _ EndToken = False
 eqLaToken (LookAhead term) (Token' t) = term == getTerm t
 
-goto :: (Items -> Symbol -> Maybe Items) -> Map.Map Int Items -> State -> NonTerm -> State
-goto gotoF states (State n) nt =
+goto :: (Items -> Symbol -> Maybe Items) -> Map.Map State Items -> State -> NonTerm -> State
+goto gotoF states n nt =
   maybe (error $ "unexpected " ++ show nt)
-        (State . fromJust . getID states) $
+        (fromJust . getID states) $
         gotoF state $ NonTerm nt
   where
     state :: Items
@@ -178,14 +182,14 @@ data ParseState =
     [Inter.Quad]    -- ^ Generated intermediate codes.
     [Inter.Operand] -- ^ Shifted intermediate operands some of which may have been reduced.
 
-parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> [Inter.Quad]
-parse' m f g s0 = getQuads . flip StateM.evalState 1 . foldlM buildTree (ParseState [State s0] [] [])
+parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> State -> [Token'] -> [Inter.Quad]
+parse' m f g s0 = getQuads . flip StateM.evalState 1 . foldlM buildTree (ParseState [s0] [] [])
   where
     buildTree :: ParseState -> Token' -> StateM.State Inter.Addr ParseState
     buildTree (ParseState stack@(state:xs) quads passed) token =
       case f state token of
         Accept -> return $ ParseState xs quads passed
-        Shift n -> return . ParseState (State n : stack) quads $ tokenToOperand (fromToken token) : passed
+        Shift n -> return . ParseState (n : stack) quads $ tokenToOperand (fromToken token) : passed
         Reduce rule -> do
           addr <- StateM.get
           StateM.modify (+ 1)
