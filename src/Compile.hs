@@ -11,7 +11,7 @@ import Scanner
 import qualified Inter
 
 compile :: String -> Either String String
-compile s = either (Left . show) f $ scan s
+compile = either (Left . show) f . scan
   where
     f :: [Token] -> Either String String
     f tokens = return $ unlines
