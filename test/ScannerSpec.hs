@@ -18,19 +18,23 @@ spec = do
       let toMaybe :: Either a b -> Maybe b
           toMaybe (Right x) = Just x
           toMaybe _ = Nothing
-      fromNum (createToken "0" Num) `shouldSatisfy` (== Just 0) . toMaybe
-      fromNum (createToken "18" Num) `shouldSatisfy` (== Just 18) . toMaybe
-      fromNum (createToken "-18" Num) `shouldSatisfy` (== Just (-18)) . toMaybe
 
-      fromNum (createToken "0x1a" Num) `shouldSatisfy` (== Just 0x1a) . toMaybe
-      fromNum (createToken "0X1a" Num) `shouldSatisfy` (== Just 0x1a) . toMaybe
+          shouldBeRight :: (Read a, Num a, Eq a, Show a) => String -> a -> Expectation
+          shouldBeRight s n = fromNum (createToken s Num) `shouldSatisfy` (== Just n) . toMaybe
 
-      fromNum (createToken "0o17" Num) `shouldSatisfy` (== Just 0o17) . toMaybe
-      fromNum (createToken "0O17" Num) `shouldSatisfy` (== Just 0o17) . toMaybe
+      "0" `shouldBeRight` 0
+      "18" `shouldBeRight` 18
+      "-18" `shouldBeRight` (-18)
 
-      fromNum (createToken "3.1" Num) `shouldSatisfy` (== Just 3.1) . toMaybe
-      fromNum (createToken "3.1e+8" Num) `shouldSatisfy` (== Just 3.1e+8) . toMaybe
-      fromNum (createToken "3.1e-8" Num) `shouldSatisfy` (== Just 3.1e-8) . toMaybe
+      "0x1a" `shouldBeRight` 0x1a
+      "0X1a" `shouldBeRight` 0x1a
+
+      "0o17" `shouldBeRight` 0o17
+      "0O17" `shouldBeRight` 0o17
+
+      "3.1" `shouldBeRight` 3.1
+      "3.1e+8" `shouldBeRight` 3.1e+8
+      "3.1e-8" `shouldBeRight` 3.1e-8
 
     it "returns an error when the terminal symbol in a token is not Num" $ do
       fromNum (createToken "" Str) `shouldSatisfy` (== Left True) . first isNotNumError
