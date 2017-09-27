@@ -49,13 +49,13 @@ scan src = filter isNotWhiteSpace <$> scan' src
 scan' :: String -> Either ParseError [Token]
 scan' = parse lexeme "<unknown>"
 
-lexeme :: GenParser Char st [Token]
+lexeme :: Parser [Token]
 lexeme = do
   expr <- many scanExpr
   eof
   return expr
 
-scanExpr :: GenParser Char st Token
+scanExpr :: Parser Token
 scanExpr =
       Token1         <$> many1 digit              <*> return Num
   <|> Token1         <$> many1 (letter <|> digit) <*> return Ident
@@ -65,7 +65,7 @@ scanExpr =
   <|> Token1 . (:[]) <$> char '*'                 <*> return Mul
   <|> Token1         <$> many1 space              <*> return WhiteSpace
 
-scanString :: GenParser Char st String
+scanString :: Parser String
 scanString = do
   char '"'
   s <- many $ noneOf "\""
