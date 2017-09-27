@@ -11,6 +11,7 @@ module Scanner
     , isReadError
     , isNotNumError
     , scanString
+    , scanExpr
     ) where
 
 import Safe
