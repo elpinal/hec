@@ -45,8 +45,8 @@ spec = do
 
     it "returns errors when the input does not start / end with a quote" $ do
       let isOk = null . errorMessages
-      first isOk (parse scanString "filename" " \"\"") `shouldBe` Left False
-      first isOk (parse scanString "filename" "\"") `shouldBe` Left False
+      parse scanString "filename" " \"\"" `shouldSatisfy` (== Left False) . first isOk
+      parse scanString "filename" "\"" `shouldSatisfy` (== Left False) . first isOk
 
   describe "Token1" $ do
     it "implements Functor" $
