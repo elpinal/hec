@@ -5,9 +5,9 @@ import Test.Hspec
 import Scanner
 
 spec :: Spec
-spec = do
+spec =
   describe "Token1" $ do
-    it "implements Functor" $ do
+    it "implements Functor" $
       (+ 12) <$> Token1 "lit" 7
       `shouldBe`
       Token1 "lit" 19
