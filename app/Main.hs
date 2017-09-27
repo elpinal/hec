@@ -7,4 +7,4 @@ import System.IO
 import Compile
 
 main :: IO ()
-main = getContents >>= either (hPutStr stderr >=> const exitFailure) putStr . compile
+main = getContents >>= either (hPutStrLn stderr >=> const exitFailure) putStr . compile
