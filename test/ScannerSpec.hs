@@ -69,13 +69,17 @@ spec = do
           g = (+ 12)
       fmap (f . g) token `shouldBe` (fmap f . fmap g) token
 
-  describe "scanExpr" $
+  describe "scanExpr" $ do
     it "scans a various token" $ do
       parse scanExpr "filename" "12" `shouldBe` Right (createToken "12" Num)
       parse scanExpr "filename" "a" `shouldBe` Right (createToken "a" Ident)
+      parse scanExpr "filename" "a1" `shouldBe` Right (createToken "a1" Ident)
       parse scanExpr "filename" "\"a\"" `shouldBe` Right (createToken "a" Str)
       parse scanExpr "filename" "+" `shouldBe` Right (createToken "+" Add)
       parse scanExpr "filename" "  " `shouldBe` Right (createToken "  " WhiteSpace)
+
+    it "returns an error when illegal chracters are given" $
+      parse scanExpr "filename" "#" `shouldSatisfy` isLeft
 
   describe "scan" $
     it "scans some tokens" $ do
