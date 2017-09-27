@@ -11,6 +11,8 @@ module Parser
 
 import Safe
 
+import qualified Control.Monad.State.Lazy as StateM
+import Data.Foldable
 import Data.List
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
@@ -170,27 +172,27 @@ goto gotoF states (State n) nt =
     state = fromJust $ Map.lookup n states
 
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> Int -> [Token'] -> [Inter.Quad]
-parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
+parse' m f g s0 tokens = snd' . flip StateM.evalState 1 $ foldlM buildTree ([s0], [], []) tokens
   where
-    buildTree :: ([Int], [Inter.Quad], [Inter.Operand], [Inter.Addr]) -> Token' -> ([Int], [Inter.Quad], [Inter.Operand], [Inter.Addr])
-    buildTree (state:xs, quads, passed, addrNumbers) token = case f (State state) token of
-      Accept -> (xs, quads, passed, addrNumbers)
-      Shift n -> (n:state:xs, quads, tokenToOperand (fromToken token):passed, addrNumbers)
-      Reduce rule -> let
-        bodyLen = length . getBody $ rule
-        (ps1, ps2) = splitAt bodyLen passed
-        semRule = m rule
-        (s:ss) = drop bodyLen (state:xs)
-        addr = head addrNumbers
-        result = Inter.Point addr
-        triple = semRule $ reverse ps1
-        quad = Inter.toQuad result triple
-        in
+    buildTree :: ([Int], [Inter.Quad], [Inter.Operand]) -> Token' -> StateM.State Inter.Addr ([Int], [Inter.Quad], [Inter.Operand])
+    buildTree (state:xs, quads, passed) token = case f (State state) token of
+      Accept -> return (xs, quads, passed)
+      Shift n -> return (n:state:xs, quads, tokenToOperand (fromToken token):passed)
+      Reduce rule -> do
+        addr <- StateM.get
+        StateM.put $ addr + 1
+        let
+          bodyLen = length . getBody $ rule
+          (ps1, ps2) = splitAt bodyLen passed
+          semRule = m rule
+          (s:ss) = drop bodyLen (state:xs)
+          result = Inter.Point addr
+          triple = semRule $ reverse ps1
+          quad = Inter.toQuad result triple
         flip buildTree token
                        ( (getIdx . g (State s)) (getHead rule) : s : ss
                        , quad : quads
                        , Inter.At addr : ps2
-                       , drop 1 addrNumbers
                        )
 
     fromToken :: Token' -> Token
@@ -207,8 +209,8 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
     fromRight (Right b) = b
     fromRight _ = error "fromRight: Left value"
 
-    snd' :: (a, b, c, d) -> b
-    snd' (_, x, _, _) = x
+    snd' :: (a, b, c) -> b
+    snd' (_, x, _) = x
 
 ---------- States ----------
 
