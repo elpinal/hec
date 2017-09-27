@@ -55,15 +55,22 @@ lexeme = do
   eof
   return expr
 
+infix 2 $$
+($$) :: (a -> b) -> a -> b
+($$) = ($)
+
 scanExpr :: Parser Token
 scanExpr =
-      Token1         <$> many1 digit              <*> return Num
-  <|> Token1         <$> many1 (letter <|> digit) <*> return Ident
-  <|> Token1         <$> scanString               <*> return Str
-  <|> Token1 . (:[]) <$> char '+'                 <*> return Add
-  <|> Token1 . (:[]) <$> char '-'                 <*> return Sub
-  <|> Token1 . (:[]) <$> char '*'                 <*> return Mul
-  <|> Token1         <$> many1 space              <*> return WhiteSpace
+      tokenize Num        $$ many1 digit
+  <|> tokenize Ident      $$ many1 (letter <|> digit)
+  <|> tokenize Str        $$ scanString
+  <|> tokenize Add        $$ string "+"
+  <|> tokenize Sub        $$ string "-"
+  <|> tokenize Mul        $$ string "*"
+  <|> tokenize WhiteSpace $$ many1 space
+
+tokenize :: Term -> Parser String -> Parser Token
+tokenize t p = Token1 <$> p <*> return t
 
 scanString :: Parser String
 scanString = do
