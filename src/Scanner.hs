@@ -31,13 +31,13 @@ instance Functor Token1 where
 type Token = Token1 Term
 
 createToken :: String -> Term -> Token
-createToken lit t = Token1 lit t
+createToken = Token1
 
 getTerm :: Token -> Term
 getTerm (Token1 _ term) = term
 
 fromNum :: (Read a, Num a) => Token -> a
-fromNum (Token1 val Num) = read $ val
+fromNum (Token1 val Num) = read val
 fromNum t = error $ "not a number: " ++ show t
 
 scan :: String -> Either ParseError [Token]
