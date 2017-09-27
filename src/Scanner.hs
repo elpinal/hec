@@ -59,13 +59,13 @@ lexeme = do
 
 scanExpr :: GenParser Char st Token
 scanExpr = fmap Token $
-      (Token1 <$> many1 digit) <*> return Num
-  <|> (Token1 <$> many1 (letter <|> digit)) <*> return Ident
-  <|> (Token1 <$> scanString) <*> return Str
-  <|> (Token1 . (:[]) <$> char '+') <*> return Add
-  <|> (Token1 . (:[]) <$> char '-') <*> return Sub
-  <|> (Token1 . (:[]) <$> char '*') <*> return Mul
-  <|> (Token1 <$> many1 space) <*> return WhiteSpace
+      Token1 <$> many1 digit <*> return Num
+  <|> Token1 <$> many1 (letter <|> digit) <*> return Ident
+  <|> Token1 <$> scanString <*> return Str
+  <|> Token1 . (:[]) <$> char '+' <*> return Add
+  <|> Token1 . (:[]) <$> char '-' <*> return Sub
+  <|> Token1 . (:[]) <$> char '*' <*> return Mul
+  <|> Token1 <$> many1 space <*> return WhiteSpace
 
 scanString :: GenParser Char st String
 scanString = do
