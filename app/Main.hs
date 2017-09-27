@@ -5,6 +5,4 @@ import System.IO
 import Compile
 
 main :: IO ()
-main = getContents >>= \x -> case compile x of
-  Right asm -> putStr asm
-  Left err -> hPutStr stderr err
+main = getContents >>= either (hPutStr stderr) putStr . compile
