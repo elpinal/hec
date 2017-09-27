@@ -1,5 +1,6 @@
 module Scanner
     ( scan
+    , scanWithFilename
     , Token
     , Token1(..) -- exported for testing
     , Term(..)
@@ -42,11 +43,14 @@ fromNum :: (Read a, Num a) => Token -> a
 fromNum (Token1 val Num) = read val
 fromNum t = error $ "not a number: " ++ show t
 
-scan :: String -> Either ParseError [Token]
-scan = return . filter isNotWhiteSpace <=< parse lexeme "<input from string>"
+scanWithFilename :: FilePath -> String -> Either ParseError [Token]
+scanWithFilename = (return . filter isNotWhiteSpace <=<) . parse lexeme
   where
     isNotWhiteSpace :: Token -> Bool
     isNotWhiteSpace = (/= WhiteSpace) . getTerm
+
+scan :: String -> Either ParseError [Token]
+scan = scanWithFilename "<input from string>"
 
 lexeme :: Parser [Token]
 lexeme = do
