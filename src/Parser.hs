@@ -201,7 +201,11 @@ parse' m f g s0 tokens = snd' $ foldl buildTree ([s0], [], [], [1..]) tokens
     getIdx (State n) = n
 
     tokenToOperand :: Token -> Inter.Operand
-    tokenToOperand = Inter.Const . fromNum
+    tokenToOperand = Inter.Const . fromRight . fromNum
+
+    fromRight :: Either a b -> b
+    fromRight (Right b) = b
+    fromRight _ = error "fromRight: Left value"
 
     snd' :: (a, b, c, d) -> b
     snd' (_, x, _, _) = x

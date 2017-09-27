@@ -10,6 +10,8 @@ module Scanner
     , scanString
     ) where
 
+import Safe
+
 import Control.Monad
 
 import Text.ParserCombinators.Parsec
@@ -40,8 +42,8 @@ createToken = Token1
 getTerm :: Token -> Term
 getTerm (Token1 _ term) = term
 
-fromNum :: (Read a, Num a) => Token -> a
-fromNum (Token1 val Num) = read val
+fromNum :: (Read a, Num a) => Token -> Either String a
+fromNum (Token1 val Num) = readEitherSafe val
 fromNum t = error $ "not a number: " ++ show t
 
 scanWithFilename :: FilePath -> String -> Either ParseError [Token]
