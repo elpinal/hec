@@ -178,24 +178,51 @@ goto gotoF states n nt =
 
 data ParseState =
   ParseState
-    [State]         -- ^ State Stack.
     [Inter.Quad]    -- ^ Generated intermediate codes.
     [Inter.Operand] -- ^ Shifted intermediate operands some of which may have been reduced.
 
+data ParseStack =
+  ParseStack
+    Inter.Addr -- ^ Address supplier.
+    -- TODO: Make [State] NonEmpty.
+    [State]    -- ^ State Stack.
+
+currentState :: ParseStack -> State
+currentState (ParseStack _ (s:_)) = s
+currentState _ = error "currentState: empty stack"
+
+push :: State -> StateM.State ParseStack ()
+push state = do
+  (ParseStack addr stack) <- StateM.get
+  StateM.put . ParseStack addr $ state : stack
+
+incAddr :: StateM.State ParseStack ()
+incAddr = do
+  (ParseStack addr stack) <- StateM.get
+  StateM.put $ ParseStack (addr + 1) stack
+
+setStack :: [State] -> StateM.State ParseStack ()
+setStack stack = do
+  (ParseStack addr _) <- StateM.get
+  StateM.put $ ParseStack addr stack
+
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> State -> [Token'] -> [Inter.Quad]
-parse' m f g s0 = getQuads . flip StateM.evalState 1 . foldlM buildTree (ParseState [s0] [] [])
+parse' m f g s0 = getQuads . flip StateM.evalState (ParseStack 1 [s0]) . foldlM buildTree (ParseState [] [])
   where
-    buildTree :: ParseState -> Token' -> StateM.State Inter.Addr ParseState
-    buildTree (ParseState stack@(state:xs) quads passed) token =
+    buildTree :: ParseState -> Token' -> StateM.State ParseStack ParseState
+    buildTree (ParseState quads passed) token = do
+      state <- StateM.gets currentState
       case f state token of
-        Accept -> return $ ParseState stack quads passed
-        Shift n -> return . ParseState (n : stack) quads $ tokenToOperand (fromToken token) : passed
+        Accept -> return $ ParseState quads passed
+        Shift n -> do
+          push n
+          return . ParseState quads $ tokenToOperand (fromToken token) : passed
         Reduce rule -> do
-          addr <- StateM.get
-          StateM.modify (+ 1)
+          (ParseStack addr stack) <- StateM.get
+          incAddr
           let bodyLen = length . getBody $ rule
-          flip buildTree token $ (uncurry . ParseState)
-            (app $ ((:) <<< uncurry g <<< head *** getHead) &&& fst $ (drop bodyLen stack, rule)) $
+          setStack . app $ ((:) <<< uncurry g <<< head *** getHead) &&& fst $ (drop bodyLen stack, rule)
+          flip buildTree token . uncurry ParseState $
             ((: quads) <<< Inter.toQuad (Inter.Point addr) <<< m rule <<< reverse) *** (Inter.At addr :) $ splitAt bodyLen passed
 
     fromToken :: Token' -> Token
@@ -210,7 +237,7 @@ parse' m f g s0 = getQuads . flip StateM.evalState 1 . foldlM buildTree (ParseSt
     fromRight _ = error "fromRight: Left value"
 
     getQuads :: ParseState -> [Inter.Quad]
-    getQuads (ParseState _ quads _) = quads
+    getQuads (ParseState quads _) = quads
 
 ---------- States ----------
 
