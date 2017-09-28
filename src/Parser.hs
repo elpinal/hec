@@ -193,11 +193,9 @@ parse' m f g s0 = getQuads . flip StateM.evalState 1 . foldlM buildTree (ParseSt
         Reduce rule -> do
           addr <- StateM.get
           StateM.modify (+ 1)
-          let
-            bodyLen = length . getBody $ rule
-            rest = drop bodyLen stack
+          let bodyLen = length . getBody $ rule
           flip buildTree token $ (uncurry . ParseState)
-            (app $ ((:) <<< uncurry g <<< head *** getHead) &&& fst $ (rest, rule)) $
+            (app $ ((:) <<< uncurry g <<< head *** getHead) &&& fst $ (drop bodyLen stack, rule)) $
             ((: quads) <<< Inter.toQuad (Inter.Point addr) <<< m rule <<< reverse) *** (Inter.At addr :) $ splitAt bodyLen passed
 
     fromToken :: Token' -> Token
