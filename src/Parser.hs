@@ -15,6 +15,7 @@ import Control.Arrow ((***), (&&&), (<<<), app)
 import qualified Control.Monad.State.Lazy as StateM
 import Data.Foldable
 import Data.List
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
@@ -183,31 +184,29 @@ data ParseState =
 
 data ParseStack =
   ParseStack
-    Inter.Addr -- ^ Address supplier.
-    -- TODO: Make [State] NonEmpty.
-    [State]    -- ^ State Stack.
+    Inter.Addr                -- ^ Address supplier.
+    (NonEmpty.NonEmpty State) -- ^ State Stack.
 
 currentState :: ParseStack -> State
-currentState (ParseStack _ (s:_)) = s
-currentState _ = error "currentState: empty stack"
+currentState (ParseStack _ stack) = NonEmpty.head stack
 
 push :: State -> StateM.State ParseStack ()
 push state = do
   (ParseStack addr stack) <- StateM.get
-  StateM.put . ParseStack addr $ state : stack
+  StateM.put . ParseStack addr $ state NonEmpty.<| stack
 
 incAddr :: StateM.State ParseStack ()
 incAddr = do
   (ParseStack addr stack) <- StateM.get
   StateM.put $ ParseStack (addr + 1) stack
 
-setStack :: [State] -> StateM.State ParseStack ()
+setStack :: NonEmpty.NonEmpty State -> StateM.State ParseStack ()
 setStack stack = do
   (ParseStack addr _) <- StateM.get
   StateM.put $ ParseStack addr stack
 
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> State -> [Token'] -> [Inter.Quad]
-parse' m f g s0 = getQuads . flip StateM.evalState (ParseStack 1 [s0]) . foldlM buildTree (ParseState [] [])
+parse' m f g s0 = getQuads . flip StateM.evalState (ParseStack 1 $ s0 NonEmpty.:| []) . foldlM buildTree (ParseState [] [])
   where
     buildTree :: ParseState -> Token' -> StateM.State ParseStack ParseState
     buildTree (ParseState quads passed) token = do
@@ -221,7 +220,7 @@ parse' m f g s0 = getQuads . flip StateM.evalState (ParseStack 1 [s0]) . foldlM 
           (ParseStack addr stack) <- StateM.get
           incAddr
           let bodyLen = length . getBody $ rule
-          setStack . app $ ((:) <<< uncurry g <<< head *** getHead) &&& fst $ (drop bodyLen stack, rule)
+          setStack . app $ ((NonEmpty.:|) <<< uncurry g <<< head *** getHead) &&& fst $ (NonEmpty.drop bodyLen stack, rule)
           flip buildTree token . uncurry ParseState $
             ((: quads) <<< Inter.toQuad (Inter.Point addr) <<< m rule <<< reverse) *** (Inter.At addr :) $ splitAt bodyLen passed
 
