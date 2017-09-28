@@ -11,7 +11,7 @@ module Parser
 
 import Safe
 
-import Control.Arrow ((***), (&&&), (<<<), app)
+import Control.Arrow hiding (first, (|||))
 import qualified Control.Monad.State.Lazy as StateM
 import Data.Foldable
 import Data.List
@@ -19,6 +19,7 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
+import Data.Tuple
 
 import qualified Inter
 import Scanner
@@ -177,18 +178,21 @@ goto gotoF states n nt =
     state :: Items
     state = fromJust $ Map.lookup n states
 
-data ParseState =
-  ParseState
-    [Inter.Quad]    -- ^ Generated intermediate codes.
-    [Inter.Operand] -- ^ Shifted intermediate operands some of which may have been reduced.
+-- | Generated intermediate codes.
+type ParseState = [Inter.Quad]
 
 data ParseStack = ParseStack
-  { addrSupply :: Inter.Addr              -- ^ Address supplier.
-  , stateStack :: NonEmpty.NonEmpty State -- ^ State Stack.
+  { addrSupply      :: Inter.Addr              -- ^ Address supplier.
+  , stateStack      :: NonEmpty.NonEmpty State -- ^ State Stack.
+  , shiftedOperands :: [Inter.Operand]         -- ^ Shifted intermediate operands some of which may have been reduced.
   }
 
 parseStack :: State -> ParseStack
-parseStack state = ParseStack 1 $ state NonEmpty.:| []
+parseStack state = ParseStack
+  { addrSupply = 1
+  , stateStack = state NonEmpty.:| []
+  , shiftedOperands = []
+  }
 
 currentState :: ParseStack -> State
 currentState = NonEmpty.head . stateStack
@@ -205,24 +209,34 @@ newAddr = do
 setStack :: NonEmpty.NonEmpty State -> StateM.State ParseStack ()
 setStack stack = StateM.modify $ \ps -> ps { stateStack = stack }
 
+setOperands :: [Inter.Operand] -> StateM.State ParseStack ()
+setOperands ops = StateM.modify $ \ps -> ps { shiftedOperands = ops }
+
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> State -> [Token'] -> [Inter.Quad]
-parse' m f g s0 = getQuads . flip StateM.evalState (parseStack s0) . foldlM buildTree (ParseState [] [])
+parse' m f g s0 = flip StateM.evalState (parseStack s0) . foldlM buildTree []
   where
     buildTree :: ParseState -> Token' -> StateM.State ParseStack ParseState
-    buildTree (ParseState quads passed) token = do
+    buildTree quads token = do
       state <- StateM.gets currentState
       case f state token of
-        Accept -> return $ ParseState quads passed
+        Accept -> return quads
         Shift n -> do
           push n
-          return . ParseState quads $ tokenToOperand (fromToken token) : passed
+          ops <- StateM.gets shiftedOperands
+          setOperands $ tokenToOperand (fromToken token) : ops
+          return quads
         Reduce rule -> do
           stack <- StateM.gets stateStack
           addr <- newAddr
           let bodyLen = length . getBody $ rule
           setStack . app $ ((NonEmpty.:|) <<< uncurry g <<< head *** getHead) &&& fst $ (NonEmpty.drop bodyLen stack, rule)
-          flip buildTree token . uncurry ParseState $
-            ((: quads) <<< Inter.toQuad (Inter.Point addr) <<< m rule <<< reverse) *** (Inter.At addr :) $ splitAt bodyLen passed
+          let
+            h :: [Inter.Operand] -> StateM.State ParseStack ParseState
+            h = flip buildTree token . (: quads) . Inter.toQuad (Inter.Point addr) . m rule . reverse
+
+            u :: [Inter.Operand] -> StateM.State ParseStack ()
+            u = setOperands <<< (Inter.At addr :)
+          flip runKleisli shiftedOperands $ arr snd <<< (Kleisli u *** Kleisli h) <<< arr (swap . splitAt bodyLen) <<< Kleisli StateM.gets
 
     fromToken :: Token' -> Token
     fromToken (Token' token) = token
@@ -234,9 +248,6 @@ parse' m f g s0 = getQuads . flip StateM.evalState (parseStack s0) . foldlM buil
     fromRight :: Either a b -> b
     fromRight (Right b) = b
     fromRight _ = error "fromRight: Left value"
-
-    getQuads :: ParseState -> [Inter.Quad]
-    getQuads (ParseState quads _) = quads
 
 ---------- States ----------
 
