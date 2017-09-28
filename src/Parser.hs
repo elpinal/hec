@@ -188,7 +188,7 @@ parse' m f g s0 = getQuads . flip StateM.evalState 1 . foldlM buildTree (ParseSt
     buildTree :: ParseState -> Token' -> StateM.State Inter.Addr ParseState
     buildTree (ParseState stack@(state:xs) quads passed) token =
       case f state token of
-        Accept -> return $ ParseState xs quads passed
+        Accept -> return $ ParseState stack quads passed
         Shift n -> return . ParseState (n : stack) quads $ tokenToOperand (fromToken token) : passed
         Reduce rule -> do
           addr <- StateM.get
