@@ -3,7 +3,6 @@ module Gen where
 import Control.Arrow
 import Data.Char
 import qualified Data.Map.Lazy as Map
-import Data.Maybe
 import Data.Sequence as Sequence
 import qualified Data.Set as Set
 

@@ -2,7 +2,6 @@ module Compile where
 
 import Safe
 
-import qualified Data.Foldable as Foldable
 import qualified Data.Map.Lazy as Map
 
 import qualified Gen
