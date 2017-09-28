@@ -187,20 +187,26 @@ data ParseStack = ParseStack
   , stateStack :: NonEmpty.NonEmpty State -- ^ State Stack.
   }
 
+parseStack :: State -> ParseStack
+parseStack state = ParseStack 1 $ state NonEmpty.:| []
+
 currentState :: ParseStack -> State
 currentState = NonEmpty.head . stateStack
 
 push :: State -> StateM.State ParseStack ()
 push state = StateM.modify $ \ps -> ps { stateStack = state NonEmpty.<| stateStack ps }
 
-incAddr :: StateM.State ParseStack ()
-incAddr = StateM.modify $ \ps -> ps { addrSupply = 1 + addrSupply ps }
+newAddr :: StateM.State ParseStack Inter.Addr
+newAddr = do
+  addr <- StateM.gets addrSupply
+  StateM.modify $ \ps -> ps { addrSupply = 1 + addr }
+  return addr
 
 setStack :: NonEmpty.NonEmpty State -> StateM.State ParseStack ()
 setStack stack = StateM.modify $ \ps -> ps { stateStack = stack }
 
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> State -> [Token'] -> [Inter.Quad]
-parse' m f g s0 = getQuads . flip StateM.evalState (ParseStack 1 $ s0 NonEmpty.:| []) . foldlM buildTree (ParseState [] [])
+parse' m f g s0 = getQuads . flip StateM.evalState (parseStack s0) . foldlM buildTree (ParseState [] [])
   where
     buildTree :: ParseState -> Token' -> StateM.State ParseStack ParseState
     buildTree (ParseState quads passed) token = do
@@ -211,8 +217,8 @@ parse' m f g s0 = getQuads . flip StateM.evalState (ParseStack 1 $ s0 NonEmpty.:
           push n
           return . ParseState quads $ tokenToOperand (fromToken token) : passed
         Reduce rule -> do
-          (ParseStack addr stack) <- StateM.get
-          incAddr
+          stack <- StateM.gets stateStack
+          addr <- newAddr
           let bodyLen = length . getBody $ rule
           setStack . app $ ((NonEmpty.:|) <<< uncurry g <<< head *** getHead) &&& fst $ (NonEmpty.drop bodyLen stack, rule)
           flip buildTree token . uncurry ParseState $
