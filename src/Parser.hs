@@ -11,10 +11,13 @@ module Parser
 
 import Safe
 
+import Prelude hiding (head)
+
 import Control.Arrow hiding (first, (|||))
 import qualified Control.Monad.State.Lazy as StateM
 import Data.Foldable
-import Data.List
+import Data.List hiding (head)
+import qualified Data.List as List (head)
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
@@ -230,7 +233,7 @@ parse' m f g s0 = flip StateM.evalState (parseStack s0) . foldlM buildTree []
           stack <- StateM.gets stateStack
           addr <- newAddr
           let bodyLen = length . getBody $ rule
-          setStack . app $ ((NonEmpty.:|) <<< uncurry g <<< head *** getHead) &&& fst $ (NonEmpty.drop bodyLen stack, rule)
+          setStack . app $ ((NonEmpty.:|) <<< uncurry g <<< List.head *** getHead) &&& fst $ (NonEmpty.drop bodyLen stack, rule)
           let
             h :: [Inter.Operand] -> StateM.State ParseStack ParseState
             h = flip buildTree token . (: quads) . Inter.toQuad (Inter.Point addr) . m rule . reverse
@@ -350,7 +353,7 @@ takeUpToNot f xs =
   in
     case r of
       [] -> l
-      _ -> l ++ [head r]
+      _ -> l ++ [List.head r]
 
 ---------- Nulls ----------
 
