@@ -182,28 +182,22 @@ data ParseState =
     [Inter.Quad]    -- ^ Generated intermediate codes.
     [Inter.Operand] -- ^ Shifted intermediate operands some of which may have been reduced.
 
-data ParseStack =
-  ParseStack
-    Inter.Addr                -- ^ Address supplier.
-    (NonEmpty.NonEmpty State) -- ^ State Stack.
+data ParseStack = ParseStack
+  { addrSupply :: Inter.Addr              -- ^ Address supplier.
+  , stateStack :: NonEmpty.NonEmpty State -- ^ State Stack.
+  }
 
 currentState :: ParseStack -> State
-currentState (ParseStack _ stack) = NonEmpty.head stack
+currentState = NonEmpty.head . stateStack
 
 push :: State -> StateM.State ParseStack ()
-push state = do
-  (ParseStack addr stack) <- StateM.get
-  StateM.put . ParseStack addr $ state NonEmpty.<| stack
+push state = StateM.modify $ \ps -> ps { stateStack = state NonEmpty.<| stateStack ps }
 
 incAddr :: StateM.State ParseStack ()
-incAddr = do
-  (ParseStack addr stack) <- StateM.get
-  StateM.put $ ParseStack (addr + 1) stack
+incAddr = StateM.modify $ \ps -> ps { addrSupply = 1 + addrSupply ps }
 
 setStack :: NonEmpty.NonEmpty State -> StateM.State ParseStack ()
-setStack stack = do
-  (ParseStack addr _) <- StateM.get
-  StateM.put $ ParseStack addr stack
+setStack stack = StateM.modify $ \ps -> ps { stateStack = stack }
 
 parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> State -> [Token'] -> [Inter.Quad]
 parse' m f g s0 = getQuads . flip StateM.evalState (ParseStack 1 $ s0 NonEmpty.:| []) . foldlM buildTree (ParseState [] [])
