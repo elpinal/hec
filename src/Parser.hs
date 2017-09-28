@@ -363,12 +363,7 @@ nullable _ _ = False
 
 nulls :: [Rule] -> [NonTerm]
 nulls [] = []
-nulls rules =
-  let
-    (nu, pend) = partition justNull rules
-    ns = map getHead nu
-  in
-    converge (nulls' pend) ns
+nulls rules = app <<< converge . nulls' *** map getHead <<< swap <<< partition justNull $ rules
 
 justNull :: Rule -> Bool
 justNull (Rule _ []) = True
