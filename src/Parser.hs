@@ -1,7 +1,7 @@
 module Parser
     ( parse
     , extend
-    , Grammar(..)
+    , Grammar
     , NonTerm(..)
     , Symbol(..)
     , (>:>)
@@ -80,8 +80,9 @@ data Token' =
   | EndToken
     deriving (Eq, Show, Ord)
 
-extend :: Grammar -> Grammar
-extend (Grammar start rules) = Grammar Start $ Map.insert (Rule Start [NonTerm start]) (\xs -> (Inter.NOP, xs`at`0, Inter.Nil)) rules
+
+extend :: NonTerm -> (Map.Map Rule SemanticRule) -> Grammar
+extend start rules = Grammar Start $ Map.insert (Rule Start [NonTerm start]) (\xs -> (Inter.NOP, xs`at`0, Inter.Nil)) rules
 
 getRules :: Grammar -> Map.Map Rule SemanticRule
 getRules (Grammar _ rules) = rules

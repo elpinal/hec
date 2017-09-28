@@ -31,7 +31,7 @@ compile = either (Left . show) f . scan
     joinWithNL s t = s ++ "\n" ++ t
 
 grammar :: Grammar
-grammar = extend $ Grammar (Var "expr") $ Map.fromList
+grammar = extend (Var "expr") $ Map.fromList
   [ "expr" >:> [ refer "expr", Term Add, refer "term"] ||| (\xs -> (Inter.Arith Inter.Add, xs`at`0, xs`at`2))
   , "expr" >:> [ refer "expr", Term Sub, refer "term"] ||| (\xs -> (Inter.Arith Inter.Sub, xs`at`0, xs`at`2))
   , "expr" >:> [ refer "term" ] ||| (\xs -> (Inter.NOP, xs`at`0, Inter.Nil))
