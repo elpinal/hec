@@ -34,7 +34,7 @@ grammar :: Grammar
 grammar = extend (Var "expr") $ Map.fromList
   [ "expr" >:> [ refer "expr", Term Add, refer "term"] ||| (\xs -> (Inter.Arith Inter.Add, xs`at`0, xs`at`2))
   , "expr" >:> [ refer "expr", Term Sub, refer "term"] ||| (\xs -> (Inter.Arith Inter.Sub, xs`at`0, xs`at`2))
-  , "expr" >:> [ refer "term" ] ||| (\xs -> (Inter.NOP, xs`at`0, Inter.Nil))
-  , "term" >:> [ refer "term", Term Mul, Term Num] ||| (\xs -> (Inter.Arith Inter.Mul, xs`at`0, xs`at`2))
-  , "term" >:> [ Term Num ] ||| (\xs -> (Inter.NOP, xs`at`0, Inter.Nil))
+  , "expr" >:> [ refer "term" ]                        ||| (\xs -> (Inter.NOP, xs`at`0, Inter.Nil))
+  , "term" >:> [ refer "term", Term Mul, Term Num]     ||| (\xs -> (Inter.Arith Inter.Mul, xs`at`0, xs`at`2))
+  , "term" >:> [ Term Num ]                            ||| (\xs -> (Inter.NOP, xs`at`0, Inter.Nil))
   ]
