@@ -363,8 +363,7 @@ nullable rules (NonTerm x) = x `elem` nulls rules
 nullable _ _ = False
 
 nulls :: [Rule] -> [NonTerm]
-nulls [] = []
-nulls rules = app <<< converge . nulls' *** map getHead <<< swap <<< partition justNull $ rules
+nulls = app <<< converge . nulls' *** map getHead <<< swap <<< partition justNull
 
 justNull :: Rule -> Bool
 justNull (Rule _ []) = True
