@@ -2,6 +2,7 @@ module Compile where
 
 import Safe
 
+import Control.Arrow hiding ((|||))
 import qualified Data.Map.Lazy as Map
 
 import qualified Gen
@@ -10,10 +11,10 @@ import Scanner
 import qualified Inter
 
 compile :: String -> Either String String
-compile = either (Left . show) f . scan
+compile = show +++ f <<< scan
   where
-    f :: [Token] -> Either String String
-    f tokens = return $ unlines
+    f :: [Token] -> String
+    f tokens = unlines
                  [ ".text"
                  , ".global _intfn"
                  , "_intfn:" ++ asm tokens
