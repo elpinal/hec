@@ -366,9 +366,7 @@ nulls :: [Rule] -> [NonTerm]
 nulls = app <<< converge . nulls' *** map getHead <<< swap <<< partition justNull
 
 justNull :: Rule -> Bool
-justNull (Rule _ []) = True
-justNull _ = False
-
+justNull = null . getBody
 
 nulls' :: [Rule] -> [NonTerm] -> [NonTerm]
 nulls' [] ns = ns
