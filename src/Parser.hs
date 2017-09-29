@@ -272,15 +272,11 @@ states' rules c = Set.union c . Set.fromList $ do
 ---------- goto items ----------
 
 gotoItems :: [Rule] -> Items -> Symbol -> Items
-gotoItems rules items sym =
-  let
-    xs = Set.filter filterFunc items
-  in
-    closure rules . Set.map inc $ xs
+gotoItems rules items sym = closure rules . Set.map inc $ Set.filter hasNext items
   where
-    filterFunc :: Item -> Bool
-    filterFunc (Item rule n _) | length (getBody rule) <= n = False
-    filterFunc item = nextSym item == sym
+    hasNext :: Item -> Bool
+    hasNext (Item rule n _) | length (getBody rule) <= n = False
+    hasNext item = nextSym item == sym
 
     inc :: Item -> Item
     inc (Item r n l) = Item r (n + 1) l
