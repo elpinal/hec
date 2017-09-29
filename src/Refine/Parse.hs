@@ -27,10 +27,7 @@ eval :: Expr a -> a
 eval (Num n) = n
 eval (Bool b) = b
 eval (Succ e) = eval e + 1
-eval (ToInt e) =
-  case eval e of
-    False -> 0
-    True -> 1
+eval (ToInt e) = if eval e then 1 else 0
 
 parseExpr :: (Num a, Read a) => String -> Either ParseError (Expr a)
 parseExpr = parse parser "<no filename>"
