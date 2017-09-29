@@ -20,6 +20,7 @@ library
                      , Inter
                      , Parser
                      , Scanner
+                     , Refine.Parse
   build-depends:       base >= 4.7 && < 5
                      , parsec
                      , containers
@@ -47,6 +48,7 @@ test-suite hec-test
                      , parsec
   other-modules:       ParserSpec
                      , ScannerSpec
+                     , Refine.ParseSpec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
