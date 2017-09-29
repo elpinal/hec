@@ -10,9 +10,9 @@ import Refine.Parse
 
 spec :: Spec
 spec =
-  describe "parseExpr" $
+  describe "parseExpr" $ do
     it "parses an expression" $ do
       (parseExpr "1" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Num 1)
-      (parseExpr "succ1" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Num 2)
-      (parseExpr "toIntFalse" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Num 0)
-      (parseExpr "succtoIntTrue" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Num 2)
+      (parseExpr "succ1" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Succ (Num 1))
+      (parseExpr "toIntFalse" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== ToInt (Bool False))
+      (parseExpr "succtoIntTrue" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Succ (ToInt (Bool True)))
