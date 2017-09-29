@@ -162,7 +162,7 @@ action' gotoF states current token
 
     toSymbol :: End Token -> Symbol
     toSymbol (Middle t) = Term $ getTerm t
-    toSymbol End = error $ "unexpected End"
+    toSymbol End = error "unexpected End"
 
 getID :: Map.Map State Items -> Items -> Maybe State
 getID states items = headMay . Map.keys . Map.filter (== items) $ states
