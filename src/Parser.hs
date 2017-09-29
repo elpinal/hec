@@ -15,6 +15,7 @@ import Safe
 import Prelude hiding (head)
 
 import Control.Arrow hiding (first, (|||))
+import Control.Monad
 import qualified Control.Monad.State.Lazy as StateM
 import Data.Foldable
 import Data.List hiding (head)
@@ -61,9 +62,11 @@ type Items = Set.Set Item
 data Item = Item Rule Int LookAhead
   deriving (Eq, Show, Ord)
 
-data LookAhead =
-    LookAhead Term
-  | EndPoint
+type LookAhead = End Term
+
+data End a =
+    Middle a
+  | End
     deriving (Eq, Show, Ord)
 
 newtype State = State Int
@@ -78,11 +81,6 @@ data Action =
   | Reduce Rule
   | Accept
     deriving Show
-
-data Token' =
-    Token' Token
-  | EndToken
-    deriving (Eq, Show, Ord)
 
 
 extend :: NonTerm -> Map.Map Rule SemanticRule -> Grammar
@@ -113,17 +111,17 @@ parse grammar tokens =
     rules = Map.keys rulesSems
     start = getStart rules
     s = Map.fromAscList . zip [State 0..] . Set.toAscList $ states rules
-    s0 = fst . Map.elemAt 0 $ Map.filter (Set.member $ Item (getStart rules) 0 EndPoint) s
+    s0 = fst . Map.elemAt 0 $ Map.filter (Set.member $ Item (getStart rules) 0 End) s
     f = action (gotoItems rules) start s
     g = goto (gotoItems rules) s
     m = semRuleOf rulesSems
   in
-    parse' m f g s0 $ map Token' tokens ++ [EndToken]
+    parse' m f g s0 $ map Middle tokens ++ [End]
 
-action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map State Items -> State -> Token' -> Action
+action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map State Items -> State -> End Token -> Action
 action gotoF start states n token =
   case token of
-    EndToken -> atEnd gotoF start states state
+    End -> atEnd gotoF start states state
     _ -> action' gotoF states state token
   where
     state :: Items
@@ -131,15 +129,15 @@ action gotoF start states n token =
 
 atEnd :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map State Items -> Items -> Action
 atEnd gotoF start states current
-  | Item start 1 EndPoint `Set.member` current = Accept
-  | otherwise = action' gotoF states current EndToken
+  | Item start 1 End `Set.member` current = Accept
+  | otherwise = action' gotoF states current End
 
-action' :: (Items -> Symbol -> Maybe Items) -> Map.Map State Items -> Items -> Token' -> Action
+action' :: (Items -> Symbol -> Maybe Items) -> Map.Map State Items -> Items -> End Token -> Action
 action' gotoF states current token
   | not $ Set.null matchReduce
     = reduce . Set.findMin $ matchReduce
   | not $ Set.null matchShift
-    = fromJust . fmap Shift $ getID states =<< gotoF current (fromToken' token)
+    = fromJust $ fmap Shift . getID states <=< gotoF current $ toSymbol token
   | otherwise
     = error $ "unexpected error: " ++ show token
   where
@@ -160,19 +158,20 @@ action' gotoF states current token
     fromTerm _ = Nothing
 
     matchShift :: Items
-    matchShift = Set.filter (maybe False ((`eqLaToken` token) . LookAhead) . next) current
+    matchShift = Set.filter (maybe False ((`eqLaToken` token) . Middle) . next) current
 
-    fromToken' :: Token' -> Symbol
-    fromToken' (Token' t) = Term $ getTerm t
+    toSymbol :: End Token -> Symbol
+    toSymbol (Middle t) = Term $ getTerm t
+    toSymbol End = error $ "unexpected End"
 
 getID :: Map.Map State Items -> Items -> Maybe State
 getID states items = headMay . Map.keys . Map.filter (== items) $ states
 
-eqLaToken :: LookAhead -> Token' -> Bool
-eqLaToken EndPoint EndToken = True
-eqLaToken EndPoint _ = False
-eqLaToken _ EndToken = False
-eqLaToken (LookAhead term) (Token' t) = term == getTerm t
+eqLaToken :: LookAhead -> End Token -> Bool
+eqLaToken End End = True
+eqLaToken End _ = False
+eqLaToken _ End = False
+eqLaToken (Middle term) (Middle t) = term == getTerm t
 
 goto :: (Items -> Symbol -> Maybe Items) -> Map.Map State Items -> State -> NonTerm -> State
 goto gotoF states n nt =
@@ -217,10 +216,10 @@ setStack stack = StateM.modify $ \ps -> ps { stateStack = stack }
 setOperands :: [Inter.Operand] -> StateM.State ParseStack ()
 setOperands ops = StateM.modify $ \ps -> ps { shiftedOperands = ops }
 
-parse' :: (Rule -> SemanticRule) -> (State -> Token' -> Action) -> (State -> NonTerm -> State) -> State -> [Token'] -> [Inter.Quad]
+parse' :: (Rule -> SemanticRule) -> (State -> End Token -> Action) -> (State -> NonTerm -> State) -> State -> [End Token] -> [Inter.Quad]
 parse' m f g s0 = flip StateM.evalState (parseStack s0) . foldlM buildTree []
   where
-    buildTree :: ParseState -> Token' -> StateM.State ParseStack ParseState
+    buildTree :: ParseState -> End Token -> StateM.State ParseStack ParseState
     buildTree quads token = do
       state <- StateM.gets currentState
       case f state token of
@@ -243,9 +242,9 @@ parse' m f g s0 = flip StateM.evalState (parseStack s0) . foldlM buildTree []
             u = setOperands <<< (Inter.At addr :)
           flip runKleisli shiftedOperands $ arr snd <<< Kleisli u *** Kleisli h <<< arr (swap . splitAt bodyLen) <<< Kleisli StateM.gets
 
-    fromToken :: Token' -> Token
-    fromToken (Token' token) = token
-    fromToken EndToken = error "unexpected EndToken"
+    fromToken :: End Token -> Token
+    fromToken (Middle token) = token
+    fromToken End = error "fromToken: unexpected End"
 
     tokenToOperand :: Token -> Inter.Operand
     tokenToOperand = Inter.Const . fromRight . fromNum
@@ -257,7 +256,7 @@ parse' m f g s0 = flip StateM.evalState (parseStack s0) . foldlM buildTree []
 ---------- States ----------
 
 states :: [Rule] -> Set.Set Items
-states rules = converge (states' rules) . Set.singleton . closure rules . Set.singleton $ Item (getStart rules) 0 EndPoint
+states rules = converge (states' rules) . Set.singleton . closure rules . Set.singleton $ Item (getStart rules) 0 End
 
 getStart :: [Rule] -> Rule
 getStart (rule@(Rule Start _):_) = rule
@@ -307,7 +306,7 @@ closeItem _ item@(Item (Rule _ body) n _)
   | length body <= n = Set.singleton item
 closeItem rules item = Set.fromList $
   item : concat [ [ Item rule 0 la
-                  | la <- la1 . map LookAhead . Set.toList . firstOfSymbols rules $ afterNext
+                  | la <- la1 . map Middle . Set.toList . firstOfSymbols rules $ afterNext
                   ]
                 | rule@(Rule head _) <- rules, NonTerm head == nextSym item
                 ]
