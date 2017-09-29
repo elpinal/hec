@@ -119,7 +119,7 @@ parse grammar tokens =
   in
     parse' m f g s0 $ map Middle tokens ++ [End]
 
-action :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map State Items -> State -> End Token -> Action
+action :: (Items -> Symbol -> Items) -> Rule -> Map.Map State Items -> State -> End Token -> Action
 action gotoF start states n token =
   case token of
     End -> atEnd gotoF start states state
@@ -128,17 +128,17 @@ action gotoF start states n token =
     state :: Items
     state = fromJust $ Map.lookup n states
 
-atEnd :: (Items -> Symbol -> Maybe Items) -> Rule -> Map.Map State Items -> Items -> Action
+atEnd :: (Items -> Symbol -> Items) -> Rule -> Map.Map State Items -> Items -> Action
 atEnd gotoF start states current
   | Item start 1 End `Set.member` current = Accept
   | otherwise = action' gotoF states current End
 
-action' :: (Items -> Symbol -> Maybe Items) -> Map.Map State Items -> Items -> End Token -> Action
+action' :: (Items -> Symbol -> Items) -> Map.Map State Items -> Items -> End Token -> Action
 action' gotoF states current token
   | not $ Set.null matchReduce
     = reduce . Set.findMin $ matchReduce
   | not $ Set.null matchShift
-    = fromJust $ fmap Shift . getID states <=< gotoF current $ toSymbol token
+    = fromJust $ fmap Shift . getID states . gotoF current $ toSymbol token
   | otherwise
     = error $ "unexpected error: " ++ show token
   where
@@ -174,11 +174,8 @@ eqLaToken End _ = False
 eqLaToken _ End = False
 eqLaToken (Middle term) (Middle t) = term == getTerm t
 
-goto :: (Items -> Symbol -> Maybe Items) -> Map.Map State Items -> State -> NonTerm -> State
-goto gotoF states n nt =
-  maybe (error $ "unexpected " ++ show nt)
-        (fromJust . getID states) $
-        gotoF state $ NonTerm nt
+goto :: (Items -> Symbol -> Items) -> Map.Map State Items -> State -> NonTerm -> State
+goto gotoF states n = fromJust . getID states . gotoF state . NonTerm
   where
     state :: Items
     state = fromJust $ Map.lookup n states
@@ -260,7 +257,7 @@ states :: Rule -> [Rule] -> Set.Set Items
 states start rules = converge (states' rules) . Set.singleton . closure rules . Set.singleton $ Item start 0 End
 
 states' :: [Rule] -> Set.Set Items -> Set.Set Items
-states' rules c = Set.union c . Set.fromList . catMaybes $ do
+states' rules c = Set.union c . Set.fromList $ do
   items <- Set.toList c
   sym <- Set.toList syms
   return $ gotoItems rules items sym
@@ -274,16 +271,15 @@ states' rules c = Set.union c . Set.fromList . catMaybes $ do
 
 ---------- goto items ----------
 
-gotoItems :: [Rule] -> Items -> Symbol -> Maybe Items
+gotoItems :: [Rule] -> Items -> Symbol -> Items
 gotoItems rules items sym =
-  let xs = Set.filter filterFunc items in
-    if xs == Set.empty then
-      Nothing
-    else
-      return . closure rules . Set.map inc $ xs
+  let
+    xs = Set.filter filterFunc items
+  in
+    closure rules . Set.map inc $ xs
   where
     filterFunc :: Item -> Bool
-    filterFunc (Item (Rule _ body) n _) | length body <= n = False
+    filterFunc (Item rule n _) | length (getBody rule) <= n = False
     filterFunc item = nextSym item == sym
 
     inc :: Item -> Item
