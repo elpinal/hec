@@ -2,7 +2,7 @@ module Parser
     ( parse
     , extend
     , Grammar
-    , NonTerm(..)
+    , NonTerm(Var)
     , Symbol(..)
     , (>:>)
     , refer
@@ -31,10 +31,13 @@ import Scanner
 
 ---------- Data structures ----------
 
-data Grammar = Grammar NonTerm (Map.Map Rule SemanticRule)
+data Grammar = Grammar
+  { startRule    :: (Rule, SemanticRule)
+  , grammarRules :: Map.Map Rule SemanticRule
+  }
 
 instance Show Grammar where
-  show (Grammar x xs) = "(Grammar " ++ show x ++ " " ++ (show . Map.keys) xs ++ ")"
+  show x = "(Grammar " ++ (show . fst . startRule) x ++ " " ++ (show . Map.keys . grammarRules) x ++ ")"
 
 data NonTerm =
     Var String
@@ -84,10 +87,10 @@ data Action =
 
 
 extend :: NonTerm -> Map.Map Rule SemanticRule -> Grammar
-extend start rules = Grammar Start $ Map.insert (Rule Start [NonTerm start]) (\xs -> (Inter.NOP, xs`at`0, Inter.Nil)) rules
-
-getRules :: Grammar -> Map.Map Rule SemanticRule
-getRules (Grammar _ rules) = rules
+extend start rules = Grammar
+  { startRule = (Rule Start [NonTerm start], \xs -> (Inter.NOP, xs`at`0, Inter.Nil))
+  , grammarRules = rules
+  }
 
 getHead :: Rule -> NonTerm
 getHead (Rule head _) = head
@@ -107,14 +110,12 @@ parse :: Grammar -> [Token] -> [Inter.Quad]
 parse _ [] = []
 parse grammar tokens =
   let
-    rulesSems = getRules grammar
-    rules = Map.keys rulesSems
-    start = getStart rules
-    s = Map.fromAscList . zip [State 0..] . Set.toAscList $ states rules
-    s0 = fst . Map.elemAt 0 $ Map.filter (Set.member $ Item (getStart rules) 0 End) s
-    f = action (gotoItems rules) start s
+    rules = Map.keys $ grammarRules grammar
+    s = Map.fromAscList . zip [State 0..] . Set.toAscList $ states (fst $ startRule grammar) rules
+    s0 = fst . Map.elemAt 0 $ Map.filter (Set.member $ Item (fst $ startRule grammar) 0 End) s
+    f = action (gotoItems rules) (fst $ startRule grammar) s
     g = goto (gotoItems rules) s
-    m = semRuleOf rulesSems
+    m = semRuleOf $ grammarRules grammar
   in
     parse' m f g s0 $ map Middle tokens ++ [End]
 
@@ -255,13 +256,8 @@ parse' m f g s0 = flip StateM.evalState (parseStack s0) . foldlM buildTree []
 
 ---------- States ----------
 
-states :: [Rule] -> Set.Set Items
-states rules = converge (states' rules) . Set.singleton . closure rules . Set.singleton $ Item (getStart rules) 0 End
-
-getStart :: [Rule] -> Rule
-getStart (rule@(Rule Start _):_) = rule
-getStart (_:xs) = getStart xs
-getStart [] = error "grammar should be extended"
+states :: Rule -> [Rule] -> Set.Set Items
+states start rules = converge (states' rules) . Set.singleton . closure rules . Set.singleton $ Item start 0 End
 
 states' :: [Rule] -> Set.Set Items -> Set.Set Items
 states' rules c = Set.union c . Set.fromList . catMaybes $ do
