@@ -38,7 +38,7 @@ parser = Num . read <$> many1 digit
      <|> parseBoolF <*> parseBool
 
 parseApp :: (Num a, Read a) => Parser (Expr a -> Expr a)
-parseApp = const Succ <$> string "succ"
+parseApp = Succ <$ string "succ"
 
 parseBoolF :: (Num a, Read a) => Parser (Expr Bool -> Expr a)
 parseBoolF = ToInt <$ string "toInt"
