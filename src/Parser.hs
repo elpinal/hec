@@ -326,13 +326,11 @@ first' :: (Symbol -> Bool) -> [Symbol] -> Map.Map NonTerm (Set.Set Term) -> Set.
 first' _ [] _ = Set.empty
 first' _ (Term x:_) _ = Set.singleton x
 first' f body stack =
-  let
-    xs = takeUpToNot (f, body)
-  in Set.unions $ do
-    x <- xs
-    return $ case x of
-      Term t -> Set.singleton t
-      NonTerm t -> fromMaybe Set.empty $ Map.lookup t stack
+  Set.unions $
+    takeUpToNot (f, body) >>= \x ->
+      return $ case x of
+        Term t -> Set.singleton t
+        NonTerm t -> Map.findWithDefault Set.empty t stack
 
 takeUpToNot :: ((a -> Bool), [a]) -> [a]
 takeUpToNot = app <<< (++) *** maybeToList . headMay <<< uncurry span
