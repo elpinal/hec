@@ -77,6 +77,8 @@ spec = do
       parse scanExpr "filename" "\"a\"" `shouldBe` Right (createToken "a" Str)
       parse scanExpr "filename" "+" `shouldBe` Right (createToken "+" Add)
       parse scanExpr "filename" "  " `shouldBe` Right (createToken "  " WhiteSpace)
+      parse scanExpr "filename" "(" `shouldBe` Right (createToken "(" LParen)
+      parse scanExpr "filename" ")" `shouldBe` Right (createToken ")" RParen)
 
     it "returns an error when illegal chracters are given" $
       parse scanExpr "filename" "#" `shouldSatisfy` isLeft
@@ -91,3 +93,9 @@ spec = do
       scan "\"1 + 1\" *" `shouldBe` Right [ createToken "1 + 1" Str
                                           , createToken "*" Mul
                                           ]
+      scan "(1 + 2)" `shouldBe` Right [ createToken "(" LParen
+                                      , createToken "1" Num
+                                      , createToken "+" Add
+                                      , createToken "2" Num
+                                      , createToken ")" RParen
+                                      ]

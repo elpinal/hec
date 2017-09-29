@@ -31,6 +31,8 @@ data Term =
   | Sub
   | Mul
   | WhiteSpace
+  | LParen
+  | RParen
     deriving (Eq, Show, Ord)
 
 data Token1 a = Token1 String a
@@ -92,6 +94,8 @@ scanExpr =
   <|> tokenize Sub        $$ string "-"
   <|> tokenize Mul        $$ string "*"
   <|> tokenize WhiteSpace $$ many1 space
+  <|> tokenize LParen     $$ string "("
+  <|> tokenize RParen     $$ string ")"
 
 tokenize :: Term -> Parser String -> Parser Token
 tokenize t p = Token1 <$> p <*> return t
