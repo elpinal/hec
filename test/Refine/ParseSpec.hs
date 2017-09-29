@@ -12,5 +12,5 @@ spec :: Spec
 spec =
   describe "parseExpr" $
     it "parses an expression" $ do
-      (parseExpr "1" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| ((== 1) . eval)
-      (parseExpr "succ1" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| ((== 2) . eval)
+      (parseExpr "1" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Num 1)
+      (parseExpr "succ1" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Num 2)

@@ -17,6 +17,9 @@ data Expr a where
   Succ :: (Num a, Read a) => Expr a -> Expr a
   ToInt :: (Num a, Read a) => Expr Bool -> Expr a
 
+instance Eq a => Eq (Expr a) where
+  a == b = eval a == eval b
+
 instance Show a => Show (Expr a) where
   show = show . eval
 
