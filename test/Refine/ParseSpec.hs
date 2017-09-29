@@ -11,7 +11,6 @@ import Refine.Parse
 spec :: Spec
 spec =
   describe "parseExpr" $
-    it "parses an expression" $
-      (parseExpr "1" :: Either ParseError (Expr Int))
-      `shouldSatisfy`
-      const False ||| (== Const 1)
+    it "parses an expression" $ do
+      (parseExpr "1" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Const 1)
+      (parseExpr "succ1" :: Either ParseError (Expr Int)) `shouldSatisfy` const False ||| (== Succ (Const 1))
