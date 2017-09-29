@@ -310,7 +310,7 @@ closeItem rules item = Set.fromList $
 ---------- First ----------
 
 firstOfSymbols :: [Rule] -> [Symbol] -> Set.Set Term
-firstOfSymbols rules symbols = Set.unions . map m $ takeUpToNot (nullable rules) symbols
+firstOfSymbols rules symbols = Set.unions . map m $ takeUpToNot (nullable rules, symbols)
   where
     m :: Symbol -> Set.Set Term
     m (NonTerm t) = fromMaybe Set.empty . Map.lookup t $ firstS rules
@@ -327,21 +327,15 @@ first' _ [] _ = Set.empty
 first' _ (Term x:_) _ = Set.singleton x
 first' f body stack =
   let
-    xs = takeUpToNot f body
+    xs = takeUpToNot (f, body)
   in Set.unions $ do
     x <- xs
     return $ case x of
       Term t -> Set.singleton t
       NonTerm t -> fromMaybe Set.empty $ Map.lookup t stack
 
-takeUpToNot :: (a -> Bool) -> [a] -> [a]
-takeUpToNot f xs =
-  let
-    (l, r) = span f xs
-  in
-    case r of
-      [] -> l
-      _ -> l ++ [List.head r]
+takeUpToNot :: ((a -> Bool), [a]) -> [a]
+takeUpToNot = app <<< (++) *** maybeToList . headMay <<< uncurry span
 
 ---------- Nulls ----------
 
