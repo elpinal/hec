@@ -3,7 +3,8 @@ module Parser
     , extend
     , Grammar
     , NonTerm(Var)
-    , Symbol(..)
+    , Symbol
+    , Symbol1(..)
     , (>:>)
     , refer
     , (|||)
@@ -17,6 +18,7 @@ import Prelude hiding (head)
 import Control.Arrow hiding (first, (|||))
 import Control.Monad
 import qualified Control.Monad.State.Lazy as StateM
+import Data.Bifunctor (Bifunctor, bimap)
 import Data.Foldable
 import Data.List hiding (head)
 import qualified Data.List as List (head)
@@ -47,10 +49,20 @@ data NonTerm =
 data Rule = Rule NonTerm [Symbol]
   deriving (Eq, Show, Ord)
 
-data Symbol =
-    Term Term
-  | NonTerm NonTerm
+type Symbol = Symbol1 Term NonTerm
+
+data Symbol1 a b =
+    Term a
+  | NonTerm b
     deriving (Eq, Show, Ord)
+
+symbol1 :: (a -> c) -> (b -> c) -> Symbol1 a b -> c
+symbol1 f _ (Term a) = f a
+symbol1 _ g (NonTerm b) = g b
+
+instance Bifunctor Symbol1 where
+  bimap f _ (Term a) = Term (f a)
+  bimap _ g (NonTerm b) = NonTerm (g b)
 
 type SemanticRule = [Inter.Operand] -> Inter.Triple
 
@@ -313,8 +325,7 @@ firstOfSymbols :: [Rule] -> [Symbol] -> Set.Set Term
 firstOfSymbols rules symbols = Set.unions . map m $ takeUpToNot (nullable rules, symbols)
   where
     m :: Symbol -> Set.Set Term
-    m (NonTerm t) = fromMaybe Set.empty . Map.lookup t $ firstS rules
-    m (Term t) = Set.singleton t
+    m = symbol1 Set.singleton $ \t -> Map.findWithDefault Set.empty t $ firstS rules
 
 firstS :: [Rule] -> Map.Map NonTerm (Set.Set Term)
 firstS rules = converge (first rules) Map.empty
@@ -327,12 +338,11 @@ first' _ [] _ = Set.empty
 first' _ (Term x:_) _ = Set.singleton x
 first' f body stack =
   Set.unions $
-    takeUpToNot (f, body) >>= \x ->
-      return $ case x of
-        Term t -> Set.singleton t
-        NonTerm t -> Map.findWithDefault Set.empty t stack
+    symbol1 Set.singleton
+            (\t -> Map.findWithDefault Set.empty t stack) <$>
+            takeUpToNot (f, body)
 
-takeUpToNot :: ((a -> Bool), [a]) -> [a]
+takeUpToNot :: (a -> Bool, [a]) -> [a]
 takeUpToNot = app <<< (++) *** maybeToList . headMay <<< uncurry span
 
 ---------- Nulls ----------
