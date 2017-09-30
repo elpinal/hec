@@ -33,8 +33,8 @@ parseExpr = parse (parser <* eof) "<no filename>"
 
 parser :: (Num a, Read a) => Parser (Expr a)
 parser = Num . read <$> many1 digit
-     <|> parseApp <*> parser
-     <|> parseBoolF <*> parseBool
+     <|> (parseApp <* many1 space) <*> parser
+     <|> (parseBoolF <* many1 space) <*> parseBool
 
 parseApp :: (Num a, Read a) => Parser (Expr a -> Expr a)
 parseApp = Succ <$ string "succ"
