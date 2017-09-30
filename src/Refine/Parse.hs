@@ -29,15 +29,18 @@ eval (Succ e) = eval e + 1
 eval (ToInt e) = if eval e then 1 else 0
 
 parseExpr :: (Num a, Read a) => String -> Either ParseError (Expr a)
-parseExpr = parse (parser <* eof) "<no filename>"
+parseExpr = parse (parseApp <* eof) "<no filename>"
 
 parser :: (Num a, Read a) => Parser (Expr a)
 parser = Num . read <$> many1 digit
-     <|> (parseApp <* many1 space) <*> parser
-     <|> (parseBoolF <* many1 space) <*> parseBool
 
-parseApp :: (Num a, Read a) => Parser (Expr a -> Expr a)
-parseApp = Succ <$ string "succ"
+parseApp :: (Num a, Read a) => Parser (Expr a)
+parseApp = parseSucc <* many1 space <*> parser
+       <|> parseBoolF <* many1 space <*> parseBool
+       <|> parser
+
+parseSucc :: (Num a, Read a) => Parser (Expr a -> Expr a)
+parseSucc = Succ <$ string "succ"
 
 parseBoolF :: (Num a, Read a) => Parser (Expr Bool -> Expr a)
 parseBoolF = ToInt <$ string "toInt"
