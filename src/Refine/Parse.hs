@@ -3,7 +3,7 @@
 
 module Refine.Parse
   ( parseExpr
-  , parser
+  , parseNum
   , eval
   , Expr(..)
   ) where
@@ -31,14 +31,14 @@ eval (ToInt e) = if eval e then 1 else 0
 parseExpr :: (Num a, Read a) => String -> Either ParseError (Expr a)
 parseExpr = parse (parseApp <* eof) "<no filename>"
 
-parser :: (Num a, Read a) => Parser (Expr a)
-parser = Num . read <$> many1 digit
+parseNum :: (Num a, Read a) => Parser (Expr a)
+parseNum = Num . read <$> many1 digit
      <|> between (char '(') (char ')') parseApp
 
 parseApp :: (Num a, Read a) => Parser (Expr a)
-parseApp = parseSucc <* many1 space <*> parser
+parseApp = parseSucc <* many1 space <*> parseNum
        <|> parseBoolF <* many1 space <*> parseBool
-       <|> parser
+       <|> parseNum
 
 parseSucc :: (Num a, Read a) => Parser (Expr a -> Expr a)
 parseSucc = Succ <$ string "succ"
