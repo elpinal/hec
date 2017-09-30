@@ -29,7 +29,7 @@ eval (Succ e) = eval e + 1
 eval (ToInt e) = if eval e then 1 else 0
 
 parseExpr :: (Num a, Read a) => String -> Either ParseError (Expr a)
-parseExpr = parse parser "<no filename>"
+parseExpr = parse (parser <* eof) "<no filename>"
 
 parser :: (Num a, Read a) => Parser (Expr a)
 parser = Num . read <$> many1 digit
