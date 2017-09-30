@@ -3,7 +3,6 @@
 
 module Refine.Parse
   ( parseExpr
-  , parseNum
   , eval
   , Expr(..)
   ) where
