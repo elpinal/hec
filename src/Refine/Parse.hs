@@ -10,6 +10,7 @@ import Text.Parsec.String
 data Literal =
     LitInt Int
   | LitBool Bool
+  | LitChar Char
   deriving (Eq, Show)
 
 data Expr =
@@ -58,7 +59,7 @@ parseIdent = do
   return . Var $ x : xs
 
 parseLit :: Parser Expr
-parseLit = fmap Lit $ parseNum <|> parseBool
+parseLit = fmap Lit $ parseNum <|> parseBool <|> parseChar
 
 parseNum :: Parser Literal
 parseNum = LitInt . read <$> many1 digit
@@ -66,3 +67,10 @@ parseNum = LitInt . read <$> many1 digit
 parseBool :: Parser Literal
 parseBool = LitBool False <$ string "False"
         <|> LitBool True <$ string "True"
+
+parseChar :: Parser Literal
+parseChar = do
+  char '\''
+  c <- noneOf "'"
+  char '\''
+  return $ LitChar c
