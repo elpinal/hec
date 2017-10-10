@@ -33,7 +33,7 @@ parseBinOp p = do
 
 parseNum :: Parser Expr
 parseNum = Num . read <$> many1 digit
-     <|> between (char '(') (char ')') parseApp
+     <|> between (char '(') (char ')') (parseBinOp parseApp)
 
 parseApp :: Parser Expr
 parseApp = App <$> parseSucc <* many1 space <*> parseNum
