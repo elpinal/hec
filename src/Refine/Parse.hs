@@ -3,20 +3,33 @@ module Refine.Parse
   , Expr(..)
   ) where
 
-import Data.Functor
-
-import Text.ParserCombinators.Parsec
+import Text.Parsec
+import Text.Parsec.String
 
 data Expr =
     Num Int
   | Bool Bool
   | Succ
   | ToInt
+  | BinOp String Expr Expr
   | App Expr Expr
     deriving (Eq, Show)
 
 parseExpr :: String -> Either ParseError Expr
-parseExpr = parse (parseApp <* eof) "<no filename>"
+parseExpr = parse (parseBinOp <* eof) "<no filename>"
+
+parseBinOp :: Parser Expr
+parseBinOp = do
+  x <- parseApp
+  try (parseBinOp' <*> return x) <|> return x
+  where
+    parseBinOp' :: Parser (Expr -> Expr)
+    parseBinOp' = do
+      many space
+      lit <- many1 (oneOf "!#$%&+/<=>?@")
+      many space
+      rhs <- parseApp
+      return $ \lhs -> BinOp lit lhs rhs
 
 parseNum :: Parser Expr
 parseNum = Num . read <$> many1 digit

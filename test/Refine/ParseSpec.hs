@@ -18,6 +18,9 @@ spec =
       parseExpr "toInt False" `shouldSatisfy` const False ||| (== App ToInt (Bool False))
       parseExpr "succ (toInt True)" `shouldSatisfy` const False ||| (== App Succ (App ToInt (Bool True)))
 
+    it "parses binary operations" $ do
+      parseExpr "1#2" `shouldSatisfy` const False ||| (== BinOp "#" (Num 1) (Num 2))
+
     it "returns an error when extra tokens appear" $ do
       parseExpr "1succ" `shouldSatisfy` isLeft
       parseExpr "succA" `shouldSatisfy` isLeft
