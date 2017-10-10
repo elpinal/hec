@@ -13,6 +13,7 @@ data Expr =
   | ToInt
   | BinOp String Expr Expr
   | App Expr Expr
+  | Var String
     deriving (Eq, Show)
 
 parseExpr :: String -> Either ParseError Expr
@@ -38,7 +39,15 @@ parseNum = Num . read <$> many1 digit
 parseApp :: Parser Expr
 parseApp = App <$> parseSucc <* many1 space <*> parseNum
        <|> App <$> parseBoolF <* many1 space <*> parseBool
+       <|> try (App <$> parseIdent <* many1 space <*> parseNum)
        <|> parseNum
+       <|> parseIdent
+
+parseIdent :: Parser Expr
+parseIdent = do
+  x <- lower
+  xs <- many $ alphaNum <|> char '\''
+  return . Var $ x : xs
 
 parseSucc :: Parser Expr
 parseSucc = Succ <$ string "succ"
