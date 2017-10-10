@@ -1,11 +1,11 @@
 module Refine.Asm where
 
 data Inst =
-    IAdd Operand Operand Operand
-  | ISub Operand Operand Operand
+    IAdd Register Operand Operand
+  | ISub Register Operand Operand
   | Branch Label
-  | Load Operand Operand
-  | Store Operand Operand
+  | Load Register Operand
+  | Store Register Operand
 
 newtype Label = Label Int
 
