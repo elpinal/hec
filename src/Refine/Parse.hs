@@ -50,7 +50,10 @@ parseApp p = do
 parseTerm :: Parser Expr
 parseTerm = parseLit
         <|> parseIdent
-        <|> between (char '(') (char ')') (parseBinOp $ parseApp parseTerm)
+        <|> (paren . parseBinOp . parseApp) parseTerm
+
+paren :: Parser a -> Parser a
+paren = between (char '(' >> many space) (many space >> char ')')
 
 parseIdent :: Parser Expr
 parseIdent = do

@@ -35,6 +35,7 @@ spec =
 
       parseExpr "1 # 2 ! 3" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
       parseExpr "(1 # 2 ! 3)" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
+      parseExpr "( 1 # 2 ! 3 )" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
       parseExpr "((1 # 2 ! 3))" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
 
       let want = BinOp "##" (BinOp "!" (BinOp "#" (int 1) (App (Var "f") (int 2))) $ App (Var "f") $ App (Var "g") $ bool True) (int 3)
