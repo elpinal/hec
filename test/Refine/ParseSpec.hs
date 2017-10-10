@@ -5,8 +5,6 @@ import Test.Hspec
 import Control.Arrow
 import Data.Either
 
-import Text.ParserCombinators.Parsec
-
 import Refine.Parse
 
 spec :: Spec
