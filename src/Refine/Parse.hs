@@ -11,6 +11,7 @@ data Literal =
     LitInt Int
   | LitBool Bool
   | LitChar Char
+  | LitString String
   deriving (Eq, Show)
 
 data Expr =
@@ -62,7 +63,7 @@ parseIdent = do
   return . Var $ x : xs
 
 parseLit :: Parser Expr
-parseLit = fmap Lit $ parseNum <|> parseBool <|> parseChar
+parseLit = fmap Lit $ parseNum <|> parseBool <|> parseChar <|> parseString
 
 parseNum :: Parser Literal
 parseNum = LitInt . read <$> many1 digit
@@ -76,3 +77,9 @@ parseChar = LitChar <$> between (char '\'') (char '\'') (escapedChar <|> noneOf 
 
 escapedChar :: Parser Char
 escapedChar = char '\\' >> char '\''
+
+parseString :: Parser Literal
+parseString = LitString <$> between (char '"') (char '"') (many $ escapedString <|> noneOf "\"")
+
+escapedString :: Parser Char
+escapedString = char '\\' >> char '"'
