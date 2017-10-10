@@ -2,7 +2,6 @@ module Refine.ParseSpec where
 
 import Test.Hspec
 
-import Control.Arrow
 import Data.Either
 
 import Refine.Parse

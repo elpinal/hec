@@ -16,7 +16,6 @@ import Safe
 import Prelude hiding (head)
 
 import Control.Arrow hiding (first, (|||))
-import Control.Monad
 import qualified Control.Monad.State.Lazy as StateM
 import Data.Bifunctor (Bifunctor, bimap)
 import Data.Foldable

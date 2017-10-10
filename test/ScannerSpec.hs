@@ -2,7 +2,6 @@ module ScannerSpec where
 
 import Test.Hspec
 
-import Control.Exception
 import Data.Bifunctor
 import Data.Either
 
