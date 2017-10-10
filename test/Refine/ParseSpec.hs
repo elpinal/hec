@@ -49,7 +49,12 @@ spec =
       parseExpr "((1 # 2 ! 3))"   `shouldSatisfy` rightIs want
       parseExpr "( (1 # 2 ! 3) )" `shouldSatisfy` rightIs want
 
-      let want = BinOp "##" (BinOp "!" (BinOp "#" (int 1) (App (Var "f") (int 2))) $ App (Var "f") $ App (Var "g") $ bool True) (int 3)
+      let want = let
+                   x = App (Var "f") . App (Var "g") . bool $ True
+                   y = App (Var "f") . int $ 2
+                 in
+                   BinOp "##" (BinOp "!" (BinOp "#" (int 1) y) x) $ int 3
+
       parseExpr "1 # f 2 ! f (g True) ## 3" `shouldSatisfy` rightIs (want)
 
       parseExpr "(1 # 2) ! 3" `shouldSatisfy` rightIs (BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
