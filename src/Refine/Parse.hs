@@ -16,20 +16,20 @@ data Expr =
     deriving (Eq, Show)
 
 parseExpr :: String -> Either ParseError Expr
-parseExpr = parse (parseBinOp <* eof) "<no filename>"
+parseExpr = parse (parseBinOp parseApp <* eof) "<no filename>"
 
-parseBinOp :: Parser Expr
-parseBinOp = do
-  x <- parseApp
-  try (parseBinOp' <*> return x) <|> return x
+parseBinOp :: Parser Expr -> Parser Expr
+parseBinOp p = do
+  x <- p
+  try (parseBinOp' x) <|> return x
   where
-    parseBinOp' :: Parser (Expr -> Expr)
-    parseBinOp' = do
+    parseBinOp' :: Expr -> Parser Expr
+    parseBinOp' lhs = do
       many space
       lit <- many1 (oneOf "!#$%&+/<=>?@")
       many space
       rhs <- parseApp
-      return $ \lhs -> BinOp lit lhs rhs
+      parseBinOp . return $ BinOp lit lhs rhs
 
 parseNum :: Parser Expr
 parseNum = Num . read <$> many1 digit

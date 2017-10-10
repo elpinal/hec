@@ -23,6 +23,11 @@ spec =
       parseExpr "1 # 2" `shouldSatisfy` const False ||| (== BinOp "#" (Num 1) (Num 2))
       parseExpr "1 #$! 2" `shouldSatisfy` const False ||| (== BinOp "#$!" (Num 1) (Num 2))
 
+      parseExpr "1 # 2 ! 3" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (Num 1) (Num 2)) (Num 3))
+
+      let want = BinOp "##" (BinOp "!" (BinOp "#" (Num 1) (App Succ (Num 2))) $ App Succ $ App ToInt $ Bool True) (Num 3)
+      parseExpr "1 # succ 2 ! succ (toInt True) ## 3" `shouldSatisfy` const False ||| (== want)
+
     it "returns an error when extra tokens appear" $ do
       parseExpr "1succ" `shouldSatisfy` isLeft
       parseExpr "succA" `shouldSatisfy` isLeft
