@@ -69,8 +69,7 @@ parseBool = LitBool False <$ string "False"
         <|> LitBool True <$ string "True"
 
 parseChar :: Parser Literal
-parseChar = do
-  char '\''
-  c <- noneOf "'"
-  char '\''
-  return $ LitChar c
+parseChar = LitChar <$> between (char '\'') (char '\'') (escapedChar <|> noneOf "'")
+
+escapedChar :: Parser Char
+escapedChar = char '\\' >> char '\''

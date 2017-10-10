@@ -21,6 +21,7 @@ spec =
       parseExpr "(1)" `shouldSatisfy` const False ||| (== int 1)
       parseExpr "x" `shouldSatisfy` const False ||| (== Var "x")
       parseExpr "'c'" `shouldSatisfy` const False ||| (== Lit (LitChar 'c'))
+      parseExpr "'\\''" `shouldSatisfy` const False ||| (== Lit (LitChar '\''))
       parseExpr "x 1" `shouldSatisfy` const False ||| (== App (Var "x") (int 1))
       parseExpr "f 1" `shouldSatisfy` const False ||| (== App (Var "f") (int 1))
       parseExpr "(f 1)" `shouldSatisfy` const False ||| (== App (Var "f") (int 1))
