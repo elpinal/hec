@@ -1,23 +1,26 @@
 module Refine.Parse
   ( parseExpr
   , Expr(..)
+  , Literal(..)
   ) where
 
 import Text.Parsec
 import Text.Parsec.String
 
+data Literal =
+    LitInt Int
+  | LitBool Bool
+  deriving (Eq, Show)
+
 data Expr =
-    Num Int
-  | Bool Bool
-  | Succ
-  | ToInt
+    Lit Literal
   | BinOp String Expr Expr
   | App Expr Expr
   | Var String
     deriving (Eq, Show)
 
 parseExpr :: String -> Either ParseError Expr
-parseExpr = parse (parseBinOp parseApp <* eof) "<no filename>"
+parseExpr = parse (parseBinOp (parseApp parseTerm) <* eof) "<no filename>"
 
 parseBinOp :: Parser Expr -> Parser Expr
 parseBinOp p = do
@@ -29,19 +32,24 @@ parseBinOp p = do
       many space
       lit <- many1 (oneOf "!#$%&+/<=>?@")
       many space
-      rhs <- parseApp
+      rhs <- parseApp parseTerm
       parseBinOp . return $ BinOp lit lhs rhs
 
-parseNum :: Parser Expr
-parseNum = Num . read <$> many1 digit
-     <|> between (char '(') (char ')') (parseBinOp parseApp)
+parseApp :: Parser Expr -> Parser Expr
+parseApp p = do
+  x <- p
+  try (parseApp' x) <|> return x
+  where
+    parseApp' :: Expr -> Parser Expr
+    parseApp' f = do
+      many1 space
+      t <- parseTerm
+      parseApp . return $ App f t
 
-parseApp :: Parser Expr
-parseApp = App <$> parseSucc <* many1 space <*> parseNum
-       <|> App <$> parseBoolF <* many1 space <*> parseBool
-       <|> try (App <$> parseIdent <* many1 space <*> parseNum)
-       <|> parseNum
-       <|> parseIdent
+parseTerm :: Parser Expr
+parseTerm = parseLit
+        <|> parseIdent
+        <|> between (char '(') (char ')') (parseBinOp $ parseApp parseTerm)
 
 parseIdent :: Parser Expr
 parseIdent = do
@@ -49,12 +57,12 @@ parseIdent = do
   xs <- many $ alphaNum <|> char '\''
   return . Var $ x : xs
 
-parseSucc :: Parser Expr
-parseSucc = Succ <$ string "succ"
+parseLit :: Parser Expr
+parseLit = fmap Lit $ parseNum <|> parseBool
 
-parseBoolF :: Parser Expr
-parseBoolF = ToInt <$ string "toInt"
+parseNum :: Parser Literal
+parseNum = LitInt . read <$> many1 digit
 
-parseBool :: Parser Expr
-parseBool = Bool False <$ string "False"
-        <|> Bool True <$ string "True"
+parseBool :: Parser Literal
+parseBool = LitBool False <$ string "False"
+        <|> LitBool True <$ string "True"

@@ -7,34 +7,40 @@ import Data.Either
 
 import Refine.Parse
 
+int :: Int -> Expr
+int = Lit . LitInt
+
+bool :: Bool -> Expr
+bool = Lit . LitBool
+
 spec :: Spec
 spec =
   describe "parseExpr" $ do
     it "parses an expression" $ do
-      parseExpr "1" `shouldSatisfy` const False ||| (== Num 1)
-      parseExpr "(1)" `shouldSatisfy` const False ||| (== Num 1)
+      parseExpr "1" `shouldSatisfy` const False ||| (== int 1)
+      parseExpr "(1)" `shouldSatisfy` const False ||| (== int 1)
       parseExpr "x" `shouldSatisfy` const False ||| (== Var "x")
-      parseExpr "x 1" `shouldSatisfy` const False ||| (== App (Var "x") (Num 1))
-      parseExpr "succ 1" `shouldSatisfy` const False ||| (== App Succ (Num 1))
-      parseExpr "(succ 1)" `shouldSatisfy` const False ||| (== App Succ (Num 1))
-      parseExpr "toInt False" `shouldSatisfy` const False ||| (== App ToInt (Bool False))
-      parseExpr "succ (toInt True)" `shouldSatisfy` const False ||| (== App Succ (App ToInt (Bool True)))
+      parseExpr "x 1" `shouldSatisfy` const False ||| (== App (Var "x") (int 1))
+      parseExpr "f 1" `shouldSatisfy` const False ||| (== App (Var "f") (int 1))
+      parseExpr "(f 1)" `shouldSatisfy` const False ||| (== App (Var "f") (int 1))
+      parseExpr "g False" `shouldSatisfy` const False ||| (== App (Var "g") (bool False))
+      parseExpr "f (g True)" `shouldSatisfy` const False ||| (== App (Var "f") (App (Var "g") (bool True)))
 
     it "parses binary operations" $ do
-      parseExpr "1#2" `shouldSatisfy` const False ||| (== BinOp "#" (Num 1) (Num 2))
-      parseExpr "1 # 2" `shouldSatisfy` const False ||| (== BinOp "#" (Num 1) (Num 2))
-      parseExpr "1 #$! 2" `shouldSatisfy` const False ||| (== BinOp "#$!" (Num 1) (Num 2))
+      parseExpr "1#2" `shouldSatisfy` const False ||| (== BinOp "#" (int 1) (int 2))
+      parseExpr "1 # 2" `shouldSatisfy` const False ||| (== BinOp "#" (int 1) (int 2))
+      parseExpr "1 #$! 2" `shouldSatisfy` const False ||| (== BinOp "#$!" (int 1) (int 2))
 
-      parseExpr "1 # 2 ! 3" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (Num 1) (Num 2)) (Num 3))
-      parseExpr "(1 # 2 ! 3)" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (Num 1) (Num 2)) (Num 3))
-      parseExpr "((1 # 2 ! 3))" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (Num 1) (Num 2)) (Num 3))
+      parseExpr "1 # 2 ! 3" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
+      parseExpr "(1 # 2 ! 3)" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
+      parseExpr "((1 # 2 ! 3))" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
 
-      let want = BinOp "##" (BinOp "!" (BinOp "#" (Num 1) (App Succ (Num 2))) $ App Succ $ App ToInt $ Bool True) (Num 3)
-      parseExpr "1 # succ 2 ! succ (toInt True) ## 3" `shouldSatisfy` const False ||| (== want)
+      let want = BinOp "##" (BinOp "!" (BinOp "#" (int 1) (App (Var "f") (int 2))) $ App (Var "f") $ App (Var "g") $ bool True) (int 3)
+      parseExpr "1 # f 2 ! f (g True) ## 3" `shouldSatisfy` const False ||| (== want)
 
-      parseExpr "(1 # 2) ! 3" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (Num 1) (Num 2)) (Num 3))
-      parseExpr "1 # (2 ! 3)" `shouldSatisfy` const False ||| (== BinOp "#" (Num 1) (BinOp "!" (Num 2) (Num 3)))
+      parseExpr "(1 # 2) ! 3" `shouldSatisfy` const False ||| (== BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
+      parseExpr "1 # (2 ! 3)" `shouldSatisfy` const False ||| (== BinOp "#" (int 1) (BinOp "!" (int 2) (int 3)))
 
     it "returns an error when extra tokens appear" $ do
-      parseExpr "1succ" `shouldSatisfy` isLeft
-      parseExpr "succA" `shouldSatisfy` isLeft
+      parseExpr "1f" `shouldSatisfy` isLeft
+      parseExpr "TrueA" `shouldSatisfy` isLeft
