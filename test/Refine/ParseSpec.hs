@@ -60,6 +60,17 @@ spec =
       parseExpr "(1 # 2) ! 3" `shouldSatisfy` rightIs (BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
       parseExpr "1 # (2 ! 3)" `shouldSatisfy` rightIs (BinOp "#" (int 1) (BinOp "!" (int 2) (int 3)))
 
+    it "parses binary operations" $ do
+      parseExpr "\\x -> x"      `shouldSatisfy` rightIs (Abs "x" $ Var "x")
+      parseExpr "(\\x->x)"      `shouldSatisfy` rightIs (Abs "x" $ Var "x")
+      parseExpr "( \\ x -> x )" `shouldSatisfy` rightIs (Abs "x" $ Var "x")
+
+      parseExpr "\\x -> x + x"        `shouldSatisfy` rightIs (Abs "x" . BinOp "+" (Var "x") $ Var "x")
+      parseExpr "\\x -> \\y -> x + y" `shouldSatisfy` rightIs (Abs "x" . Abs "y" . BinOp "+" (Var "x") $ Var "y")
+
+      parseExpr "map $ \\x -> x" `shouldSatisfy` rightIs (BinOp "$" (Var "map") . Abs "x" $ Var "x")
+
     it "returns an error when extra tokens appear" $ do
-      parseExpr "1f"    `shouldSatisfy` isLeft
-      parseExpr "TrueA" `shouldSatisfy` isLeft
+      parseExpr "1f"         `shouldSatisfy` isLeft
+      parseExpr "TrueA"      `shouldSatisfy` isLeft
+      parseExpr "f \\x -> x" `shouldSatisfy` isLeft

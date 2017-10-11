@@ -23,7 +23,10 @@ data Expr =
     deriving (Eq, Show)
 
 parseExpr :: String -> Either ParseError Expr
-parseExpr = parse (parseBinOp (parseApp parseTerm) <* eof) "<no filename>"
+parseExpr = parse (parseExpr' <* eof) "<no filename>"
+
+parseExpr' :: Parser Expr
+parseExpr' = parseAbs <|> parseBinOp (parseApp parseTerm)
 
 parseAbs :: Parser Expr
 parseAbs = do
@@ -33,7 +36,7 @@ parseAbs = do
   many space
   string "->"
   many space
-  body <- parseBinOp (parseApp parseTerm)
+  body <- parseExpr'
   return $ Abs s body
 
 parseBinOp :: Parser Expr -> Parser Expr
@@ -62,7 +65,7 @@ parseApp p = do
 parseTerm :: Parser Expr
 parseTerm = parseLit
         <|> parseIdent
-        <|> (paren . parseBinOp . parseApp) parseTerm
+        <|> paren parseExpr'
 
 paren :: Parser a -> Parser a
 paren = between (char '(' >> many space) (many space >> char ')')
