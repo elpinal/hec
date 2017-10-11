@@ -19,10 +19,22 @@ data Expr =
   | BinOp String Expr Expr
   | App Expr Expr
   | Var String
+  | Abs String Expr
     deriving (Eq, Show)
 
 parseExpr :: String -> Either ParseError Expr
 parseExpr = parse (parseBinOp (parseApp parseTerm) <* eof) "<no filename>"
+
+parseAbs :: Parser Expr
+parseAbs = do
+  char '\\'
+  many space
+  s <- parseIdent'
+  many space
+  string "->"
+  many space
+  body <- parseBinOp (parseApp parseTerm)
+  return $ Abs s body
 
 parseBinOp :: Parser Expr -> Parser Expr
 parseBinOp p = do
@@ -34,8 +46,7 @@ parseBinOp p = do
       many space
       lit <- many1 (oneOf "!#$%&+/<=>?@")
       many space
-      rhs <- parseApp parseTerm
-      parseBinOp . return $ BinOp lit lhs rhs
+      BinOp lit lhs <$> parseAbs <|> (parseBinOp $ BinOp lit lhs <$> parseApp parseTerm)
 
 parseApp :: Parser Expr -> Parser Expr
 parseApp p = do
@@ -57,10 +68,13 @@ paren :: Parser a -> Parser a
 paren = between (char '(' >> many space) (many space >> char ')')
 
 parseIdent :: Parser Expr
-parseIdent = do
+parseIdent = Var <$> parseIdent'
+
+parseIdent' :: Parser String
+parseIdent' = do
   x <- lower
   xs <- many $ alphaNum <|> char '\''
-  return . Var $ x : xs
+  return $ x : xs
 
 parseLit :: Parser Expr
 parseLit = fmap Lit $ parseNum <|> parseBool <|> parseChar <|> parseString
