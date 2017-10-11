@@ -1,27 +1,18 @@
 module Refine.Inter where
 
+import Control.Monad.Except
 import Control.Monad.State.Lazy
 import qualified Data.Map.Lazy as Map
 
 import Refine.Parse
 
-newtype Env a = Env { runEnv :: State SymbolTable a }
-
-instance Functor Env where
-  fmap f (Env s) = Env $ fmap f s
-
-instance Applicative Env where
-  pure = Env . pure
-  (Env f) <*> (Env s) = Env $ f <*> s
-
-instance Monad Env where
-  (Env s) >>= f = Env $ s >>= runEnv . f
+type Env a = ExceptT String (State SymbolTable) a
 
 isDefined :: String -> Env Bool
-isDefined name = Env $ Map.member name <$> get
+isDefined name = Map.member name <$> get
 
 resolve :: String -> Env (Maybe Expr)
-resolve name = Env $ Map.lookup name <$> get
+resolve name = Map.lookup name <$> get
 
 type SymbolTable = Map.Map String Expr
 
