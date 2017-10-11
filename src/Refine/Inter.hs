@@ -49,18 +49,16 @@ data Type =
 typeOf :: Expr -> Env Type
 typeOf (Lit lit) = return $ litType lit
 typeOf (BinOp name lhs rhs) = do
-  t <- resolve name
-  let opType = fromMaybe (error $ "not defined: " ++ show name) t
+  opType <- resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
   l <- typeOf lhs
   r <- typeOf rhs
   case opType of
     TypeFun a (TypeFun b c)
       | a == l && b == r -> return c
-    _ -> error "type mismatch"
+    _ -> throwError "type mismatch"
 typeOf (App f x) = TypeFun <$> typeOf f <*> typeOf x
 typeOf (Var name) = do
-  t <- resolve name
-  return $ fromMaybe (error $ "not defined: " ++ show name) t
+  resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
 typeOf (Abs name body) = do
   tv <- newTypeVar
   s <- get
