@@ -16,5 +16,5 @@ spec =
       (evalEnv interState . typeOf . Lit . LitChar) 'a' `shouldBe` Right TypeChar
       (evalEnv interState . typeOf . Lit . LitString) "ab" `shouldBe` Right TypeString
 
-      let st = interState { table = Map.singleton "op" $ TypeFun TypeInt (TypeFun TypeBool TypeBool) }
+      let st = interState { table = Map.singleton "op" . TypeFun TypeInt $ TypeFun TypeBool TypeBool }
       (evalEnv st . typeOf . BinOp "op" (Lit $ LitInt 2) . Lit . LitBool) True `shouldBe` Right TypeBool
