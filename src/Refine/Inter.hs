@@ -8,6 +8,9 @@ import Refine.Parse
 
 type Env a = ExceptT String (State SymbolTable) a
 
+evalEnv :: SymbolTable -> Env a -> Either String a
+evalEnv m = flip evalState m . runExceptT
+
 isDefined :: String -> Env Bool
 isDefined name = Map.member name <$> get
 
