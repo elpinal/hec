@@ -34,6 +34,7 @@ spec =
       parseExpr "(f 1)"        `shouldSatisfy` rightIs (App (Var "f") (int 1))
       parseExpr "( f 1 )"      `shouldSatisfy` rightIs (App (Var "f") (int 1))
       parseExpr "g False"      `shouldSatisfy` rightIs (App (Var "g") (bool False))
+      parseExpr "f g True"     `shouldSatisfy` rightIs (App (App (Var "f") (Var "g")) (bool True))
       parseExpr "f (g True)"   `shouldSatisfy` rightIs (App (Var "f") (App (Var "g") (bool True)))
       parseExpr "f ( g True )" `shouldSatisfy` rightIs (App (Var "f") (App (Var "g") (bool True)))
 
