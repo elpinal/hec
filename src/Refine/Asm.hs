@@ -13,4 +13,9 @@ data Operand =
     Const Constant
   | Reg Register
 
+data Constant =
+    CInt Int
+  | CBool Bool
+  | CChar Char
+
 newtype Register = Register Int
