@@ -56,12 +56,11 @@ typeOf (BinOp name lhs rhs) = do
       | a == l && b == r -> return c
     _ -> throwError "type mismatch"
 typeOf (App f x) = TypeFun <$> typeOf f <*> typeOf x
-typeOf (Var name) = do
-  resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
+typeOf (Var name) = resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
 typeOf (Abs name body) = do
   tv <- newTypeVar
   s <- get
-  put $ s { table = Map.insert name tv $ table s }
+  put s { table = Map.insert name tv $ table s }
   t <- typeOf body
   modify $ \ss -> ss { table = table s }
   return t
