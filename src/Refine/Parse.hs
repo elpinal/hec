@@ -46,10 +46,11 @@ parseBinOp p = do
   where
     parseBinOp' :: Expr -> Parser Expr
     parseBinOp' lhs = do
-      many space
-      lit <- many1 (oneOf "!#$%&+/<=>?@")
-      many space
+      lit <- between (many space) (many space) $ many1 symbol
       BinOp lit lhs <$> parseAbs <|> parseBinOp (BinOp lit lhs <$> parseApp parseTerm)
+
+symbol :: Parser Char
+symbol = oneOf "!#$%&+/<=>?@"
 
 parseApp :: Parser Expr -> Parser Expr
 parseApp p = do
