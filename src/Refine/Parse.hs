@@ -26,7 +26,7 @@ parseExpr :: String -> Either ParseError Expr
 parseExpr = parse (parseExpr' <* eof) "<no filename>"
 
 parseExpr' :: Parser Expr
-parseExpr' = parseAbs <|> parseBinOp (parseApp parseTerm)
+parseExpr' = parseAbs <|> parseBinOp parseApp
 
 parseAbs :: Parser Expr
 parseAbs = do
@@ -47,21 +47,18 @@ parseBinOp p = do
     parseBinOp' :: Expr -> Parser Expr
     parseBinOp' lhs = do
       lit <- between (many space) (many space) $ many1 symbol
-      BinOp lit lhs <$> parseAbs <|> parseBinOp (BinOp lit lhs <$> parseApp parseTerm)
+      BinOp lit lhs <$> parseAbs <|> parseBinOp (BinOp lit lhs <$> parseApp)
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&+/<=>?@"
 
-parseApp :: Parser Expr -> Parser Expr
-parseApp p = do
-  x <- p
-  try (parseApp' x) <|> return x
+parseApp :: Parser Expr
+parseApp = followTo parseTerm
   where
-    parseApp' :: Expr -> Parser Expr
-    parseApp' f = do
-      many1 space
-      t <- parseTerm
-      parseApp . return $ App f t
+    followTo :: Parser Expr -> Parser Expr
+    followTo p = do
+      x <- p
+      try (followTo $ flip App <$> (many1 space *> parseTerm) <*> return x) <|> return x
 
 parseTerm :: Parser Expr
 parseTerm = parseLit
