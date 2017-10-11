@@ -63,7 +63,7 @@ typeOf (Abs name body) = do
   put s { table = Map.insert name tv $ table s }
   t <- typeOf body
   modify $ \ss -> ss { table = table s }
-  return t
+  return $ TypeFun tv t
 
 litType :: Literal -> Type
 litType (LitInt _) = TypeInt
