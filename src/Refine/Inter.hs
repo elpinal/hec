@@ -20,7 +20,7 @@ resolve name = Map.lookup name <$> gets table
 newTypeVar :: Env Type
 newTypeVar = do
   n <- gets supply
-  modify $ \s -> s {supply = n + 1}
+  modify $ \s -> s { supply = n + 1 }
   return . TypeVar $ "a" ++ show n
 
 data InterState = InterState
