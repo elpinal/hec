@@ -55,7 +55,7 @@ spec =
                  in
                    BinOp "##" (BinOp "!" (BinOp "#" (int 1) y) x) $ int 3
 
-      parseExpr "1 # f 2 ! f (g True) ## 3" `shouldSatisfy` rightIs (want)
+      parseExpr "1 # f 2 ! f (g True) ## 3" `shouldSatisfy` rightIs want
 
       parseExpr "(1 # 2) ! 3" `shouldSatisfy` rightIs (BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
       parseExpr "1 # (2 ! 3)" `shouldSatisfy` rightIs (BinOp "#" (int 1) (BinOp "!" (int 2) (int 3)))

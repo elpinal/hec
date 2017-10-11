@@ -49,7 +49,7 @@ parseBinOp p = do
       many space
       lit <- many1 (oneOf "!#$%&+/<=>?@")
       many space
-      BinOp lit lhs <$> parseAbs <|> (parseBinOp $ BinOp lit lhs <$> parseApp parseTerm)
+      BinOp lit lhs <$> parseAbs <|> parseBinOp (BinOp lit lhs <$> parseApp parseTerm)
 
 parseApp :: Parser Expr -> Parser Expr
 parseApp p = do
