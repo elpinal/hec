@@ -3,7 +3,6 @@ module Refine.Inter where
 import Control.Monad.Except
 import Control.Monad.State.Lazy
 import qualified Data.Map.Lazy as Map
-import Data.Maybe
 
 import Refine.Parse
 
