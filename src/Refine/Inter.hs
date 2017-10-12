@@ -89,7 +89,7 @@ typeOf :: Expr -> Env Type
 typeOf (Lit lit) = return $ litType lit
 
 typeOf (BinOp name lhs rhs) = do
-  op <- resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
+  op <- resolveE name
   l <- typeOf lhs
   r <- typeOf rhs
   case fst op of
@@ -104,7 +104,7 @@ typeOf (App f x) = do
     TypeFun a b | a == xt -> return b
     _ -> throwError $ "expected function type which takes " ++ show xt ++ ", but got " ++ show ft
 
-typeOf (Var name) = resolve name >>= maybe (throwError $ "not defined: " ++ show name) (return . fst)
+typeOf (Var name) = fst <$> resolveE name
 
 typeOf (Abs name body) = do
   tv <- newTypeVar
