@@ -17,6 +17,9 @@ isDefined name = Map.member name <$> gets table
 resolve :: String -> Env (Maybe (Type, Maybe Fixity))
 resolve name = Map.lookup name <$> gets table
 
+resolveE :: String -> Env (Type, Maybe Fixity)
+resolveE name = resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
+
 newTypeVar :: Env Type
 newTypeVar = do
   s <- get
@@ -50,7 +53,7 @@ defaultFixity = Fixity (Just LeftAssoc) 9
 
 getFixity :: String -> Env Fixity
 getFixity name = do
-  info <- resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
+  info <- resolveE name
   flip (flip maybe return) (snd info) $ do
     s <- get
     put s { table = Map.insert name (fst info, Just defaultFixity) $ table s }
