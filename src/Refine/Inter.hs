@@ -95,6 +95,11 @@ data Type =
 
 type Subst = Map.Map String Type
 
+apply :: Subst -> Type -> Type
+apply s t @ (TypeVar name) = Map.findWithDefault t name s
+apply s (TypeFun a b) = TypeFun (apply s a) (apply s b)
+apply _ t = t
+
 typeOf :: Expr -> Env Type
 typeOf (Lit lit) = return $ litType lit
 
