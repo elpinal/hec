@@ -36,6 +36,14 @@ interState = InterState
 
 type SymbolTable = Map.Map String Type
 
+data Fixity = Fixity (Maybe Direction) Precedence
+
+data Direction =
+    LeftAssoc
+  | RightAssoc
+
+type Precedence = Int
+
 data Type =
     TypeInt
   | TypeBool
