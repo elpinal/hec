@@ -47,6 +47,7 @@ data Type =
 
 typeOf :: Expr -> Env Type
 typeOf (Lit lit) = return $ litType lit
+
 typeOf (BinOp name lhs rhs) = do
   opType <- resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
   l <- typeOf lhs
@@ -55,8 +56,16 @@ typeOf (BinOp name lhs rhs) = do
     TypeFun a (TypeFun b c)
       | a == l && b == r -> return c
     _ -> throwError "type mismatch"
-typeOf (App f x) = TypeFun <$> typeOf f <*> typeOf x
+
+typeOf (App f x) = do
+  ft <- typeOf f
+  xt <- typeOf x
+  case ft of
+    TypeFun a b | a == xt -> return b
+    _ -> throwError $ "expected function type which takes " ++ show xt ++ ", but got " ++ show ft
+
 typeOf (Var name) = resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
+
 typeOf (Abs name body) = do
   tv <- newTypeVar
   s <- get

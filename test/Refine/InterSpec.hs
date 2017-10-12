@@ -25,3 +25,5 @@ spec =
     it "fails if not typable" $ do
       let st = interState { table = Map.singleton "op" . TypeFun TypeInt $ TypeFun TypeInt TypeBool }
       (evalEnv st . typeOf . BinOp "op" (Lit $ LitInt 2) . Lit . LitBool) True `shouldSatisfy` isLeft
+
+      (evalEnv interState . typeOf . App (Lit $ LitInt 1) . Lit . LitInt) 2 `shouldSatisfy` isLeft
