@@ -6,6 +6,9 @@ data Inst =
   | Branch Label
   | Load Register Operand
   | Store Register Operand
+  | Call Label
+  | Ret
+  | Param Operand
 
 newtype Label = Label Int
 
