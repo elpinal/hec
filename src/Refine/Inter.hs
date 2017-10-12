@@ -41,8 +41,37 @@ data Fixity = Fixity (Maybe Direction) Precedence
 data Direction =
     LeftAssoc
   | RightAssoc
+  deriving Eq
 
 type Precedence = Int
+
+defaultFixity :: Fixity
+defaultFixity = Fixity (Just LeftAssoc) 9
+
+getFixity :: String -> Env Fixity
+getFixity name = do
+  info <- resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
+  flip (flip maybe return) (snd info) $ do
+    s <- get
+    put s { table = Map.insert name (fst info, Just defaultFixity) $ table s }
+    return defaultFixity
+
+recons :: Expr -> Env Expr
+recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
+  (Fixity d p) <- getFixity name
+  f <- getFixity name1
+  case f of
+    (Fixity _ p1)
+      | p < p1 -> return x
+      | p > p1 -> return . BinOp name1 lhs1 $ BinOp name rhs1 rhs
+    (Fixity d1 @ (Just LeftAssoc) _)
+      | d1 == d -> return x
+    (Fixity d1 @ (Just RightAssoc) _)
+      | d1 == d -> return . BinOp name1 lhs1 $ BinOp name rhs1 rhs
+    (Fixity d1 @ Nothing _)
+      | d1 == d -> throwError "cannot associate two non-associative operators"
+    otherwise -> throwError $ "cannot mix " ++ show name1 ++ " and " ++ show name
+recons x = return x
 
 data Type =
     TypeInt
