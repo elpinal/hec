@@ -54,10 +54,13 @@ defaultFixity = Fixity (Just LeftAssoc) 9
 getFixity :: String -> Env Fixity
 getFixity name = do
   info <- resolveE name
-  flip (flip maybe return) (snd info) $ do
-    s <- get
-    put s { table = Map.insert name (fst info, Just defaultFixity) $ table s }
-    return defaultFixity
+  maybe (setDefault (fst info)) return (snd info)
+  where
+    setDefault :: Type -> Env Fixity
+    setDefault t = do
+      s <- get
+      put s { table = Map.insert name (t, Just defaultFixity) $ table s }
+      return defaultFixity
 
 recons :: Expr -> Env Expr
 recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
