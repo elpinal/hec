@@ -33,3 +33,14 @@ spec = do
   describe "recons" $ do
     it "reconstructs binary operations with fixity definitions" $ do
       (evalEnv interState . recons . Lit . LitInt) 2 `shouldBe` Right (Lit $ LitInt 2)
+
+      let lhs = BinOp "op" (Lit $ LitInt 3) . Lit $ LitInt 4
+      let rhs = Lit $ LitInt 4
+      let st = interState { table = Map.singleton "op" (TypeFun TypeInt $ TypeFun TypeInt TypeInt, Nothing) }
+      (evalEnv st . recons $ BinOp "op" lhs rhs) `shouldBe` Right (BinOp "op" lhs rhs)
+
+      let st = interState { table = Map.singleton "op" (TypeFun TypeInt $ TypeFun TypeInt TypeInt, Just $ Fixity (Just LeftAssoc) 9) }
+      (evalEnv st . recons $ BinOp "op" lhs rhs) `shouldBe` Right (BinOp "op" lhs rhs)
+
+      let st = interState { table = Map.singleton "op" (TypeFun TypeInt $ TypeFun TypeInt TypeInt, Just $ Fixity (Just RightAssoc) 9) }
+      (evalEnv st . recons $ BinOp "op" lhs rhs) `shouldBe` Right (BinOp "op" (Lit $ LitInt 3) $ BinOp "op" (Lit $ LitInt 4) rhs)
