@@ -1,5 +1,6 @@
 module Refine.Inter where
 
+import Control.Arrow
 import Control.Monad.Except
 import Control.Monad.State.Lazy
 import qualified Data.Map.Lazy as Map
@@ -54,7 +55,7 @@ defaultFixity = Fixity (Just LeftAssoc) 9
 getFixity :: String -> Env Fixity
 getFixity name = do
   info <- resolveE name
-  maybe (setDefault (fst info)) return (snd info)
+  app $ flip maybe return . setDefault *** id $ info
   where
     setDefault :: Type -> Env Fixity
     setDefault t = do
