@@ -93,6 +93,8 @@ data Type =
   | TypeVar String
   deriving (Eq, Show)
 
+type Subst = Map.Map String Type
+
 typeOf :: Expr -> Env Type
 typeOf (Lit lit) = return $ litType lit
 
