@@ -62,6 +62,8 @@ getFixity name = do
       put s { table = Map.insert name (t, Just defaultFixity) $ table s }
       return defaultFixity
 
+-- Assumes that all the binary operations of the input is defaulted to
+-- left-associative and the same precedence.
 recons :: Expr -> Env Expr
 recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
   (Fixity d p) <- getFixity name
