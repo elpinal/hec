@@ -51,3 +51,6 @@ spec = do
       Map.singleton "aaa" TypeBool `apply` TypeInt       `shouldBe` TypeInt
       Map.empty                    `apply` TypeVar "aaa" `shouldBe` TypeVar "aaa"
       Map.singleton "aaa" TypeBool `apply` TypeVar "aaa" `shouldBe` TypeBool
+
+      Map.empty                    `apply` TypeFun (TypeVar "aaa") (TypeVar "bbb") `shouldBe` TypeFun (TypeVar "aaa") (TypeVar "bbb")
+      Map.singleton "aaa" TypeBool `apply` TypeFun (TypeVar "aaa") (TypeVar "bbb") `shouldBe` TypeFun TypeBool (TypeVar "bbb")
