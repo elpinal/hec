@@ -9,7 +9,7 @@ import Refine.Inter
 import Refine.Parse
 
 spec :: Spec
-spec =
+spec = do
   describe "typeOf" $ do
     it "gets the type of an expression" $ do
       (evalEnv interState . typeOf . Lit . LitInt) 3 `shouldBe` Right TypeInt
@@ -29,3 +29,7 @@ spec =
       (evalEnv st . typeOf . BinOp "op" (Lit $ LitInt 2) . Lit . LitBool) True `shouldSatisfy` isLeft
 
       (evalEnv interState . typeOf . App (Lit $ LitInt 1) . Lit . LitInt) 2 `shouldSatisfy` isLeft
+
+  describe "recons" $ do
+    it "reconstructs binary operations with fixity definitions" $ do
+      (evalEnv interState . recons . Lit . LitInt) 2 `shouldBe` Right (Lit $ LitInt 2)
