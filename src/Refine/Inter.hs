@@ -143,13 +143,17 @@ data ThreeAddress =
   | Goto Label
   | Call Address Address -- dest function
   | Param Address
+  | Begin
+  | End
+  | Return Address
 
 data Address =
     Name String
   | Const Constant
   | TempVar Int
+  | Label Label
 
-newtype Label = Label Int
+type Label = Int
 
 data Bin = Bin String
 
@@ -166,6 +170,12 @@ newTempVar = do
   n <- get
   put $ n + 1
   return $ TempVar n
+
+newLabel :: Translator Address
+newLabel = do
+  n <- get
+  put $ n + 1
+  return $ Label n -- shares number with TempVar
 
 genThreeAddress :: Expr -> Translator Address
 
@@ -186,6 +196,14 @@ genThreeAddress (App a b) = do
   return tv
 
 genThreeAddress (Var name) = return $ Name name
+
+-- FIXME: Take care binding.
+genThreeAddress (Abs name body) = do
+  tell [Begin]
+  t <- genThreeAddress body
+  tell [Return t, End]
+  l <- newLabel
+  return l
 
 genLit :: Literal -> Address
 genLit (LitInt n) = Const $ CInt n
