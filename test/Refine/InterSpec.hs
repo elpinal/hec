@@ -62,3 +62,8 @@ spec = do
       translate interState (genThreeAddress . BinOp "+" (Lit $ LitInt 3) . Lit $ LitInt 4)
         `shouldBe`
         Right (TempVar 0, [BinAssign (TempVar 0) (Bin "+") (Const $ CInt 3) . Const $ CInt 4])
+
+      translate interState (genThreeAddress . App (Abs "x" $ Var "x") . Lit $ LitInt 4)
+        `shouldBe`
+        -- The wrong value: fix genThreeAddress for Abs.
+        Right (TempVar 0, [Begin, Return (Name "x"), End, Param (Const $ CInt 4), Call (TempVar 0) (Label 1)])
