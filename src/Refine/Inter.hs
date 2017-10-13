@@ -137,11 +137,11 @@ litType (LitChar _) = TypeChar
 litType (LitString _) = TypeString
 
 data ThreeAddress =
-    BinAssign Address Bin Address Address
-  | UAssign Address U Address
-  | Copy Address Address
+    BinAssign Address Bin Address Address -- dest op lhs rhs
+  | UAssign Address U Address -- dest op opearand
+  | Copy Address Address -- dest src
   | Goto Label
-  | Call Address Address
+  | Call Address Address -- dest function
   | Param Address
 
 data Address =
