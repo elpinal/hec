@@ -54,7 +54,7 @@ defaultFixity :: Fixity
 defaultFixity = Fixity (Just LeftAssoc) 9
 
 getFixity :: String -> Env Fixity
-getFixity name = resolveE name >>= (app <<< flip maybe return . setDefault *** id)
+getFixity name = resolveE name >>= app . first (flip maybe return . setDefault)
   where
     setDefault :: Type -> Env Fixity
     setDefault t = do
