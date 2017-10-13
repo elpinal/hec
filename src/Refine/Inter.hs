@@ -210,8 +210,7 @@ genThreeAddress (Abs name body) = do
   tell [Begin]
   t <- genThreeAddress body
   tell [Return t, End]
-  l <- newLabel
-  return l
+  newLabel
 
 genLit :: Literal -> Address
 genLit (LitInt n) = Const $ CInt n
