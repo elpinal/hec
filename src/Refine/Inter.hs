@@ -194,7 +194,7 @@ genThreeAddress (BinOp name lhs rhs) = do
   l <- genThreeAddress lhs
   r <- genThreeAddress rhs
   tell [BinAssign tv (Bin name) l r]
-  return $ tv
+  return tv
 
 genThreeAddress (App a b) = do
   tv <- newTempVar
