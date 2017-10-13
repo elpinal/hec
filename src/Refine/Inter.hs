@@ -7,7 +7,7 @@ import qualified Data.Map.Lazy as Map
 
 import Refine.Parse
 
-type Env a = ExceptT String (State InterState) a
+type Env = ExceptT String (State InterState)
 
 evalEnv :: InterState -> Env a -> Either String a
 evalEnv s = flip evalState s . runExceptT
