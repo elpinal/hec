@@ -146,22 +146,27 @@ data ThreeAddress =
   | Begin
   | End
   | Return Address
+  deriving (Eq, Show)
 
 data Address =
     Name String
   | Const Constant
   | TempVar Int
   | Label Label
+  deriving (Eq, Show)
 
 type Label = Int
 
 data Bin = Bin String
+  deriving (Eq, Show)
 
-data U
+data U = U
+  deriving (Eq, Show)
 
 data Constant =
     CInt Int
   | CBool Bool
+  deriving (Eq, Show)
 
 type Translator = StateT Int (WriterT [ThreeAddress] Env)
 
