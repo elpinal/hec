@@ -149,7 +149,7 @@ data Address =
 
 newtype Label = Label Int
 
-data Bin
+data Bin = Bin String
 
 data U
 
@@ -157,10 +157,22 @@ data Constant =
     CInt Int
   | CBool Bool
 
-type Translator = WriterT [ThreeAddress] Env
+type Translator = StateT Int (WriterT [ThreeAddress] Env)
+
+newTempVar :: Translator Address
+newTempVar = do
+  n <- get
+  put $ n + 1
+  return $ TempVar n
 
 genThreeAddress :: Expr -> Translator Address
 genThreeAddress (Lit lit) = return $ genLit lit
+genThreeAddress (BinOp name lhs rhs) = do
+  tv <- newTempVar
+  l <- genThreeAddress lhs
+  r <- genThreeAddress rhs
+  tell [BinAssign tv (Bin name) l r]
+  return $ tv
 
 genLit :: Literal -> Address
 genLit (LitInt n) = Const $ CInt n
