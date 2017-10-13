@@ -168,19 +168,24 @@ newTempVar = do
   return $ TempVar n
 
 genThreeAddress :: Expr -> Translator Address
+
 genThreeAddress (Lit lit) = return $ genLit lit
+
 genThreeAddress (BinOp name lhs rhs) = do
   tv <- newTempVar
   l <- genThreeAddress lhs
   r <- genThreeAddress rhs
   tell [BinAssign tv (Bin name) l r]
   return $ tv
+
 genThreeAddress (App a b) = do
   tv <- newTempVar
   t <- genThreeAddress a
   u <- genThreeAddress b
   tell [Param u, Call tv t]
   return tv
+
+genThreeAddress (Var name) = return $ Name name
 
 genLit :: Literal -> Address
 genLit (LitInt n) = Const $ CInt n
