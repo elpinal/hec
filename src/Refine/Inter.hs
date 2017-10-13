@@ -3,6 +3,7 @@ module Refine.Inter where
 import Control.Arrow
 import Control.Monad.Except
 import Control.Monad.State.Lazy
+import Control.Monad.Writer.Lazy
 import qualified Data.Map.Lazy as Map
 
 import Refine.Parse
@@ -156,3 +157,11 @@ data Constant =
     CInt Int
   | CBool Bool
 
+type Translator = WriterT [ThreeAddress] Env
+
+genThreeAddress :: Expr -> Translator Address
+genThreeAddress (Lit lit) = return $ genLit lit
+
+genLit :: Literal -> Address
+genLit (LitInt n) = Const $ CInt n
+genLit (LitBool b) = Const $ CBool b
