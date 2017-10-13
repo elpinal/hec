@@ -134,3 +134,25 @@ litType (LitInt _) = TypeInt
 litType (LitBool _) = TypeBool
 litType (LitChar _) = TypeChar
 litType (LitString _) = TypeString
+
+data ThreeAddress =
+    BinAssign Address Bin Address Address
+  | UAssign Address U Address
+  | Copy Address Address
+  | Goto Label
+
+data Address =
+    Name String
+  | Const Constant
+  | TempVar Int
+
+newtype Label = Label Int
+
+data Bin
+
+data U
+
+data Constant =
+    CInt Int
+  | CBool Bool
+
