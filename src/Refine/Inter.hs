@@ -165,6 +165,9 @@ data Constant =
 
 type Translator = StateT Int (WriterT [ThreeAddress] Env)
 
+translate :: InterState -> Translator a -> Either String (a, [ThreeAddress])
+translate s = evalEnv s . runWriterT . flip evalStateT 0
+
 newTempVar :: Translator Address
 newTempVar = do
   n <- get
