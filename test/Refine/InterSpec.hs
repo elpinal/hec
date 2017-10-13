@@ -54,3 +54,7 @@ spec = do
 
       Map.empty                    `apply` TypeFun (TypeVar "aaa") (TypeVar "bbb") `shouldBe` TypeFun (TypeVar "aaa") (TypeVar "bbb")
       Map.singleton "aaa" TypeBool `apply` TypeFun (TypeVar "aaa") (TypeVar "bbb") `shouldBe` TypeFun TypeBool (TypeVar "bbb")
+
+  describe "genThreeAddress" $ do
+    it "generates three address code" $ do
+      translate interState (genThreeAddress (Lit $ LitInt 3)) `shouldBe` Right (Const $ CInt 3, [])
