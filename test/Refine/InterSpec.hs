@@ -59,6 +59,6 @@ spec = do
     it "generates three address code" $ do
       translate interState (genThreeAddress (Lit $ LitInt 3)) `shouldBe` Right (Const $ CInt 3, [])
 
-      translate interState (genThreeAddress $ BinOp "+" (Lit $ LitInt 3) $ Lit $ LitInt 4)
+      translate interState (genThreeAddress . BinOp "+" (Lit $ LitInt 3) . Lit $ LitInt 4)
         `shouldBe`
-        Right (TempVar 0, [BinAssign (TempVar 0) (Bin "+") (Const $ CInt 3) $ Const $ CInt 4])
+        Right (TempVar 0, [BinAssign (TempVar 0) (Bin "+") (Const $ CInt 3) . Const $ CInt 4])
