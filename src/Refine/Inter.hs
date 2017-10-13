@@ -141,6 +141,8 @@ data ThreeAddress =
   | UAssign Address U Address
   | Copy Address Address
   | Goto Label
+  | Call Address Address
+  | Param Address
 
 data Address =
     Name String
@@ -173,6 +175,12 @@ genThreeAddress (BinOp name lhs rhs) = do
   r <- genThreeAddress rhs
   tell [BinAssign tv (Bin name) l r]
   return $ tv
+genThreeAddress (App a b) = do
+  tv <- newTempVar
+  t <- genThreeAddress a
+  u <- genThreeAddress b
+  tell [Param u, Call tv t]
+  return tv
 
 genLit :: Literal -> Address
 genLit (LitInt n) = Const $ CInt n
