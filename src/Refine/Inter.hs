@@ -79,7 +79,7 @@ recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
       | d1 == d -> return swap
     (Fixity d1 @ Nothing _)
       | d1 == d -> throwError "cannot associate two non-associative operators"
-    otherwise -> throwError $ "cannot mix " ++ show name1 ++ " and " ++ show name
+    _ -> throwError $ "cannot mix " ++ show name1 ++ " and " ++ show name
   where
     swap :: Expr
     swap = BinOp name1 lhs1 $ BinOp name rhs1 rhs
