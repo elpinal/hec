@@ -2,6 +2,10 @@ module Refine.Parse
   ( parseExpr
   , Expr(..)
   , Literal(..)
+
+  , parseDecl
+  , parseWhole
+  , Decl(..)
   ) where
 
 import Text.Parsec
