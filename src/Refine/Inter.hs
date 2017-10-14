@@ -41,12 +41,22 @@ interState = InterState
 
 type SymbolTable = Map.Map String (Type, Maybe Fixity)
 
+class Display a where
+  display :: a -> String
+
 data Fixity = Fixity (Maybe Direction) Precedence
+
+instance Display Fixity where
+  display (Fixity d n) = maybe "infix" display d ++ " " ++ show n
 
 data Direction =
     LeftAssoc
   | RightAssoc
   deriving Eq
+
+instance Display Direction where
+  display LeftAssoc = "infixl"
+  display RightAssoc = "infixr"
 
 type Precedence = Int
 
@@ -66,7 +76,7 @@ getFixity name = resolveE name >>= app . first (flip maybe return . setDefault)
 -- left-associative and the same precedence.
 recons :: Expr -> Env Expr
 recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
-  (Fixity d p) <- getFixity name
+  e @ (Fixity d p) <- getFixity name
   f <- getFixity name1
   case f of
     (Fixity _ p1)
@@ -78,7 +88,7 @@ recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
       | d1 == d -> return swap
     (Fixity d1 @ Nothing _)
       | d1 == d -> throwError "cannot associate two non-associative operators"
-    _ -> throwError $ "cannot mix " ++ show name1 ++ " and " ++ show name
+    _ -> throwError $ "fixity error: cannot mix " ++ show name1 ++ " [" ++ display f ++ "] and " ++ show name ++ " [" ++ display e ++ "]"
   where
     swap :: Expr
     swap = BinOp name1 lhs1 $ BinOp name rhs1 rhs
