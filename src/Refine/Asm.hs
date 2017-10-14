@@ -17,6 +17,7 @@ newtype Label = Label Int
 data Operand =
     Const Constant
   | Reg Register
+  | LValue String
   deriving (Eq, Show)
 
 data Constant =
