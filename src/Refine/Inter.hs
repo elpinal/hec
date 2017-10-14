@@ -182,6 +182,7 @@ data Address =
 
 type Label = Int
 
+-- TODO: Bin should not hold String.
 data Bin = Bin String
   deriving (Eq, Show)
 
