@@ -124,10 +124,10 @@ typeOf :: Expr -> Env Type
 typeOf (Lit lit) = return $ litType lit
 
 typeOf (BinOp name lhs rhs) = do
-  op <- resolveE name
+  t <- fst <$> resolveE name
   l <- typeOf lhs
   r <- typeOf rhs
-  case fst op of
+  case t of
     TypeFun a (TypeFun b c)
       | a == l && b == r -> return c
     _ -> emitError Other "type mismatch"
