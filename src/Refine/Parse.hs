@@ -107,6 +107,9 @@ escapedString = char '\\' >> char '"'
 
 data Decl = Decl String Expr
 
+parseWhole :: Parser a -> String -> Either ParseError a
+parseWhole p = parse (p <* eof) "<no filename>"
+
 parseDecl :: Parser Decl
 parseDecl = do
   name <- parseIdent'
