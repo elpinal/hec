@@ -15,7 +15,6 @@ data ErrorType =
     Unbound
   | FixityError
   | TypeMismatch
-  | Other
   deriving (Eq, Show)
 
 emitError :: Monad m => ErrorType -> String -> ExceptT Error m a
@@ -138,9 +137,12 @@ typeOf (BinOp name lhs rhs) = do
 typeOf (App f x) = do
   ft <- typeOf f
   xt <- typeOf x
+  -- FIXME: Support it when `ft` == `TypeVar ...`.
   case ft of
-    TypeFun a b | a == xt -> return b
-    _ -> emitError Other $ "expected function type which takes " ++ show xt ++ ", but got " ++ show ft
+    TypeFun a b
+      | a == xt -> return b
+      | otherwise -> emitError TypeMismatch $ "expected " ++ show a ++ ", but got " ++ show xt
+    _ -> emitError TypeMismatch $ "expected " ++ show xt ++ " -> _, but got " ++ show ft
 
 typeOf (Var name) = fst <$> resolveE name
 
