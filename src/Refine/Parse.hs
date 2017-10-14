@@ -118,6 +118,6 @@ parseWhole p = parse (p <* eof) "<no filename>"
 parseDecl :: Parser Decl
 parseDecl = do
   name <- parseIdent'
-  char '='
+  surroundedBySpaces $ char '='
   e <- parseExpr'
   return $ Decl name e
