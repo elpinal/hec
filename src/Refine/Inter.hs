@@ -14,6 +14,7 @@ data Error = Error ErrorType String
 data ErrorType =
     Unbound
   | FixityError
+  | TypeMismatch
   | Other
   deriving (Eq, Show)
 
@@ -130,6 +131,8 @@ typeOf (BinOp name lhs rhs) = do
   case t of
     TypeFun a (TypeFun b c)
       | a == l && b == r -> return c
+                  -- TODO: Add more information to error message like: "in the first operand of binary opearator (`name`): lhs"
+      | a /= l -> emitError TypeMismatch $ "expected " ++ show a ++ ", but got " ++ show l
     _ -> emitError Other "type mismatch"
 
 typeOf (App f x) = do
