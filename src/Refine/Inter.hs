@@ -8,9 +8,20 @@ import qualified Data.Map.Lazy as Map
 
 import Refine.Parse
 
-type Env = ExceptT String (State InterState)
+data Error = Error ErrorType String
+  deriving (Eq, Show)
 
-evalEnv :: InterState -> Env a -> Either String a
+data ErrorType =
+    Unbound
+  | Other
+  deriving (Eq, Show)
+
+emitError :: Monad m => ErrorType -> String -> ExceptT Error m a
+emitError t = throwError . Error t
+
+type Env = ExceptT Error (State InterState)
+
+evalEnv :: InterState -> Env a -> Either Error a
 evalEnv s = flip evalState s . runExceptT
 
 isDefined :: String -> Env Bool
@@ -20,7 +31,7 @@ resolve :: String -> Env (Maybe (Type, Maybe Fixity))
 resolve name = Map.lookup name <$> gets table
 
 resolveE :: String -> Env (Type, Maybe Fixity)
-resolveE name = resolve name >>= maybe (throwError $ "not defined: " ++ show name) return
+resolveE name = resolve name >>= maybe (emitError Unbound $ "not defined: " ++ show name) return
 
 newTypeVar :: Env Type
 newTypeVar = do
@@ -87,8 +98,8 @@ recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
     (Fixity d1 @ (Just RightAssoc) _)
       | d1 == d -> return swap
     (Fixity d1 @ Nothing _)
-      | d1 == d -> throwError "cannot associate two non-associative operators"
-    _ -> throwError $ "fixity error: cannot mix " ++ show name1 ++ " [" ++ display f ++ "] and " ++ show name ++ " [" ++ display e ++ "]"
+      | d1 == d -> emitError Other "cannot associate two non-associative operators"
+    _ -> emitError Other $ "fixity error: cannot mix " ++ show name1 ++ " [" ++ display f ++ "] and " ++ show name ++ " [" ++ display e ++ "]"
   where
     swap :: Expr
     swap = BinOp name1 lhs1 $ BinOp name rhs1 rhs
@@ -120,14 +131,14 @@ typeOf (BinOp name lhs rhs) = do
   case fst op of
     TypeFun a (TypeFun b c)
       | a == l && b == r -> return c
-    _ -> throwError "type mismatch"
+    _ -> emitError Other "type mismatch"
 
 typeOf (App f x) = do
   ft <- typeOf f
   xt <- typeOf x
   case ft of
     TypeFun a b | a == xt -> return b
-    _ -> throwError $ "expected function type which takes " ++ show xt ++ ", but got " ++ show ft
+    _ -> emitError Other $ "expected function type which takes " ++ show xt ++ ", but got " ++ show ft
 
 typeOf (Var name) = fst <$> resolveE name
 
@@ -179,7 +190,7 @@ data Constant =
 
 type Translator = StateT Int (WriterT [ThreeAddress] Env)
 
-translate :: InterState -> Translator a -> Either String (a, [ThreeAddress])
+translate :: InterState -> Translator a -> Either Error (a, [ThreeAddress])
 translate s = evalEnv s . runWriterT . flip evalStateT 0
 
 newTempVar :: Translator Address
