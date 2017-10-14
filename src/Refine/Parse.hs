@@ -110,6 +110,7 @@ escapedString :: Parser Char
 escapedString = char '\\' >> char '"'
 
 data Decl = Decl String Expr
+  deriving (Eq, Show)
 
 parseWhole :: Parser a -> String -> Either ParseError a
 parseWhole p = parse (p <* eof) "<no filename>"

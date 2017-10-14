@@ -17,7 +17,7 @@ rightIs x (Right y) = x == y
 rightIs _ (Left _) = False
 
 spec :: Spec
-spec =
+spec = do
   describe "parseExpr" $ do
     it "parses an expression" $ do
       parseExpr "1"            `shouldSatisfy` rightIs (int 1)
@@ -75,3 +75,7 @@ spec =
       parseExpr "1f"         `shouldSatisfy` isLeft
       parseExpr "TrueA"      `shouldSatisfy` isLeft
       parseExpr "f \\x -> x" `shouldSatisfy` isLeft
+
+  describe "parseDecl" $ do
+    it "parses a declaration" $ do
+      parseWhole parseDecl "x = 12" `shouldSatisfy` rightIs (Decl "x" . Lit $ LitInt 12)
