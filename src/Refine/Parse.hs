@@ -104,3 +104,12 @@ parseString = LitString <$> between (char '"') (char '"') (many $ escapedString 
 
 escapedString :: Parser Char
 escapedString = char '\\' >> char '"'
+
+data Decl = Decl String Expr
+
+parseDecl :: Parser Decl
+parseDecl = do
+  name <- parseIdent'
+  char '='
+  e <- parseExpr'
+  return $ Decl name e
