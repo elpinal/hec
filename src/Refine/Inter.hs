@@ -133,7 +133,7 @@ typeOf (BinOp name lhs rhs) = do
       | a == l && b == r -> return c
                   -- TODO: Add more information to error message like: "in the first operand of binary opearator (`name`): lhs"
       | a /= l -> emitError TypeMismatch $ "expected " ++ show a ++ ", but got " ++ show l
-    _ -> emitError Other "type mismatch"
+    _ -> emitError TypeMismatch $ "expected " ++ show l ++ " -> " ++ show r ++ " -> _, but got " ++ show t
 
 typeOf (App f x) = do
   ft <- typeOf f
