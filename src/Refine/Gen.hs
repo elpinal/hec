@@ -11,5 +11,5 @@ type Machine = Reader Int
 runMachine :: Machine a -> Int -> a
 runMachine m n = runReader m n
 
-gen :: Address -> ThreeAddress -> Machine Asm.Asm
+gen :: Address -> [ThreeAddress] -> Machine [Asm.Inst]
 gen = undefined
