@@ -13,6 +13,7 @@ data Error = Error ErrorType String
 
 data ErrorType =
     Unbound
+  | FixityError
   | Other
   deriving (Eq, Show)
 
@@ -97,9 +98,7 @@ recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
       | d1 == d -> return x
     (Fixity d1 @ (Just RightAssoc) _)
       | d1 == d -> return swap
-    (Fixity d1 @ Nothing _)
-      | d1 == d -> emitError Other "cannot associate two non-associative operators"
-    _ -> emitError Other $ "fixity error: cannot mix " ++ show name1 ++ " [" ++ display f ++ "] and " ++ show name ++ " [" ++ display e ++ "]"
+    _ -> emitError FixityError $ "fixity error: cannot mix " ++ show name1 ++ " [" ++ display f ++ "] and " ++ show name ++ " [" ++ display e ++ "]"
   where
     swap :: Expr
     swap = BinOp name1 lhs1 $ BinOp name rhs1 rhs
