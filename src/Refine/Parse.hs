@@ -146,8 +146,7 @@ parseType = do
     return TypeFun
 
 parseSimpleType :: Parser Type
-parseSimpleType = do
-  readType <$> parseTypeIdent <|> paren parseSimpleType
+parseSimpleType = readType <$> parseTypeIdent <|> paren parseSimpleType
 
 parseTypeIdent :: Parser String
 parseTypeIdent = do
