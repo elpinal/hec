@@ -7,6 +7,7 @@ import Control.Monad.Writer.Lazy
 import qualified Data.Map.Lazy as Map
 
 import Refine.Parse
+import Refine.Type
 
 data Error = Error ErrorType String
   deriving (Eq, Show)
@@ -103,15 +104,6 @@ recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
     swap :: Expr
     swap = BinOp name1 lhs1 $ BinOp name rhs1 rhs
 recons x = return x
-
-data Type =
-    TypeInt
-  | TypeBool
-  | TypeChar
-  | TypeString
-  | TypeFun Type Type
-  | TypeVar String
-  deriving (Eq, Show)
 
 type Subst = Map.Map String Type
 

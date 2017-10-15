@@ -11,6 +11,8 @@ module Refine.Parse
 import Text.Parsec
 import Text.Parsec.String
 
+import Refine.Type
+
 data Literal =
     LitInt Int
   | LitBool Bool
@@ -109,7 +111,9 @@ parseString = LitString <$> between (char '"') (char '"') (many $ escapedString 
 escapedString :: Parser Char
 escapedString = char '\\' >> char '"'
 
-data Decl = Decl String Expr
+data Decl =
+    Decl String Expr
+  | TypeDecl String Type
   deriving (Eq, Show)
 
 parseWhole :: Parser a -> String -> Either ParseError a
@@ -121,3 +125,13 @@ parseDecl = do
   surroundedBySpaces $ char '='
   e <- parseExpr'
   return $ Decl name e
+
+parseTypeSig :: Parser Decl
+parseTypeSig = do
+  name <- parseIdent'
+  surroundedBySpaces $ string "::"
+  t <- parseType
+  return $ TypeDecl name t
+
+parseType :: Parser Type
+parseType = undefined
