@@ -147,7 +147,7 @@ parseType = do
 
 parseSimpleType :: Parser Type
 parseSimpleType = do
-  (readType <$> parseTypeIdent) <|> paren parseSimpleType
+  readType <$> parseTypeIdent <|> paren parseSimpleType
 
 parseTypeIdent :: Parser String
 parseTypeIdent = do
