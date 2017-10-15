@@ -138,7 +138,7 @@ parseTypeSig = do
   return $ TypeSig name t
 
 parseType :: Parser Type
-parseType = do
+parseType =
   chainr1 (readType <$> parseTypeIdent) $ do
     many space
     string "->"
