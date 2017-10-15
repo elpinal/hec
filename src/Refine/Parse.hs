@@ -5,8 +5,9 @@ module Refine.Parse
 
   , parseWhole
   , parseDecl
-  , parseTypeSig
   , parseType
+  , parseTypeSig
+  , parseTypeDecl
   , Decl(..)
   ) where
 
@@ -163,5 +164,6 @@ parseTypeDecl = do
   s <- parseTypeIdent
   many space
   char '='
+  many space
   t <- parseType
   return $ TypeDecl s t

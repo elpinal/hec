@@ -92,3 +92,9 @@ spec = do
       parseWhole parseTypeSig "i :: Int" `shouldSatisfy` rightIs (TypeSig "i" TypeInt)
       parseWhole parseTypeSig "f :: Bool -> Char" `shouldSatisfy` rightIs (TypeSig "f" $ TypeFun TypeBool TypeChar)
       parseWhole parseTypeSig "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeSig "g" . TypeFun TypeInt $ TypeFun TypeBool TypeChar)
+
+  describe "parseTypeDecl" $ do
+    it "parses a type synonym" $ do
+      parseWhole parseTypeDecl "type I = Int" `shouldSatisfy` rightIs (TypeDecl "I" TypeInt)
+      parseWhole parseTypeDecl "type Fn = Bool -> Char" `shouldSatisfy` rightIs (TypeDecl "Fn" $ TypeFun TypeBool TypeChar)
+      parseWhole parseTypeDecl "type B = Int -> Int -> Bool" `shouldSatisfy` rightIs (TypeDecl "B" . TypeFun TypeInt $ TypeFun TypeInt TypeBool)
