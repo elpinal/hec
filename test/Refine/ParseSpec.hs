@@ -5,6 +5,7 @@ import Test.Hspec
 import Data.Either
 
 import Refine.Parse
+import Refine.Type
 
 int :: Int -> Expr
 int = Lit . LitInt
@@ -79,3 +80,9 @@ spec = do
   describe "parseDecl" $ do
     it "parses a declaration" $ do
       parseWhole parseDecl "x = 12" `shouldSatisfy` rightIs (Decl "x" . Lit $ LitInt 12)
+
+  describe "parseType" $ do
+    it "parses a type" $ do
+      parseWhole parseType "Int" `shouldSatisfy` rightIs TypeInt
+      parseWhole parseType "Bool -> Char" `shouldSatisfy` rightIs (TypeFun TypeBool TypeChar)
+      parseWhole parseType "Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)

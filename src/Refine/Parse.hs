@@ -3,8 +3,9 @@ module Refine.Parse
   , Expr(..)
   , Literal(..)
 
-  , parseDecl
   , parseWhole
+  , parseDecl
+  , parseType
   , Decl(..)
   ) where
 
@@ -134,4 +135,21 @@ parseTypeSig = do
   return $ TypeDecl name t
 
 parseType :: Parser Type
-parseType = undefined
+parseType = do
+  chainr1 parseTypeIdent $ do
+    many space
+    string "->"
+    many space
+    return TypeFun
+
+parseTypeIdent :: Parser Type
+parseTypeIdent = do
+  x <- letter
+  xs <- many $ alphaNum <|> char '\''
+  return . readType $ x : xs
+
+readType :: String -> Type
+readType "Int" = TypeInt
+readType "Bool" = TypeBool
+readType "Char" = TypeChar
+readType "String" = TypeString
