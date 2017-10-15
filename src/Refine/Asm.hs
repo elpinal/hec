@@ -3,15 +3,10 @@ module Refine.Asm where
 data Inst =
     IAdd Register Operand Operand
   | ISub Register Operand Operand
-  | Branch Label
+  | Branch Operand
   | Load Register Operand
   | Store Register Operand
-  | Call Label
   | Ret Operand
-  | Param Operand
-  deriving (Eq, Show)
-
-newtype Label = Label Int
   deriving (Eq, Show)
 
 data Operand =
