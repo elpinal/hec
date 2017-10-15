@@ -1,16 +1,18 @@
 module Refine.Gen where
 
 import Control.Monad.Reader
+import Control.Monad.State.Lazy
 import Control.Monad.Writer.Lazy
+import qualified Data.Map.Lazy as Map
 
 import qualified Refine.Asm as Asm
 import Refine.Inter
 
-type Machine = WriterT [Asm.Inst] (Reader Int)
+type Machine = WriterT [Asm.Inst] (StateT (RegisterDescriptor, AddressDescriptor) (Reader Int))
 
 -- | Runs a @Machine@ with the number of regesters.
 runMachine :: Machine a -> Int -> (a, [Asm.Inst])
-runMachine m n = runReader (runWriterT m) n
+runMachine m n = runReader (evalStateT (runWriterT m) (Map.empty, Map.empty)) n
 
 gen :: Address -> [ThreeAddress] -> Machine Asm.Operand
 gen (Const c) _ = return $ genConst c
@@ -36,3 +38,11 @@ newRegister = undefined
 
 load :: Asm.Register -> Address -> Machine ()
 load = undefined
+
+type RegisterDescriptor = Map.Map Asm.Register [String]
+
+type AddressDescriptor = Map.Map String [Location]
+
+data Location =
+    Reg Asm.Register
+  | Mem Int
