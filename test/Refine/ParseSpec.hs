@@ -88,7 +88,15 @@ spec = do
       parseWhole parseType "Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)
       parseWhole parseType "Int->Bool->Char"     `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)
 
-      parseWhole parseType "(Int)"                 `shouldSatisfy` rightIs TypeInt
+      parseWhole parseType' "(Int)"                   `shouldSatisfy` rightIs TypeInt
+      parseWhole parseType' "((Int))"                 `shouldSatisfy` rightIs TypeInt
+      parseWhole parseType' "(Int -> Bool)"           `shouldSatisfy` rightIs (TypeFun TypeInt TypeBool)
+      parseWhole parseType' "Int -> (Bool)"           `shouldSatisfy` rightIs (TypeFun TypeInt TypeBool)
+      parseWhole parseType' "(Int -> (Bool))"         `shouldSatisfy` rightIs (TypeFun TypeInt TypeBool)
+      parseWhole parseType' "Int -> (Bool -> Char)"   `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)
+      parseWhole parseType' "(Int -> (Bool -> Char))" `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)
+      parseWhole parseType' "(Int -> Bool) -> Char"   `shouldSatisfy` rightIs (TypeFun (TypeFun TypeInt TypeBool) TypeChar)
+      parseWhole parseType' "((Int -> Bool) -> Char)" `shouldSatisfy` rightIs (TypeFun (TypeFun TypeInt TypeBool) TypeChar)
 
   describe "parseTypeSig" $
     it "parses a type signature declaration" $ do

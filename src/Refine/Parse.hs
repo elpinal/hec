@@ -6,6 +6,7 @@ module Refine.Parse
   , parseWhole
   , parseDecl
   , parseType
+  , parseType'
   , parseTypeSig
   , parseTypeDecl
   , Decl(..)
@@ -145,8 +146,22 @@ parseType =
     many space
     return TypeFun
 
+parseType' :: Parser Type
+parseType' = try parseFunctionType <|> parseTypeTerm
+
 parseSimpleType :: Parser Type
 parseSimpleType = readType <$> parseTypeIdent <|> paren parseSimpleType
+
+parseTypeTerm :: Parser Type
+parseTypeTerm = paren (try parseFunctionType <|> parseSimpleType) <|> parseSimpleType
+
+parseFunctionType :: Parser Type
+parseFunctionType = do
+  t <- parseTypeTerm
+  many space
+  string "->"
+  many space
+  fmap (TypeFun t) $ try parseFunctionType <|> parseTypeTerm
 
 parseTypeIdent :: Parser String
 parseTypeIdent = do
