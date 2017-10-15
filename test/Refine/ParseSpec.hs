@@ -83,21 +83,21 @@ spec = do
 
   describe "parseType" $ do
     it "parses a type" $ do
-      parseWhole parseType "Int" `shouldSatisfy` rightIs TypeInt
-      parseWhole parseType "Bool -> Char" `shouldSatisfy` rightIs (TypeFun TypeBool TypeChar)
+      parseWhole parseType "Int"                 `shouldSatisfy` rightIs TypeInt
+      parseWhole parseType "Bool -> Char"        `shouldSatisfy` rightIs (TypeFun TypeBool TypeChar)
       parseWhole parseType "Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)
-      parseWhole parseType "Int->Bool->Char" `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)
+      parseWhole parseType "Int->Bool->Char"     `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)
 
   describe "parseTypeSig" $ do
     it "parses a type signature declaration" $ do
-      parseWhole parseTypeSig "i :: Int" `shouldSatisfy` rightIs (TypeSig "i" TypeInt)
-      parseWhole parseTypeSig "f :: Bool -> Char" `shouldSatisfy` rightIs (TypeSig "f" $ TypeFun TypeBool TypeChar)
+      parseWhole parseTypeSig "i :: Int"                 `shouldSatisfy` rightIs (TypeSig "i" TypeInt)
+      parseWhole parseTypeSig "f :: Bool -> Char"        `shouldSatisfy` rightIs (TypeSig "f" $ TypeFun TypeBool TypeChar)
       parseWhole parseTypeSig "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeSig "g" . TypeFun TypeInt $ TypeFun TypeBool TypeChar)
       parseWhole parseTypeSig "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeSig "g" . TypeFun TypeInt $ TypeFun TypeBool TypeChar)
 
   describe "parseTypeDecl" $ do
     it "parses a type synonym" $ do
-      parseWhole parseTypeDecl "type I = Int" `shouldSatisfy` rightIs (TypeDecl "I" TypeInt)
-      parseWhole parseTypeDecl "type Fn = Bool -> Char" `shouldSatisfy` rightIs (TypeDecl "Fn" $ TypeFun TypeBool TypeChar)
+      parseWhole parseTypeDecl "type I = Int"                `shouldSatisfy` rightIs (TypeDecl "I" TypeInt)
+      parseWhole parseTypeDecl "type Fn = Bool -> Char"      `shouldSatisfy` rightIs (TypeDecl "Fn" $ TypeFun TypeBool TypeChar)
       parseWhole parseTypeDecl "type B = Int -> Int -> Bool" `shouldSatisfy` rightIs (TypeDecl "B" . TypeFun TypeInt $ TypeFun TypeInt TypeBool)
-      parseWhole parseTypeDecl "type B=Int -> Int -> Bool" `shouldSatisfy` rightIs (TypeDecl "B" . TypeFun TypeInt $ TypeFun TypeInt TypeBool)
+      parseWhole parseTypeDecl "type B=Int -> Int -> Bool"   `shouldSatisfy` rightIs (TypeDecl "B" . TypeFun TypeInt $ TypeFun TypeInt TypeBool)
