@@ -7,6 +7,7 @@ import qualified Data.Map.Lazy as Map
 
 import Refine.Inter
 import Refine.Parse
+import Refine.Type
 
 spec :: Spec
 spec = do
