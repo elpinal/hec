@@ -145,6 +145,10 @@ parseType = do
     many space
     return TypeFun
 
+parseSimpleType :: Parser Type
+parseSimpleType = do
+  (readType <$> parseTypeIdent) <|> paren parseSimpleType
+
 parseTypeIdent :: Parser String
 parseTypeIdent = do
   x <- letter
