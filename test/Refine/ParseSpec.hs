@@ -77,25 +77,25 @@ spec = do
       parseExpr "TrueA"      `shouldSatisfy` isLeft
       parseExpr "f \\x -> x" `shouldSatisfy` isLeft
 
-  describe "parseDecl" $ do
+  describe "parseDecl" $
     it "parses a declaration" $ do
       parseWhole parseDecl "x = 12" `shouldSatisfy` rightIs (Decl "x" . Lit $ LitInt 12)
 
-  describe "parseType" $ do
+  describe "parseType" $
     it "parses a type" $ do
       parseWhole parseType "Int"                 `shouldSatisfy` rightIs TypeInt
       parseWhole parseType "Bool -> Char"        `shouldSatisfy` rightIs (TypeFun TypeBool TypeChar)
       parseWhole parseType "Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)
       parseWhole parseType "Int->Bool->Char"     `shouldSatisfy` rightIs (TypeFun TypeInt $ TypeFun TypeBool TypeChar)
 
-  describe "parseTypeSig" $ do
+  describe "parseTypeSig" $
     it "parses a type signature declaration" $ do
       parseWhole parseTypeSig "i :: Int"                 `shouldSatisfy` rightIs (TypeSig "i" TypeInt)
       parseWhole parseTypeSig "f :: Bool -> Char"        `shouldSatisfy` rightIs (TypeSig "f" $ TypeFun TypeBool TypeChar)
       parseWhole parseTypeSig "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeSig "g" . TypeFun TypeInt $ TypeFun TypeBool TypeChar)
       parseWhole parseTypeSig "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeSig "g" . TypeFun TypeInt $ TypeFun TypeBool TypeChar)
 
-  describe "parseTypeDecl" $ do
+  describe "parseTypeDecl" $
     it "parses a type synonym" $ do
       parseWhole parseTypeDecl "type I = Int"                `shouldSatisfy` rightIs (TypeDecl "I" TypeInt)
       parseWhole parseTypeDecl "type Fn = Bool -> Char"      `shouldSatisfy` rightIs (TypeDecl "Fn" $ TypeFun TypeBool TypeChar)
