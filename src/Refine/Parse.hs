@@ -5,6 +5,7 @@ module Refine.Parse
 
   , parseWhole
   , parseDecl
+  , parseTypeSig
   , parseType
   , Decl(..)
   ) where
