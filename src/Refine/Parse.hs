@@ -116,6 +116,7 @@ escapedString = char '\\' >> char '"'
 data Decl =
     Decl String Expr
   | TypeSig String Type
+  | TypeDecl String Type
   deriving (Eq, Show)
 
 parseWhole :: Parser a -> String -> Either ParseError a
@@ -137,20 +138,30 @@ parseTypeSig = do
 
 parseType :: Parser Type
 parseType = do
-  chainr1 parseTypeIdent $ do
+  chainr1 (readType <$> parseTypeIdent) $ do
     many space
     string "->"
     many space
     return TypeFun
 
-parseTypeIdent :: Parser Type
+parseTypeIdent :: Parser String
 parseTypeIdent = do
   x <- letter
   xs <- many $ alphaNum <|> char '\''
-  return . readType $ x : xs
+  return $ x : xs
 
 readType :: String -> Type
 readType "Int" = TypeInt
 readType "Bool" = TypeBool
 readType "Char" = TypeChar
 readType "String" = TypeString
+
+parseTypeDecl :: Parser Decl
+parseTypeDecl = do
+  string "type"
+  many1 space
+  s <- parseTypeIdent
+  many space
+  char '='
+  t <- parseType
+  return $ TypeDecl s t
