@@ -115,7 +115,7 @@ escapedString = char '\\' >> char '"'
 
 data Decl =
     Decl String Expr
-  | TypeDecl String Type
+  | TypeSig String Type
   deriving (Eq, Show)
 
 parseWhole :: Parser a -> String -> Either ParseError a
@@ -133,7 +133,7 @@ parseTypeSig = do
   name <- parseIdent'
   surroundedBySpaces $ string "::"
   t <- parseType
-  return $ TypeDecl name t
+  return $ TypeSig name t
 
 parseType :: Parser Type
 parseType = do
