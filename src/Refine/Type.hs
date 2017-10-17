@@ -77,6 +77,10 @@ instance Types Type1 where
   ftv (TypeApp t u) = ftv t `Set.union` ftv u
   ftv _ = Set.empty
 
+instance Types t => Types [t] where
+  apply s = map $ apply s
+  ftv = Set.unions . map ftv
+
 (@@) :: Subst -> Subst -> Subst
 a @@ b = Map.map (apply a) b `Map.union` a
 
