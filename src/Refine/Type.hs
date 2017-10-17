@@ -135,6 +135,7 @@ mguPred, matchPred :: Pred -> Pred -> Maybe Subst
 mguPred = lift mgu
 matchPred = lift match
 
+lift :: Monad m => (Type1 -> Type1 -> m a) -> Pred -> Pred -> m a
 lift m (IsIn i t) (IsIn j u)
   | i == j = m t u
   | otherwise = fail "classes differ"
