@@ -155,3 +155,11 @@ super ce i = case classes ce i of
 insts :: ClassEnv -> String -> [Inst]
 insts ce i = case classes ce i of
   Just (is, its) -> its
+
+modifyEnv :: ClassEnv -> String -> Class -> ClassEnv
+modifyEnv ce i c = ce
+  { classes = \ j ->
+      if i == j
+        then Just c
+        else classes ce j
+  }
