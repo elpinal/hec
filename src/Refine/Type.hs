@@ -40,3 +40,18 @@ list = TypeApp tList
 
 pair :: Type1 -> Type1 -> Type1
 pair a = TypeApp $ TypeApp tTuple2 a
+
+class HasKind t where
+  kind :: t -> Kind
+
+instance HasKind TVar where
+  kind (TVar _ k) = k
+
+instance HasKind TCon where
+  kind (TCon _ k) = k
+
+instance HasKind Type1 where
+  kind (TypeVar1 v) = kind v
+  kind (TypeApp v u) = case kind v of
+    (KFun k _) -> k
+  kind (TypeCon c) = kind c
