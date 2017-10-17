@@ -147,3 +147,11 @@ data ClassEnv = ClassEnv
   { classes :: String -> Maybe Class
   , defaults :: [Type]
   }
+
+super :: ClassEnv -> String -> [String]
+super ce i = case classes ce i of
+  Just (is, its) -> is
+
+insts :: ClassEnv -> String -> [Inst]
+insts ce i = case classes ce i of
+  Just (is, its) -> its
