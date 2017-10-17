@@ -105,13 +105,6 @@ recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
     swap = BinOp name1 lhs1 $ BinOp name rhs1 rhs
 recons x = return x
 
-type Subst = Map.Map String Type
-
-apply :: Subst -> Type -> Type
-apply s t @ (TypeVar name) = Map.findWithDefault t name s
-apply s (TypeFun a b) = TypeFun (apply s a) (apply s b)
-apply _ t = t
-
 typeOf :: Expr -> Env Type
 typeOf (Lit lit) = return $ litType lit
 

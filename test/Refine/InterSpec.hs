@@ -46,16 +46,6 @@ spec = do
       let st = interState { table = Map.singleton "op" (TypeFun TypeInt $ TypeFun TypeInt TypeInt, Just $ Fixity (Just RightAssoc) 9) }
       (evalEnv st . recons $ BinOp "op" lhs rhs) `shouldBe` Right (BinOp "op" (Lit $ LitInt 3) $ BinOp "op" (Lit $ LitInt 4) rhs)
 
-  describe "apply" $
-    it "substitutes type variables in types" $ do
-      Map.empty                    `apply` TypeInt       `shouldBe` TypeInt
-      Map.singleton "aaa" TypeBool `apply` TypeInt       `shouldBe` TypeInt
-      Map.empty                    `apply` TypeVar "aaa" `shouldBe` TypeVar "aaa"
-      Map.singleton "aaa" TypeBool `apply` TypeVar "aaa" `shouldBe` TypeBool
-
-      Map.empty                    `apply` TypeFun (TypeVar "aaa") (TypeVar "bbb") `shouldBe` TypeFun (TypeVar "aaa") (TypeVar "bbb")
-      Map.singleton "aaa" TypeBool `apply` TypeFun (TypeVar "aaa") (TypeVar "bbb") `shouldBe` TypeFun TypeBool (TypeVar "bbb")
-
   describe "genThreeAddress" $
     it "generates three address code" $ do
       translate interState (genThreeAddress (Lit $ LitInt 3)) `shouldBe` Right (Const $ CInt 3, [])
