@@ -1,6 +1,7 @@
 module Refine.Type where
 
 import qualified Data.Map.Lazy as Map
+import qualified Data.Set as Set
 
 import Refine.Kind
 
@@ -63,7 +64,15 @@ instance HasKind Type1 where
 
 type Subst = Map.Map TVar Type1
 
-apply :: Subst -> Type1 -> Type1
-apply s v @ (TypeVar1 name) = Map.findWithDefault v name s
-apply s (TypeApp a b) = TypeApp (apply s a) (apply s b)
-apply _ t = t
+class Types t where
+  apply :: Subst -> t -> t
+  ftv :: t -> Set.Set TVar
+
+instance Types Type1 where
+  apply s v @ (TypeVar1 name) = Map.findWithDefault v name s
+  apply s (TypeApp a b) = TypeApp (apply s a) (apply s b)
+  apply _ t = t
+
+  ftv (TypeVar1 v) = Set.singleton v
+  ftv (TypeApp t u) = ftv t `Set.union` ftv u
+  ftv _ = Set.empty
