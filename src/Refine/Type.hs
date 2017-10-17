@@ -142,3 +142,8 @@ lift m (IsIn i t) (IsIn j u)
 
 type Class = ([String], [Inst])
 type Inst = Qual Pred
+
+data ClassEnv = ClassEnv
+  { classes :: String -> Maybe Class
+  , defaults :: [Type]
+  }
