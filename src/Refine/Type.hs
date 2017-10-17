@@ -20,12 +20,20 @@ data TVar = TVar String Kind
 
 data TCon = TCon String Kind
 
-tBool, tChar, tInt, tList, tArrow, tTuple2 :: Type1
+tBool, tChar, tInt, tString, tList, tArrow, tTuple2 :: Type1
 
 tBool = TypeCon $ TCon "Bool" Star
 tChar = TypeCon $ TCon "Char" Star
 tInt = TypeCon $ TCon "Int" Star
 
+tString = list tChar
+
 tList = TypeCon . TCon "[]" $ KFun Star Star
 tArrow = TypeCon . TCon "(->)" . KFun Star $ KFun Star Star
 tTuple2 = TypeCon . TCon "(,)" . KFun Star $ KFun Star Star
+
+fn :: Type1 -> Type1 -> Type1
+fn a = TypeApp $ TypeApp tArrow a
+
+list :: Type1 -> Type1
+list = TypeApp tList
