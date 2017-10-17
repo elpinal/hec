@@ -116,3 +116,9 @@ match (TypeApp a b) (TypeApp c d) = do
 match (TypeVar1 u) t | kind u == kind t = varBind u t
 match (TypeCon c) (TypeCon c') | c == c' = return Map.empty
 match _ _ = fail "types do not match"
+
+data Qual t = [Pred] :=> t
+  deriving Eq
+
+data Pred = IsIn String Type
+  deriving Eq
