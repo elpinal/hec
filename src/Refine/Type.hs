@@ -139,5 +139,5 @@ lift m (IsIn i t) (IsIn j u)
   | i == j = m t u
   | otherwise = fail "classes differ"
 
-type Class = ([Id], [Inst])
+type Class = ([String], [Inst])
 type Inst = Qual Pred
