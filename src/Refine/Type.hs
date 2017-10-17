@@ -138,3 +138,6 @@ matchPred = lift match
 lift m (IsIn i t) (IsIn j u)
   | i == j = m t u
   | otherwise = fail "classes differ"
+
+type Class = ([Id], [Inst])
+type Inst = Qual Pred
