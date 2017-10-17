@@ -76,3 +76,11 @@ instance Types Type1 where
   ftv (TypeVar1 v) = Set.singleton v
   ftv (TypeApp t u) = ftv t `Set.union` ftv u
   ftv _ = Set.empty
+
+(@@) :: Subst -> Subst -> Subst
+a @@ b = Map.map (apply a) b `Map.union` a
+
+merge :: Monad m => Subst -> Subst -> m Subst
+merge a b = if False `elem` Map.elems (Map.intersectionWith (==) a b)
+              then fail "merge fails"
+              else return $ Map.union a b
