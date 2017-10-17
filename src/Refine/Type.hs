@@ -92,7 +92,7 @@ merge a b = if False `elem` Map.elems (Map.intersectionWith (==) a b)
 mgu :: Monad m => Type1 -> Type1 -> m Subst
 mgu (TypeApp a b) (TypeApp c d) = do
   s <- mgu a c
-  t <- mgu (apply s b) (apply s d)
+  t <- mgu (apply s b) $ apply s d
   return $ t @@ s
 
 mgu (TypeVar1 u) t = varBind u t
