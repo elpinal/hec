@@ -120,5 +120,21 @@ match _ _ = fail "types do not match"
 data Qual t = [Pred] :=> t
   deriving Eq
 
-data Pred = IsIn String Type
+data Pred = IsIn String Type1
   deriving Eq
+
+instance Types t => Types (Qual t) where
+  apply s (ps :=> t) = apply s ps :=> apply s t
+  ftv (ps :=> t) = ftv ps `Set.union` ftv t
+
+instance Types Pred where
+  apply s (IsIn i t) = IsIn i $ apply s t
+  ftv (IsIn _ t) = ftv t
+
+mguPred, matchPred :: Pred -> Pred -> Maybe Subst
+mguPred = lift mgu
+matchPred = lift match
+
+lift m (IsIn i t) (IsIn j u)
+  | i == j = m t u
+  | otherwise = fail "classes differ"
