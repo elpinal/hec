@@ -88,3 +88,21 @@ merge :: Monad m => Subst -> Subst -> m Subst
 merge a b = if False `elem` Map.elems (Map.intersectionWith (==) a b)
               then fail "merge fails"
               else return $ Map.union a b
+
+mgu :: Monad m => Type1 -> Type1 -> m Subst
+mgu (TypeApp a b) (TypeApp c d) = do
+  s <- mgu a c
+  t <- mgu (apply s b) (apply s d)
+  return $ t @@ s
+
+mgu (TypeVar1 u) t = varBind u t
+mgu t (TypeVar1 u) = varBind u t
+mgu (TypeCon c) (TypeCon c') | c == c' = return Map.empty
+mgu _ _ = fail "types do not unify"
+
+varBind :: Monad m => TVar -> Type1 -> m Subst
+varBind u t
+  | t == TypeVar1 u = return Map.empty
+  | u `Set.member` ftv t = fail "occur check fails"
+  | kind u /= kind t = fail "kinds do not match"
+  | otherwise = return $ Map.singleton u t
