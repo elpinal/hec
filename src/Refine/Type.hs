@@ -106,3 +106,13 @@ varBind u t
   | u `Set.member` ftv t = fail "occur check fails"
   | kind u /= kind t = fail "kinds do not match"
   | otherwise = return $ Map.singleton u t
+
+match :: Monad m => Type1 -> Type1 -> m Subst
+match (TypeApp a b) (TypeApp c d) = do
+  s <- match a c
+  t <- match b d
+  merge s t
+
+match (TypeVar1 u) t | kind u == kind t = varBind u t
+match (TypeCon c) (TypeCon c') | c == c' = return Map.empty
+match _ _ = fail "types do not match"
