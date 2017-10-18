@@ -145,7 +145,7 @@ type Inst = Qual Pred
 
 data ClassEnv = ClassEnv
   { classes :: String -> Maybe Class
-  , defaults :: [Type]
+  , defaults :: [Type1]
   }
 
 super :: ClassEnv -> String -> [String]
