@@ -286,3 +286,12 @@ runTI = flip evalState (Map.empty, 0)
 
 getSubst :: TI Subst
 getSubst = fst <$> get
+
+unify :: Type1 -> Type1 -> TI ()
+unify t1 t2 = do
+  s <- getSubst
+  u <- mgu (apply s t1) $ apply s t2
+  extSubst u
+
+extSubst :: Subst -> TI ()
+extSubst s' = modify $ \(s, n) -> (s' @@ s, n)
