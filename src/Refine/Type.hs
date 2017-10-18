@@ -1,6 +1,7 @@
 module Refine.Type where
 
 import Control.Monad
+import Control.Monad.State.Lazy hiding (lift)
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
@@ -277,3 +278,5 @@ find i ((i' :>: sc) : as) =
   if i == i'
     then return sc
     else find i as
+
+type TI = State (Subst, Int)
