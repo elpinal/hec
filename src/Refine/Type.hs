@@ -283,3 +283,6 @@ type TI = State (Subst, Int)
 
 runTI :: TI a -> a
 runTI = flip evalState (Map.empty, 0)
+
+getSubst :: TI Subst
+getSubst = fst <$> get
