@@ -229,3 +229,12 @@ toHnf :: Monad m => ClassEnv -> Pred -> m [Pred]
 toHnf ce p
   | inHnf p = return [p]
   | otherwise = maybe (fail "context reduction") (toHnfs ce) $ byInst ce p
+
+simplify :: ClassEnv -> [Pred] -> [Pred]
+simplify ce = loop []
+  where
+    loop :: [Pred] -> [Pred] -> [Pred]
+    loop rs [] = rs
+    loop rs (p : ps)
+      | entail ce (rs ++ ps) p = loop rs ps
+      | otherwise = loop (p : rs) ps
