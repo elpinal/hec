@@ -78,8 +78,9 @@ spec = do
       parseExpr "f \\x -> x" `shouldSatisfy` isLeft
 
   describe "parseDecl" $
-    it "parses a declaration" $
-      parseWhole parseDecl "x = 12" `shouldSatisfy` rightIs (Decl "x" . Lit $ LitInt 12)
+    it "parses a declaration" $ do
+      parseWhole parseDecl "x = 12"            `shouldSatisfy` rightIs (Decl "x" . Lit $ LitInt 12)
+      parseWhole parseDecl "f = \\x -> x + 12" `shouldSatisfy` rightIs (Decl "f" . Abs "x" . BinOp "+" (Var "x") . Lit $ LitInt 12)
 
   describe "parseType" $
     it "parses a type" $ do
