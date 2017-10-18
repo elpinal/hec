@@ -242,3 +242,25 @@ simplify ce = loop []
 
 reduce :: Monad m => ClassEnv -> [Pred] -> m [Pred]
 reduce ce ps = simplify ce <$> toHnfs ce ps
+
+data Scheme = Forall [Kind] (Qual Type1)
+  deriving Eq
+
+instance Types Scheme where
+  apply s (Forall ks qt) = Forall ks $ apply s qt
+  ftv (Forall _ qt) = ftv qt
+
+quantify :: [TVar] -> Qual Type1 -> Scheme
+quantify vs qt = Forall ks $ apply s qt
+  where
+    vs' :: [TVar]
+    vs' = Set.toList . Set.filter (`elem` vs) $ ftv qt
+
+    ks :: [Kind]
+    ks = map kind vs'
+
+    s :: Map.Map TVar Type1
+    s = Map.fromList . zip vs' $ map TypeGen [0..]
+
+toScheme :: Type1 -> Scheme
+toScheme t = Forall [] ([] :=> t)
