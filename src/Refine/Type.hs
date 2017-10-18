@@ -201,3 +201,15 @@ addInst ps p @ (IsIn i _) ce
 
 overlap :: Pred -> Pred -> Bool
 overlap p q = isJust $ mguPred p q
+
+bySuper :: ClassEnv -> Pred -> [Pred]
+bySuper ce p @ (IsIn i t) = p : concat [bySuper ce $ IsIn i' t | i' <- super ce i]
+
+byInst :: ClassEnv -> Pred -> Maybe [Pred]
+byInst ce p @ (IsIn i t) = msum [tryInst it | it <- insts ce i]
+  where
+    tryInst :: Inst -> Maybe [Pred]
+    tryInst (ps :=> h) = flip map ps . apply <$> matchPred h p
+
+entail :: ClassEnv -> [Pred] -> Pred -> Bool
+entail ce ps p = elem p `any` map (bySuper ce) ps || maybe False (all $ entail ce ps) (byInst ce p)
