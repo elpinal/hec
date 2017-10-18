@@ -238,3 +238,6 @@ simplify ce = loop []
     loop rs (p : ps)
       | entail ce (rs ++ ps) p = loop rs ps
       | otherwise = loop (p : rs) ps
+
+reduce :: Monad m => ClassEnv -> [Pred] -> m [Pred]
+reduce ce ps = simplify ce <$> toHnfs ce ps
