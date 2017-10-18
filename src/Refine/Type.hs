@@ -1,5 +1,6 @@
 module Refine.Type where
 
+import Control.Monad
 import qualified Data.Map.Lazy as Map
 import qualified Data.Set as Set
 
@@ -169,3 +170,9 @@ initialEnv = ClassEnv
   { classes = const $ fail "class not defined"
   , defaults = [tInt]
   }
+
+type EnvTransformer = ClassEnv -> Maybe ClassEnv
+
+infixr 5 <:>
+(<:>) :: EnvTransformer -> EnvTransformer -> EnvTransformer
+f <:> g = f >=> g
