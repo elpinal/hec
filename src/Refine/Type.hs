@@ -282,4 +282,4 @@ find i ((i' :>: sc) : as) =
 type TI = State (Subst, Int)
 
 runTI :: TI a -> a
-runTI = flip evalState (Set.empty, 0)
+runTI = flip evalState (Map.empty, 0)
