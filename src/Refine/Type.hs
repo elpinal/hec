@@ -20,6 +20,7 @@ data Type1 =
     TypeVar1 TVar
   | TypeApp Type1 Type1
   | TypeCon TCon
+  | TypeGen Int
   deriving (Eq, Show)
 
 data TVar = TVar String Kind
