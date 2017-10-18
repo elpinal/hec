@@ -127,9 +127,13 @@ parseWhole p = parse (p <* eof) "<no filename>"
 parseDecl :: Parser Decl
 parseDecl = do
   name <- parseIdent'
+  arg <- optionMaybe parseArg
   surroundedBySpaces $ char '='
   e <- parseExpr'
-  return $ Decl name e
+  return . Decl name $ maybe e (flip Abs e) arg
+
+parseArg :: Parser String
+parseArg = try $ many1 space >> parseIdent'
 
 parseTypeSig :: Parser Decl
 parseTypeSig = do
