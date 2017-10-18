@@ -163,3 +163,9 @@ modifyEnv ce i c = ce
         then Just c
         else classes ce j
   }
+
+initialEnv :: ClassEnv
+initialEnv = ClassEnv
+  { classes = const $ fail "class not defined"
+  , defaults = [tInt]
+  }
