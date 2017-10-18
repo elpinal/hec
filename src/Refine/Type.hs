@@ -264,3 +264,9 @@ quantify vs qt = Forall ks $ apply s qt
 
 toScheme :: Type1 -> Scheme
 toScheme t = Forall [] ([] :=> t)
+
+data Assump = String :>: Scheme
+
+instance Types Assump where
+  apply s (i :>:sc) = i :>: apply s sc
+  ftv (i :>: sc) = ftv sc
