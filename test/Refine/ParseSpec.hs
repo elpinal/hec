@@ -102,6 +102,7 @@ spec = do
     it "parses a type signature declaration" $ do
       parseWhole parseTypeSig "i :: Int"                 `shouldSatisfy` rightIs (TypeSig "i" TypeInt)
       parseWhole parseTypeSig "f :: Bool -> Char"        `shouldSatisfy` rightIs (TypeSig "f" $ TypeFun TypeBool TypeChar)
+      parseWhole parseTypeSig "f::Bool->Char"            `shouldSatisfy` rightIs (TypeSig "f" $ TypeFun TypeBool TypeChar)
       parseWhole parseTypeSig "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeSig "g" . TypeFun TypeInt $ TypeFun TypeBool TypeChar)
       parseWhole parseTypeSig "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeSig "g" . TypeFun TypeInt $ TypeFun TypeBool TypeChar)
 
