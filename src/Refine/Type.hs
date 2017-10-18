@@ -213,3 +213,19 @@ byInst ce p @ (IsIn i t) = msum [tryInst it | it <- insts ce i]
 
 entail :: ClassEnv -> [Pred] -> Pred -> Bool
 entail ce ps p = elem p `any` map (bySuper ce) ps || maybe False (all $ entail ce ps) (byInst ce p)
+
+inHnf :: Pred -> Bool
+inHnf (IsIn _ t) = hnf t
+  where
+    hnf :: Type1 -> Bool
+    hnf (TypeVar1 v) = True
+    hnf (TypeCon tc) = False
+    hnf (TypeApp t _) = hnf t
+
+toHnfs :: Monad m => ClassEnv -> [Pred] -> m [Pred]
+toHnfs ce ps = concat <$> mapM (toHnf ce) ps
+
+toHnf :: Monad m => ClassEnv -> Pred -> m [Pred]
+toHnf ce p
+  | inHnf p = return [p]
+  | otherwise = maybe (fail "context reduction") (toHnfs ce) $ byInst ce p
