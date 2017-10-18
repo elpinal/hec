@@ -270,3 +270,10 @@ data Assump = String :>: Scheme
 instance Types Assump where
   apply s (i :>:sc) = i :>: apply s sc
   ftv (i :>: sc) = ftv sc
+
+find :: Monad m => String -> [Assump] -> m Scheme
+find i [] = fail $ "unbound identifier: " ++ i
+find i ((i' :>: sc) : as) =
+  if i == i'
+    then return sc
+    else find i as
