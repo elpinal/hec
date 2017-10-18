@@ -2,6 +2,7 @@ module Refine.Type where
 
 import Control.Monad
 import qualified Data.Map.Lazy as Map
+import Data.Maybe
 import qualified Data.Set as Set
 
 import Refine.Kind
@@ -176,3 +177,27 @@ type EnvTransformer = ClassEnv -> Maybe ClassEnv
 infixr 5 <:>
 (<:>) :: EnvTransformer -> EnvTransformer -> EnvTransformer
 f <:> g = f >=> g
+
+addClass :: String -> [String] -> EnvTransformer
+addClass i is ce
+  | isJust (classes ce i) = fail "class already defined"
+  | any (isNothing . classes ce) is = fail "superclass not defined"
+  | otherwise = return (modifyEnv ce i (is, []))
+
+addInst :: [Pred] -> Pred -> EnvTransformer
+addInst ps p @ (IsIn i _) ce
+  | classes ce i == Nothing = fail "no class for instance"
+  | any (overlap p) qs = fail "overlapping instance"
+  | otherwise = return $ modifyEnv ce i c
+  where
+    its :: [Inst]
+    its = insts ce i
+
+    qs :: [Pred]
+    qs = [q | (_ :=> q) <- its]
+
+    c :: ([String], [Inst])
+    c = (super ce i, (ps :=> p) : its)
+
+overlap :: Pred -> Pred -> Bool
+overlap p q = isJust $ mguPred p q
