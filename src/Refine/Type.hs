@@ -280,3 +280,6 @@ find i ((i' :>: sc) : as) =
     else find i as
 
 type TI = State (Subst, Int)
+
+runTI :: TI a -> a
+runTI = flip evalState (Set.empty, 0)
