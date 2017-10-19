@@ -372,3 +372,9 @@ tiPats pats = do
       as = concat [as' | (_, as', _) <- psasts]
       ts = [t|(_, _, t) <- psasts]
   return (ps, as, ts)
+
+tiExpr :: Infer Expr Type1
+tiExpr ce as (Var i) = do
+  sc <- find i as
+  (ps :=> t) <- freshInst sc
+  return (ps, t)
