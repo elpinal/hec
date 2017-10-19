@@ -344,4 +344,4 @@ data Pat =
 tiPat :: Pat -> TI ([Pred], [Assump], Type1)
 tiPat (PVar i) = do
   v <- newTVar Star
-  return ([], [i :>: toScheme v ], v)
+  return ([], [i :>: toScheme v], v)
