@@ -302,6 +302,11 @@ enumId n = "v" ++ show n
 newTVar :: Kind -> TI Type1
 newTVar k = state $ \(s, n) -> (TypeVar1 $ TVar (enumId n) k, (s, n + 1))
 
+freshInst :: Scheme -> TI (Qual Type1)
+freshInst (Forall ks qt) = do
+  ts <- mapM newTVar ks
+  return $ inst ts qt
+
 class Instantiate t where
   inst :: [Type1] -> t -> t
 
