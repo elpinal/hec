@@ -6,6 +6,7 @@ import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
 
+import Refine.AST
 import Refine.Kind
 
 data Type =
@@ -325,3 +326,10 @@ instance Instantiate Pred where
   inst ts (IsIn c t) = IsIn c $ inst ts t
 
 type Infer e t = ClassEnv -> [Assump] -> e -> TI ([Pred], t)
+
+tiLit :: Literal -> TI ([Pred], Type1)
+tiLit (LitChar _) = return ([], tChar)
+tiLit (LitInt _) = do
+  v <- newTVar Star
+  return ([IsIn "Num" v], v)
+tiLit (LitString _) = return ([], tString)
