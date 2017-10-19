@@ -378,3 +378,10 @@ tiExpr ce as (Var i) = do
   sc <- find i as
   (ps :=> t) <- freshInst sc
   return (ps, t)
+tiExpr ce as (Lit l) = tiLit l
+tiExpr ce as (App e f) = do
+  (ps, te) <- tiExpr ce as e
+  (qs, tf) <- tiExpr ce as f
+  t <- newTVar Star
+  unify (tf `fn` t) te
+  return (ps ++ qs, t)
