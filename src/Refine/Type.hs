@@ -345,3 +345,15 @@ tiPat :: Pat -> TI ([Pred], [Assump], Type1)
 tiPat (PVar i) = do
   v <- newTVar Star
   return ([], [i :>: toScheme v], v)
+
+tiPat PWildcard = do
+  v <- newTVar Star
+  return ([], [], v)
+
+tiPat (PAs i pat) = do
+  (ps, as, t) <- tiPat pat
+  return (ps, (i :>: toScheme t) : as, t)
+
+tiPat (PLit l) = do
+  (ps, t) <- tiLit l
+  return (ps, [], t)
