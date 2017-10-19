@@ -2,6 +2,7 @@ module Refine.Type where
 
 import Control.Monad
 import Control.Monad.State.Lazy hiding (lift)
+import Data.List (partition, (\\))
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
@@ -399,3 +400,12 @@ tiAlts ce as alts t = do
   psts <- mapM (tiAlt ce as) alts
   mapM (unify t) $ map snd psts
   return . concat $ map fst psts
+
+split :: Monad m => ClassEnv -> [TVar] -> [TVar] -> [Pred] -> m ([Pred], [Pred])
+split ce fs gs ps = do
+  ps' <- reduce ce ps
+  let (ds, rs) = partition (all (`elem` fs) . ftv) ps'
+  rs' <- defaultedPreds ce (fs ++ gs) rs
+  return (ds, rs \\ rs')
+
+defaultedPreds = undefined
