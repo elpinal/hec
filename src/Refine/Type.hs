@@ -285,7 +285,7 @@ runTI :: TI a -> a
 runTI = flip evalState (Map.empty, 0)
 
 getSubst :: TI Subst
-getSubst = fst <$> get
+getSubst = gets fst
 
 unify :: Type1 -> Type1 -> TI ()
 unify t1 t2 = do
