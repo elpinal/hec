@@ -323,3 +323,5 @@ instance Instantiate t => Instantiate (Qual t) where
 
 instance Instantiate Pred where
   inst ts (IsIn c t) = IsIn c $ inst ts t
+
+type Infer e t = ClassEnv -> [Assump] -> e -> TI ([Pred], t)
