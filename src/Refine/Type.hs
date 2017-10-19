@@ -358,6 +358,13 @@ tiPat (PLit l) = do
   (ps, t) <- tiLit l
   return (ps, [], t)
 
+tiPat (PCon (i :>: sc) pats) = do
+  (ps, as, ts) <- tiPats pats
+  t' <- newTVar Star
+  (qs :=> t) <- freshInst sc
+  unify t (foldr fn t' ts)
+  return (ps ++ qs, as, t')
+
 tiPats :: [Pat] -> TI ([Pred], [Assump], [Type1])
 tiPats pats = do
   psasts <- mapM tiPat pats
