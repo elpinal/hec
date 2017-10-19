@@ -340,3 +340,6 @@ data Pat =
   | PAs String Pat
   | PLit Literal
   | PCon Assump [Pat]
+
+tiPat :: Pat -> TI ([Pred], [Assump], Type)
+tiPat = undefined
