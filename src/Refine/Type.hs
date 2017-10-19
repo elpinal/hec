@@ -385,3 +385,11 @@ tiExpr ce as (App e f) = do
   t <- newTVar Star
   unify (tf `fn` t) te
   return (ps ++ qs, t)
+
+type Alt = ([Pat], Expr)
+
+tiAlt :: Infer Alt Type1
+tiAlt ce as (pats, e) = do
+  (ps, as', ts) <- tiPats pats
+  (qs, t) <- tiExpr ce (as' ++ as) e
+  return (ps ++ qs, foldr fn t ts)
