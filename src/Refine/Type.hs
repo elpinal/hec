@@ -393,3 +393,9 @@ tiAlt ce as (pats, e) = do
   (ps, as', ts) <- tiPats pats
   (qs, t) <- tiExpr ce (as' ++ as) e
   return (ps ++ qs, foldr fn t ts)
+
+tiAlts :: ClassEnv -> [Assump] -> [Alt] -> Type1 -> TI [Pred]
+tiAlts ce as alts t = do
+  psts <- mapM (tiAlt ce as) alts
+  mapM (unify t) $ map snd psts
+  return . concat $ map fst psts
