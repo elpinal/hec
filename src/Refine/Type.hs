@@ -333,3 +333,10 @@ tiLit (LitInt _) = do
   v <- newTVar Star
   return ([IsIn "Num" v], v)
 tiLit (LitString _) = return ([], tString)
+
+data Pat =
+    PVar String
+  | PWildcard
+  | PAs String Pat
+  | PLit Literal
+  | PCon Assump [Pat]
