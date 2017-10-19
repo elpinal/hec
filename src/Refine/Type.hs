@@ -301,3 +301,20 @@ enumId n = "v" ++ show n
 
 newTVar :: Kind -> TI Type1
 newTVar k = state $ \(s, n) -> (TypeVar1 $ TVar (enumId n) k, (s, n + 1))
+
+class Instantiate t where
+  inst :: [Type1] -> t -> t
+
+instance Instantiate Type1 where
+  inst ts (TypeApp a b) = TypeApp (inst ts a) (inst ts b)
+  inst ts (TypeGen n) = ts !! n
+  inst ts t = t
+
+instance Instantiate a => Instantiate [a] where
+  inst ts = map $ inst ts
+
+instance Instantiate t => Instantiate (Qual t) where
+  inst ts (ps :=> t) = inst ts ps :=> inst ts t
+
+instance Instantiate Pred where
+  inst ts (IsIn c t) = IsIn c $ inst ts t
