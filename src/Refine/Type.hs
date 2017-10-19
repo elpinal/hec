@@ -409,3 +409,5 @@ split ce fs gs ps = do
   return (ds, rs \\ rs')
 
 defaultedPreds = undefined
+
+type Ambiguity = (TVar, [Pred])
