@@ -341,5 +341,7 @@ data Pat =
   | PLit Literal
   | PCon Assump [Pat]
 
-tiPat :: Pat -> TI ([Pred], [Assump], Type)
-tiPat = undefined
+tiPat :: Pat -> TI ([Pred], [Assump], Type1)
+tiPat (PVar i) = do
+  v <- newTVar Star
+  return ([], [i :>: toScheme v ], v)
