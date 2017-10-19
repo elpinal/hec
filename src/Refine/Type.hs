@@ -295,3 +295,9 @@ unify t1 t2 = do
 
 extSubst :: Subst -> TI ()
 extSubst s' = modify $ \(s, n) -> (s' @@ s, n)
+
+enumId :: Int -> String
+enumId n = "v" ++ show n
+
+newTVar :: Kind -> TI Type1
+newTVar k = state $ \(s, n) -> (TypeVar1 $ TVar (enumId n) k, (s, n + 1))
