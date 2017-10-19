@@ -357,3 +357,11 @@ tiPat (PAs i pat) = do
 tiPat (PLit l) = do
   (ps, t) <- tiLit l
   return (ps, [], t)
+
+tiPats :: [Pat] -> TI ([Pred], [Assump], [Type1])
+tiPats pats = do
+  psasts <- mapM tiPat pats
+  let ps = concat [ps' | (ps', _, _) <- psasts]
+      as = concat [as' | (_, as', _) <- psasts]
+      ts = [t|(_, _, t) <- psasts]
+  return (ps, as, ts)
