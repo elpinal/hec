@@ -185,10 +185,10 @@ translate :: InterState -> Translator a -> Either Error (a, [ThreeAddress])
 translate s = evalEnv s . runWriterT . flip evalStateT 0
 
 newTempVar :: Translator Address
-newTempVar = state $ \n -> (TempVar n, n + 1)
+newTempVar = state $ TempVar &&& (+ 1)
 
 newLabel :: Translator Address
-newLabel = state $ \n -> (Label n, n + 1) -- shares number with TempVar
+newLabel = state $ Label &&& (+ 1) -- shares number with TempVar
 
 genThreeAddress :: Expr -> Translator Address
 
