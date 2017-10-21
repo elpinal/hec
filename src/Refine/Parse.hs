@@ -96,13 +96,13 @@ parseBool = LitBool False <$ string "False"
         <|> LitBool True <$ string "True"
 
 parseChar :: Parser Literal
-parseChar = LitChar <$> between (char '\'') (char '\'') (escapedChar <|> noneOf "'")
+parseChar = fmap LitChar $ between (char '\'') (char '\'') $ escapedChar <|> noneOf "'"
 
 escapedChar :: Parser Char
 escapedChar = char '\\' >> char '\''
 
 parseString :: Parser Literal
-parseString = LitString <$> between (char '"') (char '"') (many $ escapedString <|> noneOf "\"")
+parseString = fmap LitString $ between (char '"') (char '"') . many $ escapedString <|> noneOf "\""
 
 escapedString :: Parser Char
 escapedString = char '\\' >> char '"'
