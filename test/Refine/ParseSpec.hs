@@ -30,6 +30,8 @@ spec = do
       parseExpr "\"\""         `shouldSatisfy` rightIs (Lit (LitString ""))
       parseExpr "\"aaa\""      `shouldSatisfy` rightIs (Lit (LitString "aaa"))
       parseExpr "\"\\\"\""     `shouldSatisfy` rightIs (Lit (LitString "\""))
+      parseExpr "[]"           `shouldSatisfy` rightIs (Lit LitEmptyList)
+      parseExpr "[ ]"          `shouldSatisfy` rightIs (Lit LitEmptyList)
       parseExpr "x 1"          `shouldSatisfy` rightIs (App (Var "x") (int 1))
       parseExpr "f 1"          `shouldSatisfy` rightIs (App (Var "f") (int 1))
       parseExpr "(f 1)"        `shouldSatisfy` rightIs (App (Var "f") (int 1))
