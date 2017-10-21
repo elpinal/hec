@@ -188,3 +188,10 @@ parsePat :: Parser Pat
 parsePat = PVar <$> parseIdent'
        <|> PWildcard <$ string "_"
        <|> PLit <$> parseLit'
+
+parseList :: Parser [Expr]
+parseList = do
+  char '['
+  es <- parseExpr' `sepBy` string ","
+  char ']'
+  return es
