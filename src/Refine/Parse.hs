@@ -197,4 +197,8 @@ parseList = do
   return es
 
 parseEmptyList :: Parser Literal
-parseEmptyList = char '[' >> many space >> char ']' >> return LitEmptyList
+parseEmptyList = do
+  char '['
+  many space
+  char ']'
+  return LitEmptyList
