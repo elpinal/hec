@@ -18,8 +18,11 @@ import Text.Parsec.String
 import Refine.AST
 import Refine.Type
 
+parseWhole :: Parser a -> String -> Either ParseError a
+parseWhole p = parse (p <* eof) "<no filename>"
+
 parseExpr :: String -> Either ParseError Expr
-parseExpr = parse (parseExpr' <* eof) "<no filename>"
+parseExpr = parseWhole parseExpr'
 
 parseExpr' :: Parser Expr
 parseExpr' = parseAbs <|> parseBinOp
@@ -112,9 +115,6 @@ data Decl =
   | TypeSig String Type
   | TypeDecl String Type
   deriving (Eq, Show)
-
-parseWhole :: Parser a -> String -> Either ParseError a
-parseWhole p = parse (p <* eof) "<no filename>"
 
 parseDecl :: Parser Decl
 parseDecl = do
