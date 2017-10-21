@@ -5,6 +5,7 @@ data Literal =
   | LitBool Bool
   | LitChar Char
   | LitString String
+  | LitEmptyList
   deriving (Eq, Show)
 
 data Expr =
