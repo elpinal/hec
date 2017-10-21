@@ -2,6 +2,7 @@ module Refine.Type where
 
 import Control.Monad
 import Control.Monad.State.Lazy hiding (lift)
+import Data.Bifunctor
 import Data.List (partition, (\\))
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
@@ -296,7 +297,7 @@ unify t1 t2 = do
   extSubst u
 
 extSubst :: Subst -> TI ()
-extSubst s' = modify $ \(s, n) -> (s' @@ s, n)
+extSubst = modify . first . (@@)
 
 enumId :: Int -> String
 enumId n = "v" ++ show n
