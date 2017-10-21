@@ -195,3 +195,6 @@ parseList = do
   es <- parseExpr' `sepBy` string ","
   char ']'
   return es
+
+parseEmptyList :: Parser Literal
+parseEmptyList = char '[' >> many space >> char ']' >> return LitEmptyList
