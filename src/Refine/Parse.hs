@@ -83,7 +83,10 @@ parseLit :: Parser Expr
 parseLit = Lit <$> parseLit'
 
 parseLit' :: Parser Literal
-parseLit' = parseNum <|> parseBool <|> parseChar <|> parseString
+parseLit' = parseNum
+        <|> parseBool
+        <|> parseChar
+        <|> parseString
 
 parseNum :: Parser Literal
 parseNum = LitInt . read <$> many1 digit
@@ -143,10 +146,12 @@ parseType' :: Parser Type
 parseType' = try parseFunctionType <|> parseTypeTerm
 
 parseSimpleType :: Parser Type
-parseSimpleType = readType <$> parseTypeIdent <|> paren parseSimpleType
+parseSimpleType = readType <$> parseTypeIdent
+              <|> paren parseSimpleType
 
 parseTypeTerm :: Parser Type
-parseTypeTerm = paren (try parseFunctionType <|> parseSimpleType) <|> parseSimpleType
+parseTypeTerm = paren (try parseFunctionType <|> parseSimpleType)
+            <|> parseSimpleType
 
 parseFunctionType :: Parser Type
 parseFunctionType = do
@@ -180,4 +185,6 @@ parseTypeDecl = do
   return $ TypeDecl s t
 
 parsePat :: Parser Pat
-parsePat = PVar <$> parseIdent' <|> PWildcard <$ string "_" <|> PLit <$> parseLit'
+parsePat = PVar <$> parseIdent'
+       <|> PWildcard <$ string "_"
+       <|> PLit <$> parseLit'
