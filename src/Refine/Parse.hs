@@ -175,3 +175,6 @@ parseTypeDecl = do
   many space
   t <- parseType
   return $ TypeDecl s t
+
+parsePat :: Parser Pat
+parsePat = PVar <$> parseIdent' <|> PWildcard <$ string "_"
