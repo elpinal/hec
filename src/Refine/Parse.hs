@@ -55,7 +55,7 @@ surroundedBySpaces :: Parser a -> Parser a
 surroundedBySpaces = between (many space) $ many space
 
 symbol :: Parser Char
-symbol = oneOf "!#$%&+/<=>?@"
+symbol = oneOf "!#$%&+/<=>?@:"
 
 parseApp :: Parser Expr
 parseApp = followTo parseTerm

@@ -64,6 +64,9 @@ spec = do
       parseExpr "(1 # 2) ! 3" `shouldSatisfy` rightIs (BinOp "!" (BinOp "#" (int 1) (int 2)) (int 3))
       parseExpr "1 # (2 ! 3)" `shouldSatisfy` rightIs (BinOp "#" (int 1) (BinOp "!" (int 2) (int 3)))
 
+      parseExpr "1 : []"     `shouldSatisfy` rightIs (BinOp ":" (int 1) $ Lit LitEmptyList)
+      parseExpr "1 : 2 : []" `shouldSatisfy` rightIs (BinOp ":" (BinOp ":" (int 1) $ int 2) $ Lit LitEmptyList)
+
     it "parses lambda abstractions" $ do
       parseExpr "\\x -> x"      `shouldSatisfy` rightIs (Abs "x" $ Var "x")
       parseExpr "(\\x->x)"      `shouldSatisfy` rightIs (Abs "x" $ Var "x")
