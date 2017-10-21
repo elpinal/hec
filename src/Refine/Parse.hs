@@ -90,6 +90,7 @@ parseLit' = parseNum
         <|> parseBool
         <|> parseChar
         <|> parseString
+        <|> parseEmptyList
 
 parseNum :: Parser Literal
 parseNum = LitInt . read <$> many1 digit
