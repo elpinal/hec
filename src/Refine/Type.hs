@@ -313,7 +313,7 @@ class Instantiate t where
   inst :: [Type1] -> t -> t
 
 instance Instantiate Type1 where
-  inst ts (TypeApp a b) = TypeApp (inst ts a) (inst ts b)
+  inst ts (TypeApp a b) = TypeApp (inst ts a) $ inst ts b
   inst ts (TypeGen n) = ts !! n
   inst ts t = t
 
