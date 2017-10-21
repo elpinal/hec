@@ -80,7 +80,10 @@ parseIdent' = do
   return $ x : xs
 
 parseLit :: Parser Expr
-parseLit = fmap Lit $ parseNum <|> parseBool <|> parseChar <|> parseString
+parseLit = Lit <$> parseLit'
+
+parseLit' :: Parser Literal
+parseLit' = parseNum <|> parseBool <|> parseChar <|> parseString
 
 parseNum :: Parser Literal
 parseNum = LitInt . read <$> many1 digit
@@ -177,4 +180,4 @@ parseTypeDecl = do
   return $ TypeDecl s t
 
 parsePat :: Parser Pat
-parsePat = PVar <$> parseIdent' <|> PWildcard <$ string "_"
+parsePat = PVar <$> parseIdent' <|> PWildcard <$ string "_" <|> PLit <$> parseLit'
