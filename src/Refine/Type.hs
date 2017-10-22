@@ -486,6 +486,13 @@ tiImpls ce as bs = do
 
 type BindGroup = ([Expl], [[Impl]])
 
+tiBindGroup :: Infer BindGroup [Assump]
+tiBindGroup ce as (es, iss) = do
+  let as' = [v :>: sc | (v, sc, alts) <- es]
+  (ps, as'') <- tiSeq tiImpls ce (as' ++ as) iss
+  qss <- mapM (tiExpl ce (as'' ++ as' ++ as)) es
+  return (ps ++ concat qss, as'' ++ as')
+
 tiSeq :: Infer bg [Assump] -> Infer [bg] [Assump]
 tiSeq ti ce as [] = return ([], [])
 tiSeq ti ce as (bs : bss) = do
