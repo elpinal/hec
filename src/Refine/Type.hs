@@ -501,3 +501,11 @@ tiSeq ti ce as (bs : bss) = do
   return (ps ++ qs, as'' ++ as')
 
 type Program = [BindGroup]
+
+tiProgram :: ClassEnv -> [Assump] -> Program -> [Assump]
+tiProgram ce as bgs = runTI $ do
+  (ps, as') <- tiSeq tiBindGroup ce as bgs
+  s <- getSubst
+  rs <- reduce ce (apply s ps)
+  s' <- defaultSubst ce Set.empty rs
+  return (apply (s'@@s) as')
