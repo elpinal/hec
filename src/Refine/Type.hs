@@ -449,8 +449,8 @@ tiExpl ce as (i, sc, alts) = do
     sc' = quantify gs $ qs' :=> t'
     ps' = filter (not . entail ce qs') $ apply s ps
   (ds, rs) <- split ce (Set.toList fs) gs ps'
-  if sc /= sc'
-    then fail "signature too general"
-    else if not $ null rs
-      then fail "context too weak"
-      else return ds
+  when (sc /= sc') $
+       fail "signature too general"
+  when (not $ null rs) $
+       fail "context too weak"
+  return ds
