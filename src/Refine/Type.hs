@@ -425,8 +425,12 @@ withDefaults :: Monad m => ([Ambiguity] -> [Type1] -> a) -> ClassEnv -> Set.Set 
 withDefaults f ce vs ps
   | any null tss = fail "cannot resolve ambiguity"
   | otherwise = return . f vps $ map head tss
-  where vps = ambiguities ce vs ps
-        tss = map (candidates ce) vps
+  where
+    vps :: [Ambiguity]
+    vps = ambiguities ce vs ps
+
+    tss :: [[Type1]]
+    tss = map (candidates ce) vps
 
 defaultedPreds :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m [Pred]
 defaultedPreds = withDefaults (\vps ts -> concat $ map snd vps)
@@ -459,7 +463,9 @@ type Impl = (String, [Alt])
 
 restricted :: [Impl] -> Bool
 restricted bs = any simple bs
-  where simple (i, alts) = any (null . fst) alts
+  where
+    simple :: Impl -> Bool
+    simple (i, alts) = any (null . fst) alts
 
 tiImpls :: Infer [Impl] [Assump]
 tiImpls ce as bs = do
@@ -488,10 +494,12 @@ type BindGroup = ([Expl], [[Impl]])
 
 tiBindGroup :: Infer BindGroup [Assump]
 tiBindGroup ce as (es, iss) = do
-  let as' = [v :>: sc | (v, sc, alts) <- es]
   (ps, as'') <- tiSeq tiImpls ce (as' ++ as) iss
   qss <- mapM (tiExpl ce $ as'' ++ as' ++ as) es
   return (ps ++ concat qss, as'' ++ as')
+  where
+    as' :: [Assump]
+    as' = [v :>: sc | (v, sc, alts) <- es]
 
 tiSeq :: Infer bg [Assump] -> Infer [bg] [Assump]
 tiSeq ti ce as [] = return ([], [])
