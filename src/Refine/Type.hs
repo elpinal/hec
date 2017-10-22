@@ -499,3 +499,5 @@ tiSeq ti ce as (bs : bss) = do
   (ps, as') <- ti ce as bs
   (qs, as'') <- tiSeq ti ce (as' ++ as) bss
   return (ps ++ qs, as'' ++ as')
+
+type Program = [BindGroup]
