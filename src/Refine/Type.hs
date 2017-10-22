@@ -406,10 +406,8 @@ split :: Monad m => ClassEnv -> [TVar] -> [TVar] -> [Pred] -> m ([Pred], [Pred])
 split ce fs gs ps = do
   ps' <- reduce ce ps
   let (ds, rs) = partition (all (`elem` fs) . ftv) ps'
-  rs' <- defaultedPreds ce (fs ++ gs) rs
+  rs' <- defaultedPreds ce (Set.fromList $ fs ++ gs) rs
   return (ds, rs \\ rs')
-
-defaultedPreds = undefined
 
 type Ambiguity = (TVar, [Pred])
 
@@ -429,3 +427,6 @@ withDefaults f ce vs ps
   | otherwise = return (f vps (map head tss))
   where vps = ambiguities ce vs ps
         tss = map (candidates ce) vps
+
+defaultedPreds :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m [Pred]
+defaultedPreds = withDefaults (\vps ts -> concat (map snd vps))
