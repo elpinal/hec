@@ -412,3 +412,6 @@ split ce fs gs ps = do
 defaultedPreds = undefined
 
 type Ambiguity = (TVar, [Pred])
+
+ambiguities :: ClassEnv -> Set.Set TVar -> [Pred] -> [Ambiguity]
+ambiguities ce vs ps = [(v, filter (elem v . ftv) ps) | v <- Set.toList $ ftv ps Set.\\ vs]
