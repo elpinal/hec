@@ -422,3 +422,10 @@ candidates ce (v, qs) = [t' | let is = [i | IsIn i t <- qs]
                               all ((TypeVar1 v) ==) ts,
                               t' <- defaults ce,
                               all (entail ce []) [IsIn i t' | i <- is]]
+
+withDefaults :: Monad m => ([Ambiguity] -> [Type1] -> a) -> ClassEnv -> Set.Set TVar -> [Pred] -> m a
+withDefaults f ce vs ps
+  | any null tss = fail "cannot resolve ambiguity"
+  | otherwise = return (f vps (map head tss))
+  where vps = ambiguities ce vs ps
+        tss = map (candidates ce) vps
