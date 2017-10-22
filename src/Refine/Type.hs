@@ -187,7 +187,7 @@ addClass :: String -> [String] -> EnvTransformer
 addClass i is ce
   | isJust (classes ce i) = fail "class already defined"
   | any (isNothing . classes ce) is = fail "superclass not defined"
-  | otherwise = return (modifyEnv ce i (is, []))
+  | otherwise = return $ modifyEnv ce i (is, [])
 
 addInst :: [Pred] -> Pred -> EnvTransformer
 addInst ps p @ (IsIn i _) ce
@@ -424,12 +424,12 @@ candidates ce (v, qs) = [t' | let is = [i | IsIn i t <- qs]
 withDefaults :: Monad m => ([Ambiguity] -> [Type1] -> a) -> ClassEnv -> Set.Set TVar -> [Pred] -> m a
 withDefaults f ce vs ps
   | any null tss = fail "cannot resolve ambiguity"
-  | otherwise = return (f vps (map head tss))
+  | otherwise = return . f vps $ map head tss
   where vps = ambiguities ce vs ps
         tss = map (candidates ce) vps
 
 defaultedPreds :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m [Pred]
-defaultedPreds = withDefaults (\vps ts -> concat (map snd vps))
+defaultedPreds = withDefaults (\vps ts -> concat $ map snd vps)
 
 defaultSubst :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m Subst
 defaultSubst = withDefaults (\vps ts -> Map.fromList $ zip (map fst vps) ts)
@@ -475,10 +475,10 @@ tiImpls ce as bs = do
       fs = ftv $ apply s as
       vss = map ftv ts'
       gs = foldr1 Set.union vss Set.\\ fs
-  (ds, rs) <- split ce (Set.toList fs) (foldr1 intersect (map Set.toList vss)) ps'
+  (ds, rs) <- split ce (Set.toList fs) (foldr1 intersect $ map Set.toList vss) ps'
   if restricted bs then
     let gs' = Set.toList $ gs Set.\\ ftv rs
-        scs' = map (quantify gs' . ([ ] :=>)) ts'
+        scs' = map (quantify gs' . ([] :=>)) ts'
     in return (ds ++ rs, zipWith (:>:) is scs')
   else
     let scs' = map (quantify (Set.toList gs) . (rs :=>)) ts'
@@ -490,7 +490,7 @@ tiBindGroup :: Infer BindGroup [Assump]
 tiBindGroup ce as (es, iss) = do
   let as' = [v :>: sc | (v, sc, alts) <- es]
   (ps, as'') <- tiSeq tiImpls ce (as' ++ as) iss
-  qss <- mapM (tiExpl ce (as'' ++ as' ++ as)) es
+  qss <- mapM (tiExpl ce $ as'' ++ as' ++ as) es
   return (ps ++ concat qss, as'' ++ as')
 
 tiSeq :: Infer bg [Assump] -> Infer [bg] [Assump]
