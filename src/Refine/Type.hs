@@ -454,3 +454,5 @@ tiExpl ce as (i, sc, alts) = do
   when (not $ null rs) $
        fail "context too weak"
   return ds
+
+type Impl = (String, [Alt])
