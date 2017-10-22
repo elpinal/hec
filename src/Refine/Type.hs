@@ -456,3 +456,7 @@ tiExpl ce as (i, sc, alts) = do
   return ds
 
 type Impl = (String, [Alt])
+
+restricted :: [Impl] -> Bool
+restricted bs = any simple bs
+  where simple (i, alts) = any (null . fst) alts
