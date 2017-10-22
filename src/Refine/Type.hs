@@ -3,7 +3,7 @@ module Refine.Type where
 import Control.Monad
 import Control.Monad.State.Lazy hiding (lift)
 import Data.Bifunctor
-import Data.List (partition, (\\))
+import Data.List (partition, (\\), intersect)
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
@@ -460,3 +460,26 @@ type Impl = (String, [Alt])
 restricted :: [Impl] -> Bool
 restricted bs = any simple bs
   where simple (i, alts) = any (null . fst) alts
+
+tiImpls :: Infer [Impl] [Assump]
+tiImpls ce as bs = do
+  ts <- mapM (\_ -> newTVar Star) bs
+  let is = map fst bs
+      scs = map toScheme ts
+      as' = zipWith (:>:) is scs ++ as
+      altss = map snd bs
+  pss <- sequence (zipWith (tiAlts ce as') altss ts)
+  s <- getSubst
+  let ps' = apply s $ concat pss
+      ts' = apply s ts
+      fs = ftv $ apply s as
+      vss = map ftv ts'
+      gs = foldr1 Set.union vss Set.\\ fs
+  (ds, rs) <- split ce (Set.toList fs) (foldr1 intersect (map Set.toList vss)) ps'
+  if restricted bs then
+    let gs' = Set.toList $ gs Set.\\ ftv rs
+        scs' = map (quantify gs' . ([ ] :=>)) ts'
+    in return (ds ++ rs, zipWith (:>:) is scs')
+  else
+    let scs' = map (quantify (Set.toList gs) . (rs :=>)) ts'
+    in return (ds, zipWith (:>:) is scs')
