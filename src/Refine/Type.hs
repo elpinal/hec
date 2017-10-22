@@ -433,3 +433,5 @@ defaultedPreds = withDefaults (\vps ts -> concat (map snd vps))
 
 defaultSubst :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m Subst
 defaultSubst = withDefaults (\vps ts -> Map.fromList $ zip (map fst vps) ts)
+
+type Expl = (String, Scheme, [Alt])
