@@ -484,6 +484,8 @@ tiImpls ce as bs = do
     let scs' = map (quantify (Set.toList gs) . (rs :=>)) ts'
     in return (ds, zipWith (:>:) is scs')
 
+type BindGroup = ([Expl], [[Impl]])
+
 tiSeq :: Infer bg [Assump] -> Infer [bg] [Assump]
 tiSeq ti ce as [] = return ([], [])
 tiSeq ti ce as (bs : bss) = do
