@@ -506,6 +506,5 @@ tiProgram :: ClassEnv -> [Assump] -> Program -> [Assump]
 tiProgram ce as bgs = runTI $ do
   (ps, as') <- tiSeq tiBindGroup ce as bgs
   s <- getSubst
-  rs <- reduce ce (apply s ps)
-  s' <- defaultSubst ce Set.empty rs
-  return (apply (s'@@s) as')
+  s' <- defaultSubst ce Set.empty =<< (reduce ce $ apply s ps)
+  return $ apply (s' @@ s) as'
