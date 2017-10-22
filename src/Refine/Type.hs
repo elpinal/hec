@@ -483,3 +483,10 @@ tiImpls ce as bs = do
   else
     let scs' = map (quantify (Set.toList gs) . (rs :=>)) ts'
     in return (ds, zipWith (:>:) is scs')
+
+tiSeq :: Infer bg [Assump] -> Infer [bg] [Assump]
+tiSeq ti ce as [] = return ([], [])
+tiSeq ti ce as (bs : bss) = do
+  (ps, as') <- ti ce as bs
+  (qs, as'') <- tiSeq ti ce (as' ++ as) bss
+  return (ps ++ qs, as'' ++ as')
