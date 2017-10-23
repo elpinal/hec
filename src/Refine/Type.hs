@@ -150,29 +150,24 @@ type Class = ([String], [Inst])
 type Inst = Qual Pred
 
 data ClassEnv = ClassEnv
-  { classes :: String -> Maybe Class
+  { classes :: Map.Map String Class
   , defaults :: [Type1]
   }
 
 super :: ClassEnv -> String -> [String]
-super ce i = case classes ce i of
+super ce i = case Map.lookup i $ classes ce of
   Just (is, _) -> is
 
 insts :: ClassEnv -> String -> [Inst]
-insts ce i = case classes ce i of
+insts ce i = case Map.lookup i $ classes ce of
   Just (_, its) -> its
 
 modifyEnv :: ClassEnv -> String -> Class -> ClassEnv
-modifyEnv ce i c = ce
-  { classes = \ j ->
-      if i == j
-        then Just c
-        else classes ce j
-  }
+modifyEnv ce i c = ce { classes = Map.insert i c $ classes ce }
 
 initialEnv :: ClassEnv
 initialEnv = ClassEnv
-  { classes = const $ fail "class not defined"
+  { classes = Map.empty
   , defaults = [tInt]
   }
 
@@ -184,13 +179,13 @@ f <:> g = f >=> g
 
 addClass :: String -> [String] -> EnvTransformer
 addClass i is ce
-  | isJust (classes ce i) = fail "class already defined"
-  | any (isNothing . classes ce) is = fail "superclass not defined"
+  | i `Map.member` classes ce = fail "class already defined"
+  | any (`Map.notMember` classes ce) is = fail "superclass not defined"
   | otherwise = return $ modifyEnv ce i (is, [])
 
 addInst :: [Pred] -> Pred -> EnvTransformer
 addInst ps p @ (IsIn i _) ce
-  | classes ce i == Nothing = fail "no class for instance"
+  | i `Map.notMember` classes ce = fail "no class for instance"
   | any (overlap p) qs = fail "overlapping instance"
   | otherwise = return $ modifyEnv ce i c
   where
