@@ -488,12 +488,12 @@ restricted = any simple
 
 tiImpls :: Infer [Impl] [Assump]
 tiImpls ce as bs = do
-  ts <- mapM (\_ -> newTVar Star) bs
+  ts <- mapM (const $ newTVar Star) bs
   let is = map fst bs
       scs = map toScheme ts
       as' = zipWith (:>:) is scs ++ as
       altss = map snd bs
-  pss <- sequence (zipWith (tiAlts ce as') altss ts)
+  pss <- zipWithM (tiAlts ce as') altss ts
   s <- getSubst
   let ps' = apply s $ concat pss
       ts' = apply s ts
