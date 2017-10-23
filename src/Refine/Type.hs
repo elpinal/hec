@@ -449,6 +449,10 @@ defaultedPreds = withDefaults $ concat . map snd . fst
 defaultSubst :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m Subst
 defaultSubst = withDefaults $ Map.fromList . uncurry zip . first (map fst)
 
+-- |
+-- Explicitly typed binding.
+-- It is a triple which consists of a name of the bound variable, a declared
+-- type scheme and alternatives.
 type Expl = (String, Scheme, [Alt])
 
 tiExpl :: ClassEnv -> [Assump] -> Expl -> TI [Pred]
