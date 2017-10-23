@@ -52,7 +52,7 @@ list :: Type1 -> Type1
 list = TypeApp tList
 
 pair :: Type1 -> Type1 -> Type1
-pair a = TypeApp $ TypeApp tTuple2 a
+pair = TypeApp . TypeApp tTuple2
 
 class HasKind t where
   kind :: t -> Kind
