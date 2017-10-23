@@ -417,8 +417,12 @@ type Ambiguity = (TVar, [Pred])
 ambiguities :: ClassEnv -> Set.Set TVar -> [Pred] -> [Ambiguity]
 ambiguities ce vs ps = [(v, filter (elem v . ftv) ps) | v <- Set.toList $ ftv ps Set.\\ vs]
 
+numClasses :: [String]
+numClasses = ["Num"]
+
 candidates :: ClassEnv -> Ambiguity -> [Type1]
 candidates ce (v, qs) = [t' | all (TypeVar1 v ==) ts,
+                              any (`elem` numClasses) is,
                               t' <- defaults ce,
                               all (entail ce []) [IsIn i t' | i <- is]]
   where
