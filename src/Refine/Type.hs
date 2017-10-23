@@ -444,10 +444,10 @@ withDefaults f ce vs ps
     tss = map (candidates ce) vps
 
 defaultedPreds :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m [Pred]
-defaultedPreds = withDefaults (\vps ts -> concat $ map snd vps)
+defaultedPreds = withDefaults $ const . concat . map snd
 
 defaultSubst :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m Subst
-defaultSubst = withDefaults (\vps ts -> Map.fromList $ zip (map fst vps) ts)
+defaultSubst = withDefaults (\vps -> Map.fromList . zip (map fst vps))
 
 type Expl = (String, Scheme, [Alt])
 
