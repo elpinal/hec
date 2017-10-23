@@ -263,7 +263,7 @@ quantify vs qt = Forall ks $ apply s qt
     ks :: [Kind]
     ks = map kind vs'
 
-    s :: Map.Map TVar Type1
+    s :: Subst
     s = Map.fromList . zip vs' $ map TypeGen [0..]
 
 toScheme :: Type1 -> Scheme
