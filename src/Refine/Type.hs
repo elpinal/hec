@@ -84,7 +84,7 @@ instance Types Type1 where
   ftv _ = Set.empty
 
 instance Types t => Types [t] where
-  apply s = map $ apply s
+  apply = map . apply
   ftv = Set.unions . map ftv
 
 (@@) :: Subst -> Subst -> Subst
