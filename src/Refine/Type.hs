@@ -65,7 +65,7 @@ instance HasKind TCon where
 
 instance HasKind Type1 where
   kind (TypeVar1 v) = kind v
-  kind (TypeApp v u) = case kind v of
+  kind (TypeApp v _) = case kind v of
     (KFun k _) -> k
   kind (TypeCon c) = kind c
 
@@ -157,11 +157,11 @@ data ClassEnv = ClassEnv
 
 super :: ClassEnv -> String -> [String]
 super ce i = case classes ce i of
-  Just (is, its) -> is
+  Just (is, _) -> is
 
 insts :: ClassEnv -> String -> [Inst]
 insts ce i = case classes ce i of
-  Just (is, its) -> its
+  Just (_, its) -> its
 
 modifyEnv :: ClassEnv -> String -> Class -> ClassEnv
 modifyEnv ce i c = ce
@@ -211,7 +211,7 @@ bySuper :: ClassEnv -> Pred -> [Pred]
 bySuper ce p @ (IsIn i t) = p : concat [bySuper ce $ IsIn i' t | i' <- super ce i]
 
 byInst :: ClassEnv -> Pred -> Maybe [Pred]
-byInst ce p @ (IsIn i t) = msum [tryInst it | it <- insts ce i]
+byInst ce p @ (IsIn i _) = msum [tryInst it | it <- insts ce i]
   where
     tryInst :: Inst -> Maybe [Pred]
     tryInst (ps :=> h) = flip map ps . apply <$> matchPred h p
@@ -223,8 +223,8 @@ inHnf :: Pred -> Bool
 inHnf (IsIn _ t) = hnf t
   where
     hnf :: Type1 -> Bool
-    hnf (TypeVar1 v) = True
-    hnf (TypeCon tc) = False
+    hnf (TypeVar1 _) = True
+    hnf (TypeCon _) = False
     hnf (TypeApp t _) = hnf t
 
 toHnfs :: Monad m => ClassEnv -> [Pred] -> m [Pred]
@@ -273,7 +273,7 @@ data Assump = String :>: Scheme
 
 instance Types Assump where
   apply s (i :>:sc) = i :>: apply s sc
-  ftv (i :>: sc) = ftv sc
+  ftv (_ :>: sc) = ftv sc
 
 find :: Monad m => String -> [Assump] -> m Scheme
 find i [] = fail $ "unbound identifier: " ++ i
@@ -316,7 +316,7 @@ class Instantiate t where
 instance Instantiate Type1 where
   inst ts (TypeApp a b) = TypeApp (inst ts a) $ inst ts b
   inst ts (TypeGen n) = ts !! n
-  inst ts t = t
+  inst _ t = t
 
 instance Instantiate a => Instantiate [a] where
   inst ts = map $ inst ts
@@ -360,7 +360,7 @@ tiPat (PLit l) = do
   (ps, t) <- tiLit l
   return (ps, [], t)
 
-tiPat (PCon (i :>: sc) pats) = do
+tiPat (PCon (_ :>: sc) pats) = do
   (ps, as, ts) <- tiPats pats
   t' <- newTVar Star
   (qs :=> t) <- freshInst sc
@@ -370,8 +370,8 @@ tiPat (PCon (i :>: sc) pats) = do
 tiPats :: [Pat] -> TI ([Pred], [Assump], [Type1])
 tiPats pats = do
   triples <- mapM tiPat pats
-  let ps = concat . map fst $ triples
-      as = concat . map snd $ triples
+  let ps = concatMap fst triples
+      as = concatMap snd triples
       ts = map trd triples
   return (ps, as, ts)
   where
@@ -380,10 +380,10 @@ tiPats pats = do
     trd (_, _, c) = c
 
 tiExpr :: Infer Expr Type1
-tiExpr ce as (Var i) = do
+tiExpr _ as (Var i) = do
   (ps :=> t) <- find i as >>= freshInst
   return (ps, t)
-tiExpr ce as (Lit l) = tiLit l
+tiExpr _ _ (Lit l) = tiLit l
 tiExpr ce as (App e f) = do
   (ps, te) <- tiExpr ce as e
   (qs, tf) <- tiExpr ce as f
@@ -406,7 +406,7 @@ tiAlts :: ClassEnv -- ^ Class environment.
        -> TI [Pred]
 tiAlts ce as alts t = do
   double <- mapM (tiAlt ce as) alts
-  mapM (unify t) $ map snd double
+  mapM_ (unify t . snd) double
   return . concat $ map fst double
 
 split :: Monad m => ClassEnv -> Set.Set TVar -> Set.Set TVar -> [Pred] -> m ([Pred], [Pred])
@@ -419,7 +419,7 @@ split ce fs gs ps = do
 type Ambiguity = (TVar, [Pred])
 
 ambiguities :: ClassEnv -> Set.Set TVar -> [Pred] -> [Ambiguity]
-ambiguities ce vs ps = [(v, filter (elem v . ftv) ps) | v <- Set.toList $ ftv ps Set.\\ vs]
+ambiguities _ vs ps = [(v, filter (elem v . ftv) ps) | v <- Set.toList $ ftv ps Set.\\ vs]
 
 numClasses :: [String]
 numClasses = ["Num"]
@@ -448,7 +448,7 @@ withDefaults f ce vs ps
     tss = map (candidates ce) vps
 
 defaultedPreds :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m [Pred]
-defaultedPreds = withDefaults $ concat . map snd . fst
+defaultedPreds = withDefaults $ concatMap snd . fst
 
 defaultSubst :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m Subst
 defaultSubst = withDefaults $ Map.fromList . uncurry zip . first (map fst)
@@ -460,7 +460,7 @@ defaultSubst = withDefaults $ Map.fromList . uncurry zip . first (map fst)
 type Expl = (String, Scheme, [Alt])
 
 tiExpl :: ClassEnv -> [Assump] -> Expl -> TI [Pred]
-tiExpl ce as (i, sc, alts) = do
+tiExpl ce as (_, sc, alts) = do
   (qs :=> t) <- freshInst sc
   ps <- tiAlts ce as alts t
   s <- getSubst
@@ -518,10 +518,10 @@ tiBindGroup ce as (es, iss) = do
   return (ps ++ concat qss, as'' ++ as')
   where
     as' :: [Assump]
-    as' = [v :>: sc | (v, sc, alts) <- es]
+    as' = [v :>: sc | (v, sc, _) <- es]
 
 tiSeq :: Infer bg [Assump] -> Infer [bg] [Assump]
-tiSeq ti ce as [] = return ([], [])
+tiSeq _ _ _ [] = return ([], [])
 tiSeq ti ce as (bs : bss) = do
   (ps, as') <- ti ce as bs
   (qs, as'') <- tiSeq ti ce (as' ++ as) bss
@@ -533,5 +533,5 @@ tiProgram :: ClassEnv -> [Assump] -> Program -> [Assump]
 tiProgram ce as bgs = runTI $ do
   (ps, as') <- tiSeq tiBindGroup ce as bgs
   s <- getSubst
-  s' <- defaultSubst ce Set.empty =<< (reduce ce $ apply s ps)
+  s' <- defaultSubst ce Set.empty =<< reduce ce (apply s ps)
   return $ apply (s' @@ s) as'
