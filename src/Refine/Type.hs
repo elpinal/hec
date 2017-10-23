@@ -481,10 +481,10 @@ tiExpl ce as (i, sc, alts) = do
 type Impl = (String, [Alt])
 
 restricted :: [Impl] -> Bool
-restricted bs = any simple bs
+restricted = any simple
   where
     simple :: Impl -> Bool
-    simple (i, alts) = any (null . fst) alts
+    simple (_, alts) = any (null . fst) alts
 
 tiImpls :: Infer [Impl] [Assump]
 tiImpls ce as bs = do
