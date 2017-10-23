@@ -474,7 +474,7 @@ tiExpl ce as (i, sc, alts) = do
   (ds, rs) <- split ce fs gs ps'
   when (sc /= sc') $
        fail "signature too general"
-  when (not $ null rs) $
+  when (rs /= []) $
        fail "context too weak"
   return ds
 
