@@ -369,11 +369,15 @@ tiPat (PCon (i :>: sc) pats) = do
 
 tiPats :: [Pat] -> TI ([Pred], [Assump], [Type1])
 tiPats pats = do
-  psasts <- mapM tiPat pats
-  let ps = concat [ps' | (ps', _, _) <- psasts]
-      as = concat [as' | (_, as', _) <- psasts]
-      ts = [t|(_, _, t) <- psasts]
+  triples <- mapM tiPat pats
+  let ps = concat . map fst $ triples
+      as = concat . map snd $ triples
+      ts = map trd triples
   return (ps, as, ts)
+  where
+    fst (a, _, _) = a
+    snd (_, b, _) = b
+    trd (_, _, c) = c
 
 tiExpr :: Infer Expr Type1
 tiExpr ce as (Var i) = do
