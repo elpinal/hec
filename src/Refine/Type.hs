@@ -381,8 +381,7 @@ tiPats pats = do
 
 tiExpr :: Infer Expr Type1
 tiExpr ce as (Var i) = do
-  sc <- find i as
-  (ps :=> t) <- freshInst sc
+  (ps :=> t) <- find i as >>= freshInst
   return (ps, t)
 tiExpr ce as (Lit l) = tiLit l
 tiExpr ce as (App e f) = do
