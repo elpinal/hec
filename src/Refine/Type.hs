@@ -3,7 +3,7 @@ module Refine.Type where
 import Control.Monad
 import Control.Monad.State.Lazy hiding (lift)
 import Data.Bifunctor
-import Data.List (partition, (\\), intersect)
+import Data.List (partition, (\\))
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
@@ -405,11 +405,11 @@ tiAlts ce as alts t = do
   mapM (unify t) $ map snd double
   return . concat $ map fst double
 
-split :: Monad m => ClassEnv -> [TVar] -> [TVar] -> [Pred] -> m ([Pred], [Pred])
+split :: Monad m => ClassEnv -> Set.Set TVar -> Set.Set TVar -> [Pred] -> m ([Pred], [Pred])
 split ce fs gs ps = do
   ps' <- reduce ce ps
-  let (ds, rs) = partition (all (`elem` fs) . ftv) ps'
-  rs' <- defaultedPreds ce (Set.fromList $ fs ++ gs) rs
+  let (ds, rs) = partition (all (`Set.member` fs) . ftv) ps'
+  rs' <- defaultedPreds ce (Set.union fs gs) rs
   return (ds, rs \\ rs')
 
 type Ambiguity = (TVar, [Pred])
@@ -452,10 +452,10 @@ tiExpl ce as (i, sc, alts) = do
     qs' = apply s qs
     t' = apply s t
     fs = ftv $ apply s as
-    gs = Set.toList $ ftv t' Set.\\ fs
-    sc' = quantify gs $ qs' :=> t'
+    gs = ftv t' Set.\\ fs
+    sc' = quantify (Set.toList gs) $ qs' :=> t'
     ps' = filter (not . entail ce qs') $ apply s ps
-  (ds, rs) <- split ce (Set.toList fs) gs ps'
+  (ds, rs) <- split ce fs gs ps'
   when (sc /= sc') $
        fail "signature too general"
   when (not $ null rs) $
@@ -484,7 +484,7 @@ tiImpls ce as bs = do
       fs = ftv $ apply s as
       vss = map ftv ts'
       gs = foldr1 Set.union vss Set.\\ fs
-  (ds, rs) <- split ce (Set.toList fs) (foldr1 intersect $ map Set.toList vss) ps'
+  (ds, rs) <- split ce fs (foldr1 Set.intersection vss) ps'
   if restricted bs then
     let gs' = Set.toList $ gs Set.\\ ftv rs
         scs' = map (quantify gs' . ([] :=>)) ts'
