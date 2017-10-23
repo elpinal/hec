@@ -432,10 +432,10 @@ candidates ce (v, qs) = [t' | all (TypeVar1 v ==) ts,
     ts :: [Type1]
     ts = [t | IsIn _ t <- qs]
 
-withDefaults :: Monad m => ([Ambiguity] -> [Type1] -> a) -> ClassEnv -> Set.Set TVar -> [Pred] -> m a
+withDefaults :: Monad m => (([Ambiguity], [Type1]) -> a) -> ClassEnv -> Set.Set TVar -> [Pred] -> m a
 withDefaults f ce vs ps
   | any null tss = fail "cannot resolve ambiguity"
-  | otherwise = return . f vps $ map head tss
+  | otherwise = return $ f (vps, map head tss)
   where
     vps :: [Ambiguity]
     vps = ambiguities ce vs ps
@@ -444,10 +444,10 @@ withDefaults f ce vs ps
     tss = map (candidates ce) vps
 
 defaultedPreds :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m [Pred]
-defaultedPreds = withDefaults $ const . concat . map snd
+defaultedPreds = withDefaults $ concat . map snd . fst
 
 defaultSubst :: Monad m => ClassEnv -> Set.Set TVar -> [Pred] -> m Subst
-defaultSubst = withDefaults (\vps -> Map.fromList . zip (map fst vps))
+defaultSubst = withDefaults $ Map.fromList . uncurry zip . first (map fst)
 
 type Expl = (String, Scheme, [Alt])
 
