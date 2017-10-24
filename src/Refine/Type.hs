@@ -519,14 +519,16 @@ tiImpls ce as bs = do
   pss <- zipWithM (tiAlts ce $ getAssumps ts) (map snd bs) ts
   s <- getSubst
   (ds, rs) <- split ce (getFixed s) (foldr1 Set.intersection $ vssOf s ts) $ getPreds s pss
-  if restricted bs then
-    let gs = Set.toList $ (getGenerics s ts) Set.\\ ftv rs
-        scs' = map (quantify gs . ([] :=>)) $ apply s ts
-    in return (ds ++ rs, zipWith (:>:) is scs')
-  else
-    let scs' = map (quantify (Set.toList (getGenerics s ts)) . (rs :=>)) $ apply s ts
-    in return (ds, zipWith (:>:) is scs')
+  return $ if restricted bs
+             then (ds ++ rs, zipWith (:>:) is $ scs1 rs s ts)
+             else (ds, zipWith (:>:) is $ scs2 rs s ts)
   where
+    scs1 :: [Pred] -> Subst -> [Type1] -> [Scheme]
+    scs1 rs s ts = map (quantify (Set.toList $ (getGenerics s ts) Set.\\ ftv rs) . ([] :=>)) $ apply s ts
+
+    scs2 :: [Pred] -> Subst -> [Type1] -> [Scheme]
+    scs2 rs s ts = map (quantify (Set.toList $ getGenerics s ts) . (rs :=>)) $ apply s ts
+
     is :: [String]
     is = map fst bs
 
