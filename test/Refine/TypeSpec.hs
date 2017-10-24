@@ -77,6 +77,22 @@ spec = do
       TypeVar1 (TVar "a" Star) `fn` tInt `mgu` TypeVar1 (TVar "a" Star)   `shouldBe` Nothing
       TypeVar1 (TVar "a" Star) `mgu` TypeVar1 (TVar "b" $ KFun Star Star) `shouldBe` Nothing
 
+  describe "match" $ do
+    it "finds a substitution s where apply s t1 = t2" $ do
+      tInt `match` tInt `shouldBe` Just Map.empty
+
+      TypeVar1 (TVar "a" Star) `match` TypeVar1 (TVar "a" Star)   `shouldBe` Just Map.empty
+
+    it "fails on some cases" $ do
+      tInt `fn` tChar `match` fn (TypeVar1 $ TVar "a" Star) tChar `shouldBe` Nothing
+      tInt `match` tChar `shouldBe` Nothing
+
+      TypeVar1 (TVar "a" Star) `fn` tInt `match` TypeVar1 (TVar "a" Star)   `shouldBe` Nothing
+      TypeVar1 (TVar "a" Star) `match` TypeVar1 (TVar "b" $ KFun Star Star) `shouldBe` Nothing
+      tInt `fn` tChar `match` (TypeVar1 $ TVar "a" Star)                    `shouldBe` Nothing
+
+      TypeVar1 (TVar "a" Star) `fn` TypeVar1 (TVar "a" Star) `match` (tInt `fn` TypeVar1 (TVar "b" Star)) `shouldBe` Nothing
+
 aToInt :: Subst
 aToInt = Map.fromList [(TVar "a" Star, tInt)]
 
