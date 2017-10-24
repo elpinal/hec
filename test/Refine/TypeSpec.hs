@@ -107,6 +107,14 @@ spec = do
     it "fails if not all the superclasses are defined" $ do
       classes <$> addClass "A" ["S"] emptyEnv `shouldBe` Nothing
 
+  describe "addInst" $
+    it "defines a instance for a class with some predicates" $ do
+      let aEnv = emptyEnv { classes = Map.singleton "A" ([], []) }
+          aVar = TypeVar1 $ TVar "a" Star
+
+      classes <$> addInst []                (IsIn "A" tInt)        aEnv `shouldBe` (Just . Map.singleton "A") ([], [[] :=> IsIn "A" tInt])
+      classes <$> addInst [IsIn "A" $ aVar] (IsIn "A" $ list aVar) aEnv `shouldBe` (Just . Map.singleton "A") ([], [[IsIn "A" aVar] :=> IsIn "A" (list aVar)])
+
 aToInt :: Subst
 aToInt = Map.fromList [(TVar "a" Star, tInt)]
 
