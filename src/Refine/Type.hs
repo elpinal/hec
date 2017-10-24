@@ -140,10 +140,10 @@ match (TypeCon c) (TypeCon c') | c == c' = return Map.empty
 match _ _ = fail "types do not match"
 
 data Qual t = [Pred] :=> t
-  deriving Eq
+  deriving (Eq, Show)
 
 data Pred = IsIn String Type1
-  deriving Eq
+  deriving (Eq, Show)
 
 instance Types t => Types (Qual t) where
   apply s (ps :=> t) = apply s ps :=> apply s t

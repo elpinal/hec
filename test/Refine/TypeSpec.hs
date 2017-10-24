@@ -93,8 +93,25 @@ spec = do
 
       TypeVar1 (TVar "a" Star) `fn` TypeVar1 (TVar "a" Star) `match` (tInt `fn` TypeVar1 (TVar "b" Star)) `shouldBe` Nothing
 
+  describe "addClass" $ do
+    it "defines a class" $ do
+      let sEnv = emptyEnv { classes = Map.singleton "S" ([], []) }
+
+      classes <$> addClass "A" []    emptyEnv `shouldBe` Just (Map.singleton "A" ([], []))
+      classes <$> addClass "A" ["S"]     sEnv `shouldBe` (Just . Map.fromList) [("A", (["S"], [])), ("S", ([], []))]
+
+    it "fails if the class is already defined" $ do
+      let aEnv = emptyEnv { classes = Map.singleton "A" ([], []) }
+      classes <$> addClass "A" [] aEnv `shouldBe` Nothing
+
+    it "fails if not all the superclasses are defined" $ do
+      classes <$> addClass "A" ["S"] emptyEnv `shouldBe` Nothing
+
 aToInt :: Subst
 aToInt = Map.fromList [(TVar "a" Star, tInt)]
 
 bToInt :: Subst
 bToInt = Map.fromList [(TVar "b" Star, tInt)]
+
+emptyEnv :: ClassEnv
+emptyEnv = ClassEnv { classes = Map.empty, defaults = [] }
