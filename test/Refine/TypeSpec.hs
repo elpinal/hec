@@ -40,6 +40,12 @@ spec = do
 
       aToInt @@ aToChar `shouldBe` aToChar
 
+      let aToB = Map.singleton (TVar "a" Star) (TypeVar1 $ TVar "b" Star)
+          bToInt = Map.singleton (TVar "b" Star) tInt
+
+      bToInt @@ aToB `shouldBe` Map.union aToInt bToInt
+      aToB @@ bToInt `shouldBe` Map.union aToB bToInt
+
   describe "merge" $ do
     it "composes two substitutions parallel" $ do
       Map.empty `merge` Map.empty `shouldBe` Just Map.empty
@@ -60,3 +66,11 @@ spec = do
           aToChar = Map.fromList [(TVar "a" Star, tChar)]
 
       aToInt `merge` aToChar `shouldBe` Nothing
+
+    it "is symmetric if success" $ do
+      let aToB = Map.singleton (TVar "a" Star) (TypeVar1 $ TVar "b" Star)
+          aToInt = Map.fromList [(TVar "a" Star, tInt)]
+          bToInt = Map.singleton (TVar "b" Star) tInt
+
+      bToInt `merge` aToB `shouldBe` Just (Map.union bToInt aToB)
+      aToB `merge` bToInt `shouldBe` Just (Map.union bToInt aToB)
