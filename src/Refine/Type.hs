@@ -209,7 +209,7 @@ f <:> g = f >=> g
 
 -- |
 -- Adds a class and its superclasses to the given environment.
--- It checks that the class and its superclasses are all defined.
+-- It checks that the class is not defined yet and its superclasses are all defined.
 addClass :: String -> [String] -> EnvTransformer
 addClass i is ce
   | i `Map.member` classes ce = fail "class already defined"
