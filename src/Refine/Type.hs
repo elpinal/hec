@@ -96,6 +96,7 @@ a @@ b = Map.map (apply a) b `Map.union` a
 
 -- |
 -- Composes two @Subst@ parallel. @merge@ is symmetric.
+-- It fails if substitutions conflict.
 merge :: Monad m => Subst -> Subst -> m Subst
 merge = mergeA
           preserveMissing
