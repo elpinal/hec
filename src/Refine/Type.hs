@@ -153,10 +153,17 @@ instance Types Pred where
   apply s (IsIn i t) = IsIn i $ apply s t
   ftv (IsIn _ t) = ftv t
 
-mguPred, matchPred :: Pred -> Pred -> Maybe Subst
+-- | 'mgu' on 'Pred'.
+mguPred :: Pred -> Pred -> Maybe Subst
 mguPred = lift mgu
+
+-- | 'match' on 'Pred'.
+matchPred :: Pred -> Pred -> Maybe Subst
 matchPred = lift match
 
+-- |
+-- Lifts a function on two 'Type1's to one on two 'Pred's and checks that
+-- classes of 'Pred's are the same.
 lift :: Monad m => (Type1 -> Type1 -> m a) -> Pred -> Pred -> m a
 lift m (IsIn i t) (IsIn j u)
   | i == j = m t u
