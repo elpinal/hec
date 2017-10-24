@@ -87,6 +87,9 @@ instance Types t => Types [t] where
   apply = map . apply
   ftv = Set.unions . map ftv
 
+-- |
+-- Composes two @Subst@ from right in series, i.e.
+-- (@apply (a \@\@ b) = apply a . apply b@).
 (@@) :: Subst -> Subst -> Subst
 a @@ b = Map.map (apply a) b `Map.union` a
 
