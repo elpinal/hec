@@ -402,7 +402,7 @@ tiAlts :: ClassEnv -- ^ Class environment.
        -> Type1    -- ^ Expected type for the alternatives.
        -> TI [Pred]
 tiAlts ce as alts t = do
-  double <- mapM (tiAlt ce as) alts
+  double <- forM alts $ tiAlt ce as
   mapM_ (unify t . snd) double
   return . concat $ map fst double
 
