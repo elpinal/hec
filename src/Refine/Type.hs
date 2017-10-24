@@ -106,6 +106,8 @@ merge = mergeA
                       then pure a
                       else fail "merge fails"
 
+-- |
+-- Obtains the most general unifier on two types.
 mgu :: Monad m => Type1 -> Type1 -> m Subst
 mgu (TypeApp a b) (TypeApp c d) = do
   s <- mgu a c
