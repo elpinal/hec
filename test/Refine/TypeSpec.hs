@@ -112,8 +112,8 @@ spec = do
       let aEnv = emptyEnv { classes = Map.singleton "A" ([], []) }
           aVar = TypeVar1 $ TVar "a" Star
 
-      classes <$> addInst []                (IsIn "A" tInt)        aEnv `shouldBe` (Just . Map.singleton "A") ([], [[] :=> IsIn "A" tInt])
-      classes <$> addInst [IsIn "A" $ aVar] (IsIn "A" $ list aVar) aEnv `shouldBe` (Just . Map.singleton "A") ([], [[IsIn "A" aVar] :=> IsIn "A" (list aVar)])
+      classes <$> addInst []              (IsIn "A" tInt)        aEnv `shouldBe` (Just . Map.singleton "A") ([], [[] :=> IsIn "A" tInt])
+      classes <$> addInst [IsIn "A" aVar] (IsIn "A" $ list aVar) aEnv `shouldBe` (Just . Map.singleton "A") ([], [[IsIn "A" aVar] :=> IsIn "A" (list aVar)])
 
 aToInt :: Subst
 aToInt = Map.fromList [(TVar "a" Star, tInt)]
