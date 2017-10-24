@@ -67,7 +67,7 @@ instance HasKind TCon where
 instance HasKind Type1 where
   kind (TypeVar1 v) = kind v
   kind (TypeCon c) = kind c
-  kind (TypeApp v _) = let (KFun k _) = kind v in k
+  kind (TypeApp v _) = let (KFun _ k) = kind v in k
 
 type Subst = Map.Map TVar Type1
 
