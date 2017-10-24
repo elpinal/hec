@@ -126,6 +126,9 @@ varBind u t
   | kind u /= kind t = fail "kinds do not match"
   | otherwise = return $ Map.singleton u t
 
+-- |
+-- Matching is like unification, but it finds a substitution @s@ where
+-- @apply s t1 = t2@.
 match :: Monad m => Type1 -> Type1 -> m Subst
 match (TypeApp a b) (TypeApp c d) = do
   s <- match a c
