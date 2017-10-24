@@ -62,6 +62,21 @@ spec = do
       bToInt `merge` aToB `shouldBe` Just (Map.union bToInt aToB)
       aToB `merge` bToInt `shouldBe` Just (Map.union bToInt aToB)
 
+  describe "mgu" $ do
+    it "obtains the most general unifier of two types" $ do
+      tInt `mgu` tInt `shouldBe` Just Map.empty
+
+      tInt `fn` tChar `mgu` fn (TypeVar1 $ TVar "a" Star) tChar `shouldBe` Just aToInt
+      tInt `fn` tChar `mgu` (TypeVar1 $ TVar "a" Star)          `shouldBe` Just (Map.singleton (TVar "a" Star) $ tInt `fn` tChar)
+      TypeVar1 (TVar "a" Star) `mgu` TypeVar1 (TVar "a" Star)   `shouldBe` Just Map.empty
+
+      TypeVar1 (TVar "a" Star) `fn` TypeVar1 (TVar "a" Star) `mgu` (tInt `fn` TypeVar1 (TVar "b" Star)) `shouldBe` Just (Map.union aToInt bToInt)
+
+    it "fails on some cases" $ do
+      tInt `mgu` tChar `shouldBe` Nothing
+      TypeVar1 (TVar "a" Star) `fn` tInt `mgu` TypeVar1 (TVar "a" Star)   `shouldBe` Nothing
+      TypeVar1 (TVar "a" Star) `mgu` TypeVar1 (TVar "b" $ KFun Star Star) `shouldBe` Nothing
+
 aToInt :: Subst
 aToInt = Map.fromList [(TVar "a" Star, tInt)]
 
