@@ -516,25 +516,34 @@ restricted = any simple
 tiImpls :: Infer [Impl] [Assump]
 tiImpls ce as bs = do
   ts <- mapM (const $ newTVar Star) bs
-  let is = map fst bs
-      scs = map toScheme ts
-      as' = zipWith (:>:) is scs ++ as
-      altss = map snd bs
-  pss <- zipWithM (tiAlts ce as') altss ts
+  pss <- zipWithM (tiAlts ce $ getAssumps ts) (map snd bs) ts
   s <- getSubst
-  let ps' = apply s $ concat pss
-      ts' = apply s ts
-      fs = ftv $ apply s as
-      vss = map ftv ts'
-      gs = foldr1 Set.union vss Set.\\ fs
-  (ds, rs) <- split ce fs (foldr1 Set.intersection vss) ps'
+  (ds, rs) <- split ce (getFixed s) (foldr1 Set.intersection $ vssOf s ts) $ getPreds s pss
   if restricted bs then
-    let gs' = Set.toList $ gs Set.\\ ftv rs
-        scs' = map (quantify gs' . ([] :=>)) ts'
+    let gs = Set.toList $ (getGenerics s ts) Set.\\ ftv rs
+        scs' = map (quantify gs . ([] :=>)) $ apply s ts
     in return (ds ++ rs, zipWith (:>:) is scs')
   else
-    let scs' = map (quantify (Set.toList gs) . (rs :=>)) ts'
+    let scs' = map (quantify (Set.toList (getGenerics s ts)) . (rs :=>)) $ apply s ts
     in return (ds, zipWith (:>:) is scs')
+  where
+    is :: [String]
+    is = map fst bs
+
+    getAssumps :: [Type1] -> [Assump]
+    getAssumps ts = zipWith (:>:) is (map toScheme ts) ++ as
+
+    getPreds :: Subst -> [[Pred]] -> [Pred]
+    getPreds s = apply s . concat
+
+    getFixed :: Subst -> Set.Set TVar
+    getFixed s = ftv $ apply s as
+
+    vssOf :: Subst -> [Type1] -> [Set.Set TVar]
+    vssOf s = map ftv . apply s
+
+    getGenerics :: Subst -> [Type1] -> Set.Set TVar
+    getGenerics s ts = foldr1 Set.union (vssOf s ts) Set.\\ getFixed s
 
 type BindGroup = ([Expl], [[Impl]])
 
