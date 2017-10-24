@@ -524,7 +524,7 @@ tiImpls ce as bs = do
              else (ds, zipWith (:>:) is $ scs2 rs s ts)
   where
     scs1 :: [Pred] -> Subst -> [Type1] -> [Scheme]
-    scs1 rs s ts = map (quantify (Set.toList $ (getGenerics s ts) Set.\\ ftv rs) . ([] :=>)) $ apply s ts
+    scs1 rs s ts = map (quantify (Set.toList $ getGenerics s ts Set.\\ ftv rs) . ([] :=>)) $ apply s ts
 
     scs2 :: [Pred] -> Subst -> [Type1] -> [Scheme]
     scs2 rs s ts = map (quantify (Set.toList $ getGenerics s ts) . (rs :=>)) $ apply s ts
