@@ -39,3 +39,24 @@ spec = do
           aToChar = Map.fromList [(TVar "a" Star, tChar)]
 
       aToInt @@ aToChar `shouldBe` aToChar
+
+  describe "merge" $ do
+    it "composes two substitutions parallel" $ do
+      Map.empty `merge` Map.empty `shouldBe` Just Map.empty
+
+      let aToInt = Map.fromList [(TVar "a" Star, tInt)]
+
+      Map.empty `merge` aToInt `shouldBe` Just aToInt
+      aToInt `merge` Map.empty `shouldBe` Just aToInt
+      aToInt `merge` aToInt    `shouldBe` Just aToInt
+
+      let bToInt = Map.fromList [(TVar "b" Star, tInt)]
+
+      aToInt `merge` bToInt `shouldBe` (Just . Map.fromList) [(TVar "a" Star, tInt), (TVar "b" Star, tInt)]
+      bToInt `merge` aToInt `shouldBe` (Just . Map.fromList) [(TVar "a" Star, tInt), (TVar "b" Star, tInt)]
+
+    it "fails when one or more mappings conflict" $ do
+      let aToInt = Map.fromList [(TVar "a" Star, tInt)]
+          aToChar = Map.fromList [(TVar "a" Star, tChar)]
+
+      aToInt `merge` aToChar `shouldBe` Nothing

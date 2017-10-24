@@ -5,6 +5,7 @@ import Control.Monad.State.Lazy hiding (lift)
 import Data.Bifunctor
 import Data.List (partition, (\\))
 import qualified Data.Map.Lazy as Map
+import Data.Map.Merge.Lazy hiding (merge)
 import Data.Maybe
 import qualified Data.Set as Set
 
@@ -93,10 +94,16 @@ instance Types t => Types [t] where
 (@@) :: Subst -> Subst -> Subst
 a @@ b = Map.map (apply a) b `Map.union` a
 
+-- |
+-- Composes two @Subst@ parallel. @merge@ is symmetric.
 merge :: Monad m => Subst -> Subst -> m Subst
-merge a b = if False `elem` Map.elems (Map.intersectionWith (==) a b)
-              then fail "merge fails"
-              else return $ Map.union a b
+merge = mergeA
+          preserveMissing
+          preserveMissing $
+          zipWithAMatched . const $
+            \a b -> if a == b
+                      then pure a
+                      else fail "merge fails"
 
 mgu :: Monad m => Type1 -> Type1 -> m Subst
 mgu (TypeApp a b) (TypeApp c d) = do
