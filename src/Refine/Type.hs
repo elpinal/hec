@@ -177,17 +177,23 @@ data ClassEnv = ClassEnv
   , defaults :: [Type1]
   }
 
+-- | Gets superclasses of the given class name on an environment.
 super :: ClassEnv -> String -> [String]
 super ce i = case Map.lookup i $ classes ce of
   Just (is, _) -> is
 
+-- | Gets instances of the given class name on an environment.
 insts :: ClassEnv -> String -> [Inst]
 insts ce i = case Map.lookup i $ classes ce of
   Just (_, its) -> its
 
+-- |
+-- Updates an environment, binding a class name to a 'Class'.
+-- If the name is already defined, it will be overwritten.
 modifyEnv :: ClassEnv -> String -> Class -> ClassEnv
 modifyEnv ce i c = ce { classes = Map.insert i c $ classes ce }
 
+-- | An initial class environment.
 initialEnv :: ClassEnv
 initialEnv = ClassEnv
   { classes = Map.empty
@@ -196,10 +202,14 @@ initialEnv = ClassEnv
 
 type EnvTransformer = ClassEnv -> Maybe ClassEnv
 
+-- | The same as '>=>' of monads, specialized to 'EnvTransformer'.
 infixr 5 <:>
 (<:>) :: EnvTransformer -> EnvTransformer -> EnvTransformer
 f <:> g = f >=> g
 
+-- |
+-- Adds a class and its superclasses to the given environment.
+-- It checks that the class and its superclasses are all defined.
 addClass :: String -> [String] -> EnvTransformer
 addClass i is ce
   | i `Map.member` classes ce = fail "class already defined"
