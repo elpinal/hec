@@ -1,5 +1,6 @@
 module Refine.Asm.Amd64 where
 
+import Data.Bits
 import qualified Data.ByteString.Lazy as B
 import Data.Word
 
@@ -47,7 +48,7 @@ runRegister :: Register -> Word8
 runRegister (Register n) = fromIntegral n
 
 encode :: Inst -> B.ByteString
-encode (Load r (Const c)) = B.pack [0x48, 0xb8 + runRegister r] `B.append` encodeConstAs64 c
+encode (Load r (Const c)) = B.pack [rex .|. rexW, 0xb8 + runRegister r] `B.append` encodeConstAs64 c
 
 encodeConstAs64 :: Constant -> B.ByteString
 encodeConstAs64 (CInt8 n) = B.pack (replicate 7 0x00) `B.snoc` fromIntegral n
