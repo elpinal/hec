@@ -1,5 +1,6 @@
 module Refine.Asm.Amd64 where
 
+import qualified Data.ByteString.Lazy as B
 import Data.Word
 
 import Refine.Asm
@@ -37,3 +38,6 @@ instance Enum GPR where
 
 runRegister :: Register -> Word8
 runRegister (Register n) = fromIntegral n
+
+encodeConstAs64 :: Constant -> B.ByteString
+encodeConstAs64 (CInt8 n) = B.pack (replicate 7 0x00) `B.snoc` (fromIntegral n)
