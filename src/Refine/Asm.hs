@@ -1,5 +1,7 @@
 module Refine.Asm where
 
+import Data.Int
+
 data Inst =
     IAdd Register Operand Operand
   | ISub Register Operand Operand
@@ -16,9 +18,10 @@ data Operand =
   deriving (Eq, Show)
 
 data Constant =
-    CInt Int
-  | CBool Bool
-  | CChar Char
+    CInt8 Int8
+  | CInt16 Int16
+  | CInt32 Int32
+  | CInt64 Int64
   deriving (Eq, Show)
 
 newtype Register = Register Int

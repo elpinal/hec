@@ -20,8 +20,8 @@ gen (Name s) xs = mapM_ gen' xs >> return (Asm.LValue s)
 gen _ _ = undefined
 
 genConst :: Constant -> Asm.Operand
-genConst (CInt c) = Asm.Const $ Asm.CInt c
-genConst (CBool b) = Asm.Const $ Asm.CBool b
+genConst (CInt c) = Asm.Const . Asm.CInt64 $ fromIntegral c
+genConst (CBool b) = Asm.Const . Asm.CInt8 . fromIntegral $ fromEnum b
 
 gen' :: ThreeAddress -> Machine ()
 gen' (BinAssign dst op src1 src2) = do
