@@ -43,4 +43,4 @@ encode :: Inst -> B.ByteString
 encode (Load r (Const c)) = B.pack [0x48, 0xb8 + runRegister r] `B.append` encodeConstAs64 c
 
 encodeConstAs64 :: Constant -> B.ByteString
-encodeConstAs64 (CInt8 n) = B.pack (replicate 7 0x00) `B.snoc` (fromIntegral n)
+encodeConstAs64 (CInt8 n) = B.pack (replicate 7 0x00) `B.snoc` fromIntegral n
