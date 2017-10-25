@@ -38,7 +38,7 @@ instance Enum GPR where
 
 rex = 0x40
 
-rexW = 8
+rexW = 8 -- W: 64 Bit Operand Size
 rexR = 4
 rexX = 2
 rexB = 1
