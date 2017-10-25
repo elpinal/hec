@@ -14,7 +14,7 @@ data Inst =
 data Operand =
     Const Constant
   | Reg Register
-  | LValue String
+  | Mem Memory
   deriving (Eq, Show)
 
 data Constant =
@@ -25,4 +25,7 @@ data Constant =
   deriving (Eq, Show)
 
 newtype Register = Register Int
+  deriving (Eq, Show)
+
+newtype Memory = Memory Int
   deriving (Eq, Show)

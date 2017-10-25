@@ -16,7 +16,10 @@ runMachine m = runReader (evalStateT (runWriterT m) (Map.empty, Map.empty))
 
 gen :: Address -> [ThreeAddress] -> Machine Asm.Operand
 gen (Const c) _ = return $ genConst c
-gen (Name s) xs = mapM_ gen' xs >> return (Asm.LValue s)
+gen (Name s) xs = do
+  mapM_ gen' xs
+  m <- gets snd
+  return $ maybe (error $ "gen: not found: " ++ show s) (locToOperand . head) $ Map.lookup s m
 gen _ _ = undefined
 
 genConst :: Constant -> Asm.Operand
@@ -45,4 +48,8 @@ type AddressDescriptor = Map.Map String [Location]
 
 data Location =
     Reg Asm.Register
-  | Mem Int
+  | Mem Asm.Memory
+
+locToOperand :: Location -> Asm.Operand
+locToOperand (Reg r) = Asm.Reg r
+locToOperand (Mem r) = Asm.Mem r
