@@ -36,6 +36,13 @@ instance Enum GPR where
   toEnum 0x05 = RBP
   toEnum 0x04 = RSP
 
+rex = 4
+
+rexW = 8
+rexR = 4
+rexX = 2
+rexB = 1
+
 runRegister :: Register -> Word8
 runRegister (Register n) = fromIntegral n
 
