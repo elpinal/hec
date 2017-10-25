@@ -1,5 +1,7 @@
 module Refine.Asm.Amd64 where
 
+import Data.Word
+
 import Refine.Asm
 
 -- | General perpose registers
@@ -32,3 +34,6 @@ instance Enum GPR where
   toEnum 0x06 = RSI
   toEnum 0x05 = RBP
   toEnum 0x04 = RSP
+
+runRegister :: Register -> Word8
+runRegister (Register n) = fromIntegral n
