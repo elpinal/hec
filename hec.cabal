@@ -23,6 +23,7 @@ library
                      , Refine.Parse
                      , Refine.Inter
                      , Refine.Asm
+                     , Refine.Asm.Amd64
                      , Refine.Gen
                      , Refine.Type
                      , Refine.Kind
