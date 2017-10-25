@@ -19,7 +19,7 @@ gen (Const c) _ = return $ genConst c
 gen (Name s) xs = do
   mapM_ gen' xs
   m <- gets snd
-  return $ maybe (error $ "gen: not found: " ++ show s) (locToOperand . head) $ Map.lookup s m
+  return $ maybe (error $ "gen: not found: " ++ show s) (Asm.Loc . head) $ Map.lookup s m
 gen _ _ = undefined
 
 genConst :: Constant -> Asm.Operand
@@ -33,7 +33,7 @@ gen' (BinAssign dst op src1 src2) = do
   load r1 src1
   load r2 src2
   case op of
-    Bin "-" -> tell [Asm.ISub r1 (Asm.Reg r1) (Asm.Reg r2)]
+    Bin "-" -> tell [Asm.ISub r1 (Asm.Loc $ Asm.Reg r1) (Asm.Loc $ Asm.Reg r2)]
 gen' _ = undefined
 
 newRegister :: Machine Asm.Register
@@ -44,12 +44,4 @@ load = undefined
 
 type RegisterDescriptor = Map.Map Asm.Register [String]
 
-type AddressDescriptor = Map.Map String [Location]
-
-data Location =
-    Reg Asm.Register
-  | Mem Asm.Memory
-
-locToOperand :: Location -> Asm.Operand
-locToOperand (Reg r) = Asm.Reg r
-locToOperand (Mem r) = Asm.Mem r
+type AddressDescriptor = Map.Map String [Asm.Location]

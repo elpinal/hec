@@ -7,14 +7,13 @@ data Inst =
   | ISub Register Operand Operand
   | Branch Operand
   | Load Register Operand
-  | Store Register Operand
+  | Store Location Register
   | Ret Operand
   deriving (Eq, Show)
 
 data Operand =
     Const Constant
-  | Reg Register
-  | Mem Memory
+  | Loc Location
   deriving (Eq, Show)
 
 data Constant =
@@ -22,6 +21,11 @@ data Constant =
   | CInt16 Int16
   | CInt32 Int32
   | CInt64 Int64
+  deriving (Eq, Show)
+
+data Location =
+    Reg Register
+  | Mem Memory
   deriving (Eq, Show)
 
 newtype Register = Register Int
