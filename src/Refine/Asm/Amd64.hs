@@ -55,3 +55,8 @@ encodeConstAs64 (CInt8 n) = B.pack (replicate 7 0x00) `B.snoc` fromIntegral n
 encodeConstAs64 (CInt16 n) = B.pack (replicate 6 0x00) `B.append` (B.pack . map fromIntegral) [n .&. 0x00ff, n .&. 0xff00]
 encodeConstAs64 (CInt32 n) = B.pack (replicate 4 0x00) `B.append` (B.pack . map fromIntegral) [n .&. 0x000000ff, n .&. 0x0000ff00, n .&. 0x00ff0000, n .&. 0xff000000]
 encodeConstAs64 (CInt64 n) = B.pack $ map fromIntegral [n .&. 0x000000ff, n .&. 0x0000ff00, n .&. 0x00ff0000, n .&. 0xff000000]
+
+intToWords :: (Bits a, Integral a) => Int -> a -> [a]
+intToWords 16 n = [n .&. 0x00ff, n .&. 0xff00]
+intToWords 32 n = [n .&. 0x000000ff, n .&. 0x0000ff00, n .&. 0x00ff0000, n .&. 0xff000000]
+intToWords 64 n = [n .&. 0x000000ff, n .&. 0x0000ff00, n .&. 0x00ff0000, n .&. 0xff000000]
