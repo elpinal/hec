@@ -66,17 +66,17 @@ intToWords 32 n =
   [ n .&. 0x000000ff
   , shift' 8 $ n .&. 0x0000ff00
   , shift' 16 $ n .&. 0x00ff0000
-  , shift' 24 $ n .&. 0xff000000
+  , shift' 24 n
   ]
 intToWords 64 n =
-  [ shift' 0 $ n .&. 0x00000000000000ff
+  [ n .&. 0x00000000000000ff
   , shift' 8 $ n .&. 0x000000000000ff00
   , shift' 16 $ n .&. 0x0000000000ff0000
   , shift' 24 $ n .&. 0x00000000ff000000
   , shift' 32 $ n .&. 0x000000ff00000000
   , shift' 40 $ n .&. 0x0000ff0000000000
   , shift' 48 $ n .&. 0x00ff000000000000
-  , shift' 56 $ n .&. 0xff00000000000000
+  , shift' 56 n
   ]
 
 
