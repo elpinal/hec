@@ -58,7 +58,7 @@ encodeConstAs64 (CInt32 n) = (B.pack . intToWords 32 . fromIntegral) n `B.append
 encodeConstAs64 (CInt64 n) = B.pack . intToWords 64 $ fromIntegral n
 
 intToWords :: (Bits a, Integral a) => Int -> a -> [a]
-intToWords 16 n = [n .&. 0x00ff, shift (n .&. 0xff00) (-8)]
+intToWords 16 n = [n .&. 0x00ff, shift n (-8)]
 intToWords 32 n = [n .&. 0x000000ff, n .&. 0x0000ff00, n .&. 0x00ff0000, n .&. 0xff000000]
 intToWords 64 n =
   [ n .&. 0x00000000000000ff
