@@ -51,7 +51,7 @@ encode :: Inst -> B.ByteString
 encode (Load r (Const c)) = B.pack [rex .|. rexW, 0xb8 + runRegister r] `B.append` encodeConstAs64 c
 
 encodeConstAs64 :: Constant -> B.ByteString
-encodeConstAs64 (CInt8 n) = B.pack (replicate 7 0x00) `B.snoc` fromIntegral n
+encodeConstAs64 (CInt8 n) = fromIntegral n `B.cons` B.pack (replicate 7 0x00)
 encodeConstAs64 (CInt16 n) = B.pack (replicate 6 0x00) `B.append` (B.pack . intToWords 16 . fromIntegral) n
 encodeConstAs64 (CInt32 n) = B.pack (replicate 4 0x00) `B.append` (B.pack . intToWords 32 . fromIntegral) n
 encodeConstAs64 (CInt64 n) = B.pack . intToWords 64 $ fromIntegral n
