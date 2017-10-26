@@ -55,7 +55,7 @@ encodeConstAs64 :: Constant -> B.ByteString
 encodeConstAs64 (CInt8 n) = fromIntegral n `B.cons` B.pack (replicate 7 0x00)
 encodeConstAs64 (CInt16 n) = (B.pack . map fromIntegral . (intToWords 16 :: Int16 -> [Int16])) n `B.append` B.pack (replicate 6 0x00)
 encodeConstAs64 (CInt32 n) = (B.pack . map fromIntegral . intToWords 32) n `B.append` B.pack (replicate 4 0x00)
-encodeConstAs64 (CInt64 n) = B.pack . intToWords 64 $ fromIntegral n
+encodeConstAs64 (CInt64 n) = B.pack . map fromIntegral $ intToWords 64 n
 
 intToWords :: (Bits a, Integral a) => Int -> a -> [a]
 intToWords 16 n = [n .&. 0x00ff, shift n (-8)]
