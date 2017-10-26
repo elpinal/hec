@@ -70,3 +70,6 @@ intToWords 64 n =
   , n .&. 0x00ff000000000000
   , n .&. 0xff00000000000000
   ]
+
+
+shift' i n = shift n (-i)
