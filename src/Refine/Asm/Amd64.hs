@@ -53,13 +53,21 @@ encode (Load r (Const c)) = B.pack [rex .|. rexW, 0xb8 + runRegister r] `B.appen
 
 encodeConstAs64 :: Constant -> B.ByteString
 encodeConstAs64 (CInt8 n) = fromIntegral n `B.cons` B.pack (replicate 7 0x00)
-encodeConstAs64 (CInt16 n) = (B.pack . map fromIntegral . (intToWords 16 :: Int16 -> [Int16])) n `B.append` B.pack (replicate 6 0x00)
+encodeConstAs64 (CInt16 n) = (B.pack . map fromIntegral . intToWords 16) n `B.append` B.pack (replicate 6 0x00)
 encodeConstAs64 (CInt32 n) = (B.pack . map fromIntegral . intToWords 32) n `B.append` B.pack (replicate 4 0x00)
 encodeConstAs64 (CInt64 n) = B.pack . map fromIntegral $ intToWords 64 n
 
 intToWords :: (Bits a, Integral a) => Int -> a -> [a]
-intToWords 16 n = [n .&. 0x00ff, shift n (-8)]
-intToWords 32 n = [n .&. 0x000000ff, shift (n .&. 0x0000ff00) (-8), shift (n .&. 0x00ff0000) (-16), shift (n .&. 0xff000000) (-24)]
+intToWords 16 n =
+  [ n .&. 0x00ff
+  , shift' 8 n
+  ]
+intToWords 32 n =
+  [ n .&. 0x000000ff
+  , shift' 8 $ n .&. 0x0000ff00
+  , shift' 16 $ n .&. 0x00ff0000
+  , shift' 24 $ n .&. 0xff000000
+  ]
 intToWords 64 n =
   [ shift' 0 $ n .&. 0x00000000000000ff
   , shift' 8 $ n .&. 0x000000000000ff00
