@@ -16,4 +16,4 @@ spec = do
       encode (Load (Register 0)              . Const $ CInt8 9) `shouldBe` load9toRAX
       encode (Load (Register $ fromEnum RAX) . Const $ CInt8 9) `shouldBe` load9toRAX
 
-      encode (Load (Register 0) . Const $ CInt16 9) `shouldBe` B.pack [0x48, 0xb8, 0, 0, 0, 0, 0, 0, 0x09, 0]
+      encode (Load (Register 0) . Const $ CInt16 9) `shouldBe` load9toRAX
