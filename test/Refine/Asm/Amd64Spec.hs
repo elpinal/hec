@@ -21,3 +21,4 @@ spec = do
       encode (Load (Register 0) . Const $ CInt64 9) `shouldBe` load9toRAX
 
       encode (Load (Register 0) . Const $ CInt8 (-1)) `shouldBe` B.pack [0x48, 0xb8, 255, 0, 0, 0, 0, 0, 0, 0]
+      encode (Load (Register 0) . Const $ CInt8 127) `shouldBe` B.pack [0x48, 0xb8, 127, 0, 0, 0, 0, 0, 0, 0]
