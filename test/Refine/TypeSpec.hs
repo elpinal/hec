@@ -13,11 +13,11 @@ spec = do
     it "substitutes type variables in types" $ do
       Map.empty                             `apply` tInt                       `shouldBe` tInt
       Map.singleton (TVar "aaa" Star) tBool `apply` tInt                       `shouldBe` tInt
-      Map.empty                             `apply` TypeVar1 (TVar "aaa" Star) `shouldBe` TypeVar1 (TVar "aaa" Star)
-      Map.singleton (TVar "aaa" Star) tBool `apply` TypeVar1 (TVar "aaa" Star) `shouldBe` tBool
+      Map.empty                             `apply` TypeVar (TVar "aaa" Star) `shouldBe` TypeVar (TVar "aaa" Star)
+      Map.singleton (TVar "aaa" Star) tBool `apply` TypeVar (TVar "aaa" Star) `shouldBe` tBool
 
-      Map.empty                             `apply` TypeApp (TypeVar1 (TVar "aaa" Star)) (TypeVar1 (TVar "bbb" Star)) `shouldBe` TypeApp (TypeVar1 (TVar "aaa" Star)) (TypeVar1 (TVar "bbb" Star))
-      Map.singleton (TVar "aaa" Star) tBool `apply` TypeApp (TypeVar1 (TVar "aaa" Star)) (TypeVar1 (TVar "bbb" Star)) `shouldBe` TypeApp tBool (TypeVar1 (TVar "bbb" Star))
+      Map.empty                             `apply` TypeApp (TypeVar (TVar "aaa" Star)) (TypeVar (TVar "bbb" Star)) `shouldBe` TypeApp (TypeVar (TVar "aaa" Star)) (TypeVar (TVar "bbb" Star))
+      Map.singleton (TVar "aaa" Star) tBool `apply` TypeApp (TypeVar (TVar "aaa" Star)) (TypeVar (TVar "bbb" Star)) `shouldBe` TypeApp tBool (TypeVar (TVar "bbb" Star))
 
   describe "@@" $ do
     it "composes two substitutions" $ do
@@ -35,7 +35,7 @@ spec = do
 
       aToInt @@ aToChar `shouldBe` aToChar
 
-      let aToB = Map.singleton (TVar "a" Star) (TypeVar1 $ TVar "b" Star)
+      let aToB = Map.singleton (TVar "a" Star) (TypeVar $ TVar "b" Star)
 
       bToInt @@ aToB `shouldBe` Map.union aToInt bToInt
       aToB @@ bToInt `shouldBe` Map.union aToB bToInt
@@ -57,7 +57,7 @@ spec = do
       aToInt `merge` aToChar `shouldBe` Nothing
 
     it "is symmetric if success" $ do
-      let aToB = Map.singleton (TVar "a" Star) (TypeVar1 $ TVar "b" Star)
+      let aToB = Map.singleton (TVar "a" Star) (TypeVar $ TVar "b" Star)
 
       bToInt `merge` aToB `shouldBe` Just (Map.union bToInt aToB)
       aToB `merge` bToInt `shouldBe` Just (Map.union bToInt aToB)
@@ -66,32 +66,32 @@ spec = do
     it "obtains the most general unifier of two types" $ do
       tInt `mgu` tInt `shouldBe` Just Map.empty
 
-      tInt `fn` tChar `mgu` fn (TypeVar1 $ TVar "a" Star) tChar `shouldBe` Just aToInt
-      tInt `fn` tChar `mgu` (TypeVar1 $ TVar "a" Star)          `shouldBe` Just (Map.singleton (TVar "a" Star) $ tInt `fn` tChar)
-      TypeVar1 (TVar "a" Star) `mgu` TypeVar1 (TVar "a" Star)   `shouldBe` Just Map.empty
+      tInt `fn` tChar `mgu` fn (TypeVar $ TVar "a" Star) tChar `shouldBe` Just aToInt
+      tInt `fn` tChar `mgu` (TypeVar $ TVar "a" Star)          `shouldBe` Just (Map.singleton (TVar "a" Star) $ tInt `fn` tChar)
+      TypeVar (TVar "a" Star) `mgu` TypeVar (TVar "a" Star)   `shouldBe` Just Map.empty
 
-      TypeVar1 (TVar "a" Star) `fn` TypeVar1 (TVar "a" Star) `mgu` (tInt `fn` TypeVar1 (TVar "b" Star)) `shouldBe` Just (Map.union aToInt bToInt)
+      TypeVar (TVar "a" Star) `fn` TypeVar (TVar "a" Star) `mgu` (tInt `fn` TypeVar (TVar "b" Star)) `shouldBe` Just (Map.union aToInt bToInt)
 
     it "fails on some cases" $ do
       tInt `mgu` tChar `shouldBe` Nothing
-      TypeVar1 (TVar "a" Star) `fn` tInt `mgu` TypeVar1 (TVar "a" Star)   `shouldBe` Nothing
-      TypeVar1 (TVar "a" Star) `mgu` TypeVar1 (TVar "b" $ KFun Star Star) `shouldBe` Nothing
+      TypeVar (TVar "a" Star) `fn` tInt `mgu` TypeVar (TVar "a" Star)   `shouldBe` Nothing
+      TypeVar (TVar "a" Star) `mgu` TypeVar (TVar "b" $ KFun Star Star) `shouldBe` Nothing
 
   describe "match" $ do
     it "finds a substitution s where apply s t1 = t2" $ do
       tInt `match` tInt `shouldBe` Just Map.empty
 
-      TypeVar1 (TVar "a" Star) `match` TypeVar1 (TVar "a" Star)   `shouldBe` Just Map.empty
+      TypeVar (TVar "a" Star) `match` TypeVar (TVar "a" Star)   `shouldBe` Just Map.empty
 
     it "fails on some cases" $ do
-      tInt `fn` tChar `match` fn (TypeVar1 $ TVar "a" Star) tChar `shouldBe` Nothing
+      tInt `fn` tChar `match` fn (TypeVar $ TVar "a" Star) tChar `shouldBe` Nothing
       tInt `match` tChar `shouldBe` Nothing
 
-      TypeVar1 (TVar "a" Star) `fn` tInt `match` TypeVar1 (TVar "a" Star)   `shouldBe` Nothing
-      TypeVar1 (TVar "a" Star) `match` TypeVar1 (TVar "b" $ KFun Star Star) `shouldBe` Nothing
-      tInt `fn` tChar `match` (TypeVar1 $ TVar "a" Star)                    `shouldBe` Nothing
+      TypeVar (TVar "a" Star) `fn` tInt `match` TypeVar (TVar "a" Star)   `shouldBe` Nothing
+      TypeVar (TVar "a" Star) `match` TypeVar (TVar "b" $ KFun Star Star) `shouldBe` Nothing
+      tInt `fn` tChar `match` (TypeVar $ TVar "a" Star)                    `shouldBe` Nothing
 
-      TypeVar1 (TVar "a" Star) `fn` TypeVar1 (TVar "a" Star) `match` (tInt `fn` TypeVar1 (TVar "b" Star)) `shouldBe` Nothing
+      TypeVar (TVar "a" Star) `fn` TypeVar (TVar "a" Star) `match` (tInt `fn` TypeVar (TVar "b" Star)) `shouldBe` Nothing
 
   describe "addClass" $ do
     it "defines a class" $ do
@@ -110,7 +110,7 @@ spec = do
   describe "addInst" $
     it "defines a instance for a class with some predicates" $ do
       let aEnv = emptyEnv { classes = Map.singleton "A" ([], []) }
-          aVar = TypeVar1 $ TVar "a" Star
+          aVar = TypeVar $ TVar "a" Star
 
       classes <$> addInst []              (IsIn "A" tInt)        aEnv `shouldBe` (Just . Map.singleton "A") ([], [[] :=> IsIn "A" tInt])
       classes <$> addInst [IsIn "A" aVar] (IsIn "A" $ list aVar) aEnv `shouldBe` (Just . Map.singleton "A") ([], [[IsIn "A" aVar] :=> IsIn "A" (list aVar)])

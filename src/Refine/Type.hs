@@ -12,17 +12,10 @@ import qualified Data.Set as Set
 import Refine.AST
 import Refine.Kind
 
-data Type =
-    TypeInt
-  | TypeBool
-  | TypeChar
-  | TypeString
-  | TypeFun Type Type
-  | TypeVar String
-  deriving (Eq, Show)
+type Type = Type1
 
 data Type1 =
-    TypeVar1 TVar
+    TypeVar TVar
   | TypeApp Type1 Type1
   | TypeCon TCon
   | TypeGen Int
@@ -65,7 +58,7 @@ instance HasKind TCon where
   kind (TCon _ k) = k
 
 instance HasKind Type1 where
-  kind (TypeVar1 v) = kind v
+  kind (TypeVar v) = kind v
   kind (TypeCon c) = kind c
   kind (TypeApp v _) = let (KFun _ k) = kind v in k
 
@@ -76,11 +69,11 @@ class Types t where
   ftv :: t -> Set.Set TVar
 
 instance Types Type1 where
-  apply s v @ (TypeVar1 name) = Map.findWithDefault v name s
+  apply s v @ (TypeVar name) = Map.findWithDefault v name s
   apply s (TypeApp a b) = TypeApp (apply s a) (apply s b)
   apply _ t = t
 
-  ftv (TypeVar1 v) = Set.singleton v
+  ftv (TypeVar v) = Set.singleton v
   ftv (TypeApp t u) = ftv t `Set.union` ftv u
   ftv _ = Set.empty
 
@@ -114,14 +107,14 @@ mgu (TypeApp a b) (TypeApp c d) = do
   t <- mgu (apply s b) $ apply s d
   return $ t @@ s
 
-mgu (TypeVar1 u) t = varBind u t
-mgu t (TypeVar1 u) = varBind u t
+mgu (TypeVar u) t = varBind u t
+mgu t (TypeVar u) = varBind u t
 mgu (TypeCon c) (TypeCon c') | c == c' = return Map.empty
 mgu _ _ = fail "types do not unify"
 
 varBind :: Monad m => TVar -> Type1 -> m Subst
 varBind u t
-  | t == TypeVar1 u = return Map.empty
+  | t == TypeVar u = return Map.empty
   | u `Set.member` ftv t = fail "occur check fails"
   | kind u /= kind t = fail "kinds do not match"
   | otherwise = return $ Map.singleton u t
@@ -135,7 +128,7 @@ match (TypeApp a b) (TypeApp c d) = do
   t <- match b d
   merge s t
 
-match (TypeVar1 u) t | kind u == kind t = varBind u t
+match (TypeVar u) t | kind u == kind t = varBind u t
 match (TypeCon c) (TypeCon c') | c == c' = return Map.empty
 match _ _ = fail "types do not match"
 
@@ -250,7 +243,7 @@ inHnf :: Pred -> Bool
 inHnf (IsIn _ t) = hnf t
   where
     hnf :: Type1 -> Bool
-    hnf (TypeVar1 _) = True
+    hnf (TypeVar _) = True
     hnf (TypeCon _) = False
     hnf (TypeApp t _) = hnf t
 
@@ -330,7 +323,7 @@ enumId :: Int -> String
 enumId n = "v" ++ show n
 
 newTVar :: Kind -> TI Type1
-newTVar k = state $ \(s, n) -> (TypeVar1 $ TVar (enumId n) k, (s, n + 1))
+newTVar k = state $ \(s, n) -> (TypeVar $ TVar (enumId n) k, (s, n + 1))
 
 freshInst :: Scheme -> TI (Qual Type1)
 freshInst (Forall ks qt) = do
@@ -452,7 +445,7 @@ numClasses :: [String]
 numClasses = ["Num"]
 
 candidates :: ClassEnv -> Ambiguity -> [Type1]
-candidates ce (v, qs) = [t' | all (TypeVar1 v ==) ts,
+candidates ce (v, qs) = [t' | all (TypeVar v ==) ts,
                               any (`elem` numClasses) is,
                               t' <- defaults ce,
                               all (entail ce []) [IsIn i t' | i <- is]]

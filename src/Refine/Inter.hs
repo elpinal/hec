@@ -35,12 +35,6 @@ resolve name = Map.lookup name <$> gets table
 resolveE :: String -> Env (Type, Maybe Fixity)
 resolveE name = resolve name >>= maybe (emitError Unbound $ "not defined: " ++ show name) return
 
-newTypeVar :: Env Type
-newTypeVar = do
-  s <- get
-  put s { supply = supply s + 1 }
-  return . TypeVar $ "a" ++ show (supply s)
-
 data InterState = InterState
   { table :: SymbolTable
   , supply :: Int
@@ -104,47 +98,6 @@ recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
     swap :: Expr
     swap = BinOp name1 lhs1 $ BinOp name rhs1 rhs
 recons x = return x
-
-typeOf :: Expr -> Env Type
-typeOf (Lit lit) = return $ litType lit
-
-typeOf (BinOp name lhs rhs) = do
-  t <- fst <$> resolveE name
-  l <- typeOf lhs
-  r <- typeOf rhs
-  case t of
-    TypeFun a (TypeFun b c)
-      | a == l && b == r -> return c
-                  -- TODO: Add more information to error message like: "in the first operand of binary opearator (`name`): lhs"
-      | a /= l -> emitError TypeMismatch $ "expected " ++ show a ++ ", but got " ++ show l
-      | b /= r -> emitError TypeMismatch $ "expected " ++ show b ++ ", but got " ++ show r
-    _ -> emitError TypeMismatch $ "expected " ++ show l ++ " -> " ++ show r ++ " -> _, but got " ++ show t
-
-typeOf (App f x) = do
-  ft <- typeOf f
-  xt <- typeOf x
-  -- FIXME: Support it when `ft` == `TypeVar ...`.
-  case ft of
-    TypeFun a b
-      | a == xt -> return b
-      | otherwise -> emitError TypeMismatch $ "expected " ++ show a ++ ", but got " ++ show xt
-    _ -> emitError TypeMismatch $ "expected " ++ show xt ++ " -> _, but got " ++ show ft
-
-typeOf (Var name) = fst <$> resolveE name
-
-typeOf (Abs name body) = do
-  tv <- newTypeVar
-  s <- get
-  put s { table = Map.insert name (tv, Nothing) $ table s }
-  t <- typeOf body
-  modify $ \ss -> ss { table = table s }
-  return $ TypeFun tv t
-
-litType :: Literal -> Type
-litType (LitInt _) = TypeInt
-litType (LitBool _) = TypeBool
-litType (LitChar _) = TypeChar
-litType (LitString _) = TypeString
 
 data ThreeAddress =
     BinAssign Address Bin Address Address -- dest op lhs rhs

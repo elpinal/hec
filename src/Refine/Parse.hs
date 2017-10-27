@@ -141,7 +141,7 @@ parseType =
     many space
     string "->"
     many space
-    return TypeFun
+    return fn
 
 parseType' :: Parser Type
 parseType' = try parseFunctionType <|> parseTypeTerm
@@ -160,7 +160,7 @@ parseFunctionType = do
   many space
   string "->"
   many space
-  fmap (TypeFun t) $ try parseFunctionType <|> parseTypeTerm
+  fmap (fn t) $ try parseFunctionType <|> parseTypeTerm
 
 parseTypeIdent :: Parser String
 parseTypeIdent = do
@@ -169,10 +169,10 @@ parseTypeIdent = do
   return $ x : xs
 
 readType :: String -> Type
-readType "Int" = TypeInt
-readType "Bool" = TypeBool
-readType "Char" = TypeChar
-readType "String" = TypeString
+readType "Int" = tInt
+readType "Bool" = tBool
+readType "Char" = tChar
+readType "String" = tString
 
 parseTypeDecl :: Parser Decl
 parseTypeDecl = do
