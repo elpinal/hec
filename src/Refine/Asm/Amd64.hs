@@ -49,8 +49,10 @@ runRegister :: Register -> Word8
 runRegister (Register n) = fromIntegral n
 
 encode :: Inst -> B.ByteString
+
 encode (Load r (Const c)) = B.pack [rex .|. rexW, 0xb8 + runRegister r] `B.append` encodeConstAs64 c
 encode (Load r (Loc l)) = B.pack [rex .|. rexW, 0x8b] `B.snoc` modRM l (runRegister r)
+
 encode (IAdd r (Loc (Reg r')) (Const c)) | r == r' = B.pack [rex .|. rexW, 0x81, 0xc0 + runRegister r] `B.append` encodeConstAs64 c
 
 encodeConstAs64 :: Constant -> B.ByteString
