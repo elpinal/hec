@@ -295,10 +295,9 @@ instance Types Assump where
 
 find :: Monad m => String -> [Assump] -> m Scheme
 find i [] = fail $ "unbound identifier: " ++ i
-find i ((i' :>: sc) : as) =
-  if i == i'
-    then return sc
-    else find i as
+find i ((i' :>: sc) : as)
+  | i == i'   = return sc
+  | otherwise =  find i as
 
 type TI = State (Subst, Int)
 
