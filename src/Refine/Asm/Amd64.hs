@@ -2,7 +2,6 @@ module Refine.Asm.Amd64 where
 
 import Data.Bits
 import qualified Data.ByteString.Lazy as B
-import Data.Int
 import Data.Word
 
 import Refine.Asm

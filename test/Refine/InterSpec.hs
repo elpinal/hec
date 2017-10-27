@@ -2,7 +2,6 @@ module Refine.InterSpec where
 
 import Test.Hspec
 
-import Data.Either
 import qualified Data.Map.Lazy as Map
 
 import Refine.Inter
