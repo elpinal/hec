@@ -88,15 +88,15 @@ recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
   case f of
     (Fixity _ p1)
       | p < p1 -> return x
-      | p > p1 -> return swap
+      | p > p1 -> return swapped
     (Fixity d1 @ (Just LeftAssoc) _)
       | d1 == d -> return x
     (Fixity d1 @ (Just RightAssoc) _)
-      | d1 == d -> return swap
+      | d1 == d -> return swapped
     _ -> emitError FixityError $ "fixity error: cannot mix " ++ show name1 ++ " [" ++ display f ++ "] and " ++ show name ++ " [" ++ display e ++ "]"
   where
-    swap :: Expr
-    swap = BinOp name1 lhs1 $ BinOp name rhs1 rhs
+    swapped :: Expr
+    swapped = BinOp name1 lhs1 $ BinOp name rhs1 rhs
 recons x = return x
 
 data ThreeAddress =
