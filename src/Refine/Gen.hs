@@ -12,7 +12,7 @@ type Machine = WriterT [Asm.Inst] (StateT (RegisterDescriptor, AddressDescriptor
 
 -- | Runs a @Machine@ with the number of regesters.
 runMachine :: Machine a -> Int -> (a, [Asm.Inst])
-runMachine m = runReader (evalStateT (runWriterT m) (Map.empty, Map.empty))
+runMachine m = runReader $ evalStateT (runWriterT m) (Map.empty, Map.empty)
 
 gen :: Address -> [ThreeAddress] -> Machine Asm.Operand
 gen (Const c) _ = return $ genConst c
