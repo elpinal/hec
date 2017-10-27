@@ -53,30 +53,11 @@ encode (Load r (Const c)) = B.pack [rex .|. rexW, 0xb8 + runRegister r] `B.appen
 
 encodeConstAs64 :: Constant -> B.ByteString
 encodeConstAs64 (CInt8 n) = fromIntegral n `B.cons` B.pack (replicate 7 0x00)
-encodeConstAs64 (CInt16 n) = (B.pack . map fromIntegral . intToWords 16) n `B.append` B.pack (replicate 6 0x00)
-encodeConstAs64 (CInt32 n) = (B.pack . map fromIntegral . intToWords 32) n `B.append` B.pack (replicate 4 0x00)
-encodeConstAs64 (CInt64 n) = B.pack . map fromIntegral $ intToWords 64 n
+encodeConstAs64 (CInt16 n) = (B.pack . intToWords) n `B.append` B.pack (replicate 6 0x00)
+encodeConstAs64 (CInt32 n) = (B.pack . intToWords) n `B.append` B.pack (replicate 4 0x00)
+encodeConstAs64 (CInt64 n) = B.pack $ intToWords n
 
-intToWords :: (Bits a, Integral a) => Int -> a -> [a]
-intToWords 16 n =
-  [ n .&. 0xff
-  , shift' 8 n
-  ]
-intToWords 32 n =
-  [ n .&. 0xff
-  , shift' 8 n .&. 0xff
-  , shift' 16 n .&. 0xff
-  , shift' 24 n
-  ]
-intToWords 64 n =
-  [ n .&. 0xff
-  , shift' 8 n .&. 0xff
-  , shift' 16 n .&. 0xff
-  , shift' 24 n .&. 0xff
-  , shift' 32 n .&. 0xff
-  , shift' 40 n .&. 0xff
-  , shift' 48 n .&. 0xff
-  , shift' 56 n
-  ]
+intToWords :: (FiniteBits a, Integral a) => a -> [Word8]
+intToWords n = map (fromIntegral . (.&. 0xff)) . take (finiteBitSize n `div` 8) $ iterate (shift' 8) n
 
 shift' i n = shift n (-i)
