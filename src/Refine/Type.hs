@@ -222,6 +222,7 @@ addInst ps p @ (IsIn i _) ce
     c :: ([String], [Inst])
     c = (super ce i, (ps :=> p) : its)
 
+-- | Returns whether @Pred@s can be unified.
 overlap :: Pred -> Pred -> Bool
 overlap p q = isJust $ mguPred p q
 
