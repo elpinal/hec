@@ -116,8 +116,20 @@ spec = do
       classes <$> addInst [IsIn "A" aVar] (IsIn "A" $ list aVar) aEnv `shouldBe` (Just . Map.singleton "A") ([], [[IsIn "A" aVar] :=> IsIn "A" (list aVar)])
 
   describe "overlap" $
-    it "checks overlap" $
+    it "checks overlap" $ do
       overlap (IsIn "A" tInt) (IsIn "A" tInt) `shouldBe` True
+      overlap (IsIn "A" tInt) (IsIn "B" tInt) `shouldBe` False
+
+      overlap (IsIn "A" $ fn tInt tInt) (IsIn "A" $ fn tInt tInt) `shouldBe` True
+      overlap (IsIn "A" $ tInt) (IsIn "A" $ fn tInt tInt) `shouldBe` False
+      overlap (IsIn "A" tInt) (IsIn "A" tChar) `shouldBe` False
+
+      overlap (IsIn "A" tInt) (IsIn "A" $ TypeVar $ TVar "a" Star) `shouldBe` True
+      overlap (IsIn "A" $ TypeVar $ TVar "a" Star) (IsIn "A" tInt) `shouldBe` True
+      overlap (IsIn "A" $ TypeVar $ TVar "a" Star) (IsIn "A" $ TypeVar $ TVar "a" Star) `shouldBe` True
+
+      overlap (IsIn "A" $ TypeVar $ TVar "a" Star) (IsIn "A" $ TypeVar $ TVar "a" $ KFun Star Star) `shouldBe` False
+      overlap (IsIn "A" $ TypeVar $ TVar "a" Star) (IsIn "A" $ fn tInt . TypeVar $ TVar "a" Star) `shouldBe` False
 
 aToInt :: Subst
 aToInt = Map.fromList [(TVar "a" Star, tInt)]
