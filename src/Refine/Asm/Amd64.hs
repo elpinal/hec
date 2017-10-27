@@ -50,6 +50,7 @@ runRegister (Register n) = fromIntegral n
 
 encode :: Inst -> B.ByteString
 encode (Load r (Const c)) = B.pack [rex .|. rexW, 0xb8 + runRegister r] `B.append` encodeConstAs64 c
+encode (Load r (Loc l)) = B.pack [rex .|. rexW, 0x8b] `B.snoc` modRM l (runRegister r)
 
 encodeConstAs64 :: Constant -> B.ByteString
 encodeConstAs64 (CInt8 n) = fromIntegral n `B.cons` B.pack (replicate 7 0x00)
@@ -61,3 +62,6 @@ intToWords :: (FiniteBits a, Integral a) => a -> [Word8]
 intToWords n = map (fromIntegral . (.&. 0xff)) . take (finiteBitSize n `div` 8) $ iterate (shift' 8) n
 
 shift' i n = shift n (-i)
+
+modRM :: Location -> Word8 -> Word8
+modRM (Reg r) reg = shift 0x03 6 .|. shift reg 3 .|. runRegister r
