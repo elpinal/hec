@@ -26,3 +26,5 @@ spec = do
       encode (Load (Register 0) . Const $ CInt16 32767) `shouldBe` B.pack [0x48, 0xb8, 0xff, 0x7f, 0, 0, 0, 0, 0, 0]
       encode (Load (Register 0) . Const $ CInt32 $ 2^31 - 1) `shouldBe` B.pack [0x48, 0xb8, 0xff, 0xff, 0xff, 0x7f, 0, 0, 0, 0]
       encode (Load (Register 0) . Const $ CInt64 $ 2^63 - 1) `shouldBe` B.pack [0x48, 0xb8, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]
+
+      encode (IAdd (Register 1) (Loc . Reg $ Register 1) . Const $ CInt8 9) `shouldBe` B.pack [0x48, 0x81, 0xc1, 0x09, 0, 0, 0]
