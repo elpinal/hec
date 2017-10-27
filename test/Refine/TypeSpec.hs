@@ -115,6 +115,10 @@ spec = do
       classes <$> addInst []              (IsIn "A" tInt)        aEnv `shouldBe` (Just . Map.singleton "A") ([], [[] :=> IsIn "A" tInt])
       classes <$> addInst [IsIn "A" aVar] (IsIn "A" $ list aVar) aEnv `shouldBe` (Just . Map.singleton "A") ([], [[IsIn "A" aVar] :=> IsIn "A" (list aVar)])
 
+  describe "overlap" $
+    it "checks overlap" $
+      overlap (IsIn "A" tInt) (IsIn "A" tInt) `shouldBe` True
+
 aToInt :: Subst
 aToInt = Map.fromList [(TVar "a" Star, tInt)]
 
