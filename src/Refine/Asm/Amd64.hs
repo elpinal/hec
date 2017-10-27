@@ -59,25 +59,24 @@ encodeConstAs64 (CInt64 n) = B.pack . map fromIntegral $ intToWords 64 n
 
 intToWords :: (Bits a, Integral a) => Int -> a -> [a]
 intToWords 16 n =
-  [ n .&. 0x00ff
+  [ n .&. 0xff
   , shift' 8 n
   ]
 intToWords 32 n =
-  [ n .&. 0x000000ff
-  , shift' 8 $ n .&. 0x0000ff00
-  , shift' 16 $ n .&. 0x00ff0000
+  [ n .&. 0xff
+  , shift' 8 n .&. 0xff
+  , shift' 16 n .&. 0xff
   , shift' 24 n
   ]
 intToWords 64 n =
-  [ n .&. 0x00000000000000ff
-  , shift' 8 $ n .&. 0x000000000000ff00
-  , shift' 16 $ n .&. 0x0000000000ff0000
-  , shift' 24 $ n .&. 0x00000000ff000000
-  , shift' 32 $ n .&. 0x000000ff00000000
-  , shift' 40 $ n .&. 0x0000ff0000000000
-  , shift' 48 $ n .&. 0x00ff000000000000
+  [ n .&. 0xff
+  , shift' 8 n .&. 0xff
+  , shift' 16 n .&. 0xff
+  , shift' 24 n .&. 0xff
+  , shift' 32 n .&. 0xff
+  , shift' 40 n .&. 0xff
+  , shift' 48 n .&. 0xff
   , shift' 56 n
   ]
-
 
 shift' i n = shift n (-i)
