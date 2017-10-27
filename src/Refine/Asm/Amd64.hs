@@ -53,6 +53,7 @@ encode (Load r (Const c)) = B.pack [rex .|. rexW, 0xb8 + runRegister r] `B.appen
 encode (Load r (Loc l)) = B.pack [rex .|. rexW, 0x8b] `B.snoc` modRM l (runRegister r)
 
 encode (IAdd r (Loc (Reg r')) (Const c)) | r == r' = B.pack [rex .|. rexW, 0x81, 0xc0 + runRegister r] `B.append` encodeConstAs32 c
+
 encode (ISub r (Loc (Reg r')) (Const c)) | r == r' = B.pack [rex .|. rexW, 0x81, 0xe8 + runRegister r] `B.append` encodeConstAs32 c
 
 encodeConstAs64 :: Constant -> B.ByteString
