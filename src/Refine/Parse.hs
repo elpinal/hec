@@ -11,6 +11,7 @@ module Refine.Parse
   , parseTypeDecl
   , parseList'
   , parseEmptyList
+  , parseCase
   , Decl(..)
   ) where
 
