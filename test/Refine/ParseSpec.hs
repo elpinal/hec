@@ -137,4 +137,4 @@ spec = do
 
   describe "parseCase" $
     it "parses a case" $ do
-      parseWhole parseEmptyList "case 1 of 1 -> 1" `shouldSatisfy` rightIs (Case (int 1) [(PLit (int 1), int 1)])
+      parseWhole parseCase "case 1 of 1 -> 1" `shouldSatisfy` rightIs (Case (int 1) [(PLit (int 1), int 1)])
