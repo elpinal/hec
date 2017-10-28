@@ -128,3 +128,4 @@ spec = do
       parseWhole parseList' "[False,True]"   `shouldSatisfy` rightIs [bool False, bool True]
       parseWhole parseList' "[False, True]"  `shouldSatisfy` rightIs [bool False, bool True]
       parseWhole parseList' "[False , True]" `shouldSatisfy` rightIs [bool False, bool True]
+      parseWhole parseList' "[ 1 , 2 ]"      `shouldSatisfy` rightIs [int 1, int 2]
