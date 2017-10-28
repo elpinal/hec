@@ -194,7 +194,7 @@ parsePat = PVar <$> parseIdent'
 parseList' :: Parser [Expr]
 parseList' = do
   char '['
-  es <- parseExpr' `sepBy` (string "," >> many space)
+  es <- parseExpr' `sepBy` (many space >> string "," >> many space)
   char ']'
   return es
 
