@@ -192,6 +192,17 @@ parsePat = PVar <$> parseIdent'
        <|> PWildcard <$ string "_"
        <|> PLit <$> parseLit'
 
+parseCase :: Parser Expr
+parseCase = do
+  string "case"
+  many1 space -- TODO: Support a case like: `case(1 + 2)of ...`.
+  e <- parseExpr'
+  string "of"
+  p <- parsePat
+  string "->"
+  e1 <- parseExpr'
+  return $ Case e [(p, e1)]
+
 parseList' :: Parser [Expr]
 parseList' = do
   char '['
