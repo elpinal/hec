@@ -134,3 +134,7 @@ spec = do
       parseWhole parseList' "[False, True]"  `shouldSatisfy` rightIs [bool False, bool True]
       parseWhole parseList' "[False , True]" `shouldSatisfy` rightIs [bool False, bool True]
       parseWhole parseList' "[ 1 , 2 ]"      `shouldSatisfy` rightIs [int 1, int 2]
+
+  describe "parseCase" $
+    it "parses a case" $ do
+      parseWhole parseEmptyList "case 1 of 1 -> 1" `shouldSatisfy` rightIs (Case (int 1) [(PLit (int 1), int 1)])
