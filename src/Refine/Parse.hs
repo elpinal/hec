@@ -9,6 +9,7 @@ module Refine.Parse
   , parseType'
   , parseTypeSig
   , parseTypeDecl
+  , parseList'
   , Decl(..)
   ) where
 
