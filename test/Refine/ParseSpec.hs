@@ -121,6 +121,11 @@ spec = do
       parseWhole parseTypeDecl "type B = Int -> Int -> Bool" `shouldSatisfy` rightIs (TypeDecl "B" . fn tInt $ fn tInt tBool)
       parseWhole parseTypeDecl "type B=Int -> Int -> Bool"   `shouldSatisfy` rightIs (TypeDecl "B" . fn tInt $ fn tInt tBool)
 
+  describe "parseEmptyList" $
+    it "parses a empty list" $ do
+      parseWhole parseEmptyList "[]"  `shouldSatisfy` rightIs LitEmptyList
+      parseWhole parseEmptyList "[ ]" `shouldSatisfy` rightIs LitEmptyList
+
   describe "parseList'" $
     it "parses a list" $ do
       parseWhole parseList' "[]"             `shouldSatisfy` rightIs []
