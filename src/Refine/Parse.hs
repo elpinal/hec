@@ -198,9 +198,13 @@ parseCase = do
   string "case"
   many1 space -- TODO: Support a case like: `case(1 + 2)of ...`.
   e <- parseExpr'
+  many1 space
   string "of"
+  many space
   p <- parsePat
+  many space
   string "->"
+  many space
   e1 <- parseExpr'
   return $ Case e [(p, e1)]
 
