@@ -123,5 +123,6 @@ spec = do
 
   describe "parseList'" $
     it "parses a list" $ do
-      parseWhole parseList' "[]"  `shouldSatisfy` rightIs []
-      parseWhole parseList' "[1]" `shouldSatisfy` rightIs [int 1]
+      parseWhole parseList' "[]"            `shouldSatisfy` rightIs []
+      parseWhole parseList' "[1]"           `shouldSatisfy` rightIs [int 1]
+      parseWhole parseList' "[False,True]" `shouldSatisfy` rightIs [bool False, bool True]
