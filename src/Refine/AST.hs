@@ -14,6 +14,7 @@ data Expr =
   | App Expr Expr
   | Var String
   | Abs String Expr
+  | Case Expr [(Pat, Expr)]
     deriving (Eq, Show)
 
 data Pat =
