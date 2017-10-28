@@ -53,6 +53,7 @@ encode (Load r (Const c)) = B.pack [rex .|. rexW, 0xb8 + runRegister r] `B.appen
 encode (Load r (Loc l)) = B.pack [rex .|. rexW, 0x8b] `B.snoc` modRM l (runRegister r)
 
 encode (IAdd r (Loc (Reg r')) (Const c)) | r == r' = B.pack [rex .|. rexW, 0x81, 0xc0 + runRegister r] `B.append` encodeConstAs32 c
+encode (IAdd r1 (Loc (Reg r')) (Loc (Reg r2))) | r1 == r' = B.pack [rex .|. rexW, 0x01, shift 0x03 6 .|. shift (runRegister r2) 3 .|. runRegister r1]
 
 encode (ISub r (Loc (Reg r')) (Const c)) | r == r' = B.pack [rex .|. rexW, 0x81, 0xe8 + runRegister r] `B.append` encodeConstAs32 c
 
