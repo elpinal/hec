@@ -15,3 +15,10 @@ data Expr =
   | Var String
   | Abs String Expr
     deriving (Eq, Show)
+
+data Pat =
+    PVar String
+  | PWildcard
+  | PAs String Pat
+  | PLit Literal
+  -- | PCon Assump [Pat]

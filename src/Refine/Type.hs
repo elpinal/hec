@@ -354,13 +354,6 @@ tiLit (LitInt _) = do
   return ([IsIn "Num" v], v)
 tiLit (LitString _) = return ([], tString)
 
-data Pat =
-    PVar String
-  | PWildcard
-  | PAs String Pat
-  | PLit Literal
-  | PCon Assump [Pat]
-
 tiPat :: Pat -> TI ([Pred], [Assump], Type)
 tiPat (PVar i) = do
   v <- newTVar Star
@@ -378,12 +371,12 @@ tiPat (PLit l) = do
   (ps, t) <- tiLit l
   return (ps, [], t)
 
-tiPat (PCon (_ :>: sc) pats) = do
-  (ps, as, ts) <- tiPats pats
-  t' <- newTVar Star
-  (qs :=> t) <- freshInst sc
-  unify t (foldr fn t' ts)
-  return (ps ++ qs, as, t')
+--tiPat (PCon (_ :>: sc) pats) = do
+--  (ps, as, ts) <- tiPats pats
+--  t' <- newTVar Star
+--  (qs :=> t) <- freshInst sc
+--  unify t (foldr fn t' ts)
+--  return (ps ++ qs, as, t')
 
 tiPats :: [Pat] -> TI ([Pred], [Assump], [Type])
 tiPats pats = do
