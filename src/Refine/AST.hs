@@ -23,3 +23,4 @@ data Pat =
   | PLit Literal
   -- FIXME: Don't depend on Assump.
   -- | PCon Assump [Pat]
+  deriving (Eq, Show)
