@@ -30,5 +30,5 @@ spec = do
       encode (IAdd (Register 1) (Loc . Reg $ Register 1) . Const $ CInt8 9) `shouldBe` B.pack [0x48, 0x81, 0xc1, 0x09, 0, 0, 0]
       encode (ISub (Register 1) (Loc . Reg $ Register 1) . Const $ CInt8 9) `shouldBe` B.pack [0x48, 0x81, 0xe9, 0x09, 0, 0, 0]
 
-      encode (IAdd (Register 1) (Loc . Reg $ Register 1) . Loc $ Reg $ Register 2) `shouldBe` B.pack [0x48, 0x01, 209]
-      encode (ISub (Register 1) (Loc . Reg $ Register 1) . Loc $ Reg $ Register 2) `shouldBe` B.pack [0x48, 0x29, 209]
+      encode (IAdd (Register 1) (Loc . Reg $ Register 1) . Loc $ Reg $ Register 2) `shouldBe` B.pack [0x48, 0x01, 0xd1]
+      encode (ISub (Register 1) (Loc . Reg $ Register 1) . Loc $ Reg $ Register 2) `shouldBe` B.pack [0x48, 0x29, 0xd1
