@@ -37,7 +37,7 @@ instance Enum GPR where
   toEnum 0x05 = RBP
   toEnum 0x04 = RSP
 
--- Register for The instruction pointer.
+-- | Register for The instruction pointer.
 data RIP = RIP
 
 rex = 0x40
