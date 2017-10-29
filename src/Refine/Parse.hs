@@ -86,7 +86,9 @@ parseIdent' :: Parser String
 parseIdent' = do
   x <- lower
   xs <- many $ alphaNum <|> char '\''
-  return $ x : xs
+  if (x : xs) `elem` keywords
+    then parserFail "keyword"
+    else return $ x : xs
 
 parseLit :: Parser Expr
 parseLit = Lit <$> parseLit'
