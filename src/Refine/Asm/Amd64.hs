@@ -60,6 +60,7 @@ encode (IAdd r1 (Loc (Reg r')) (Loc (Reg r2))) | r1 == r' = B.pack [rex .|. rexW
 encode (IAdd r (Loc (Reg r')) (Loc (Mem m))) | r == r' = B.pack [rex .|. rexW, 0x03, runRegister r .|. 0x05] -- FIXME: Embed RIP into m.
 
 encode (ISub r (Loc (Reg r')) (Const c)) | r == r' = B.pack [rex .|. rexW, 0x81, 0xe8 + runRegister r] `B.append` encodeConstAs32 c
+encode (ISub r1 (Loc (Reg r')) (Loc (Reg r2))) | r1 == r' = B.pack [rex .|. rexW, 0x29, modRM (Reg r1) $ runRegister r2]
 
 encodeConstAs64 :: Constant -> B.ByteString
 encodeConstAs64 (CInt8 n) = fromIntegral n `B.cons` B.pack (replicate 7 0x00)
