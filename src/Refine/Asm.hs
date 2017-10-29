@@ -31,5 +31,5 @@ data Location =
 newtype Register = Register Int
   deriving (Eq, Show)
 
-newtype Memory = Memory Int
+data Memory = Memory Register Int
   deriving (Eq, Show)
