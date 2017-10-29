@@ -79,6 +79,9 @@ paren = between (char '(' >> many space) (many space >> char ')')
 parseIdent :: Parser Expr
 parseIdent = Var <$> parseIdent'
 
+keywords :: [String]
+keywords = ["type", "case", "of"]
+
 parseIdent' :: Parser String
 parseIdent' = do
   x <- lower
