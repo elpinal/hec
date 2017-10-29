@@ -37,6 +37,8 @@ instance Enum GPR where
   toEnum 0x05 = RBP
   toEnum 0x04 = RSP
 
+data RIP = RIP
+
 rex = 0x40
 
 rexW = 8 -- W: 64 Bit Operand Size
