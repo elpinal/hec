@@ -140,4 +140,4 @@ spec = do
     it "parses a case" $ do
       parseWhole parseCase "case 1 of 1 -> 1" `shouldSatisfy` rightIs (Case (int 1) [(PLit (LitInt 1), int 1)])
       parseWhole parseCase "case 1 + 2 of 1 -> 1" `shouldSatisfy` rightIs (Case (BinOp "+" (int 1) $ int 2) [(PLit (LitInt 1), int 1)])
-      parseWhole parseCase "case 1 of _ -> 1" `shouldSatisfy` rightIs (Case (BinOp "+" (int 1) $ int 2) [(PWildcard, int 1)])
+      parseWhole parseCase "case 1 of _ -> 1" `shouldSatisfy` rightIs (Case (int 1) [(PWildcard, int 1)])
