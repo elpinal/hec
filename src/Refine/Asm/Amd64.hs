@@ -86,4 +86,5 @@ intToWords n = map (fromIntegral . (.&. 0xff)) . take (finiteBitSize n `div` 8) 
 shift' i n = shift n (-i)
 
 modRM :: Location -> Word8 -> Word8
-modRM (Reg r) reg = shift 0x03 6 .|. shift reg 3 .|. runRegister r
+modRM (Reg r)                reg = shift 0x03 6 .|. shift reg 3 .|. runRegister r
+modRM (Mem (Memory IP disp)) reg =                  shift reg 3 .|. disp32
