@@ -53,14 +53,14 @@ runRegister (Register n) = fromIntegral n
 encode :: Inst -> B.ByteString
 
 encode (Load r (Const c)) = packWithRexW [0xb8 + runRegister r] `B.append` encodeConstAs64 c
-encode (Load r (Loc l))   = packWithRexW [0x8b] `B.snoc` modRM l (runRegister r)
+encode (Load r (Loc l))   = packWithRexW [0x8b] `B.append` modRM l (runRegister r)
 
 encode (IAdd r  (Loc (Reg r')) (Const c))                    | r  == r' = packWithRexW [0x81, 0xc0 + runRegister r] `B.append` encodeConstAs32 c
-encode (IAdd r1 (Loc (Reg r')) (Loc (Reg r2)))               | r1 == r' = packWithRexW [0x01, modRM (Reg r1) $ runRegister r2]
+encode (IAdd r1 (Loc (Reg r')) (Loc (Reg r2)))               | r1 == r' = packWithRexW [0x01] `B.append` modRM (Reg r1) (runRegister r2)
 encode (IAdd r  (Loc (Reg r')) (Loc (Mem (Memory IP disp)))) | r  == r' = packWithRexW [0x03, runRegister r .|. disp32] `B.append` encodeConstAs32 (CInt32 $ fromIntegral disp)
 
 encode (ISub r  (Loc (Reg r')) (Const c))                    | r  == r' = packWithRexW [0x81, 0xe8 + runRegister r] `B.append` encodeConstAs32 c
-encode (ISub r1 (Loc (Reg r')) (Loc (Reg r2)))               | r1 == r' = packWithRexW [0x29, modRM (Reg r1) $ runRegister r2]
+encode (ISub r1 (Loc (Reg r')) (Loc (Reg r2)))               | r1 == r' = packWithRexW [0x29] `B.append` modRM (Reg r1) (runRegister r2)
 encode (ISub r  (Loc (Reg r')) (Loc (Mem (Memory IP disp)))) | r  == r' = packWithRexW [0x2b, runRegister r .|. disp32] `B.append` encodeConstAs32 (CInt32 $ fromIntegral disp)
 
 -- | 32-bit displacement (ModR/M byte: 00***101).
@@ -85,6 +85,6 @@ intToWords n = map (fromIntegral . (.&. 0xff)) . take (finiteBitSize n `div` 8) 
 
 shift' i n = shift n (-i)
 
-modRM :: Location -> Word8 -> Word8
-modRM (Reg r)                reg = shift 0x03 6 .|. shift reg 3 .|. runRegister r
-modRM (Mem (Memory IP disp)) reg =                  shift reg 3 .|. disp32
+modRM :: Location -> Word8 -> B.ByteString
+modRM (Reg r)                reg = B.singleton $ shift 0x03 6 .|. shift reg 3 .|. runRegister r
+modRM (Mem (Memory IP disp)) reg = (shift reg 3 .|. disp32) `B.cons` encodeConstAs32 (CInt32 $ fromIntegral disp)
