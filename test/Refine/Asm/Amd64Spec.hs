@@ -37,3 +37,4 @@ spec = do
       encode (ISub (Register 1) (Loc . Reg $ Register 1) . Loc $ Reg $ Register 2) `shouldBe` B.pack [0x48, 0x29, 0xd1]
 
       encode (IAdd (Register 1) (Loc . Reg $ Register 1) . Loc $ Mem $ Memory IP 8) `shouldBe` B.pack [0x48, 0x03, 0x05, 0x08, 0, 0, 0]
+      encode (ISub (Register 1) (Loc . Reg $ Register 1) . Loc $ Mem $ Memory IP 8) `shouldBe` B.pack [0x48, 0x2b, 0x05, 0x08, 0, 0, 0]
