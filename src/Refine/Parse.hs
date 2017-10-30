@@ -4,6 +4,7 @@ module Refine.Parse
   , Literal(..)
 
   , parseWhole
+  , parse'
   , parseDecl
   , parseType
   , parseType'
@@ -22,7 +23,10 @@ import Refine.AST
 import Refine.Type
 
 parseWhole :: Parser a -> String -> Either ParseError a
-parseWhole p = parse (p <* eof) "<no filename>"
+parseWhole p = parse' $ p <* eof
+
+parse' :: Parser a -> String -> Either ParseError a
+parse' p = parse p "<no filename>"
 
 parseExpr :: String -> Either ParseError Expr
 parseExpr = parseWhole parseExpr'
