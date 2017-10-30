@@ -28,7 +28,9 @@ data Location =
   | Mem Memory
   deriving (Eq, Show)
 
-newtype Register = Register Int
+data Register =
+    Register Int
+  | IP -- ^ Instruction Pointer (the offset of the next instruction to be executed).
   deriving (Eq, Show)
 
 -- | Holds base register and byte offset from the content of the base register.
