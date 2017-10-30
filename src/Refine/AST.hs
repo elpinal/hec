@@ -26,3 +26,9 @@ data Pat =
      | PCon Assump [Pat]
   -}
   deriving (Eq, Show)
+
+int :: Int -> Expr
+int = Lit . LitInt
+
+bool :: Bool -> Expr
+bool = Lit . LitBool

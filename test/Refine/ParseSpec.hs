@@ -8,12 +8,6 @@ import Refine.AST
 import Refine.Parse
 import Refine.Type
 
-int :: Int -> Expr
-int = Lit . LitInt
-
-bool :: Bool -> Expr
-bool = Lit . LitBool
-
 rightIs :: Eq a => a -> Either e a -> Bool
 rightIs x (Right y) = x == y
 rightIs _ (Left _) = False
