@@ -29,8 +29,13 @@ spec = do
   describe "binToFun" $
     it "convert binary operations to function applications" $ do
       binToFun (int 3) `shouldBe` int 3
-      binToFun (BinOp "#" (int 1) $ int 3) `shouldBe` (App (App (Var "#") $ int 1) $ int 3)
-      binToFun (BinOp "@" (Var "x") . App (Abs "n" $ Var "n") $ Var "y") `shouldBe` (App (App (Var "@") $ Var "x") . App (Abs "n" $ Var "n") $ Var "y")
+      binToFun (BinOp "#" (int 1) $ int 3) `shouldBe` (Var "#" `App` int 1 `App` int 3)
+
+      let app = App (Abs "n" $ Var "n") $ Var "y"
+          op = BinOp "@"
+          x = Var "x"
+
+      binToFun (x `op` app) `shouldBe` (Var "@" `App` x `App` app)
 
   describe "genThreeAddress" $
     it "generates three address code" $ do
