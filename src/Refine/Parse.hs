@@ -196,7 +196,7 @@ readType "String" = tString
 
 parseTypeDecl :: Parser Decl
 parseTypeDecl = do
-  string "type"
+  keyword "type"
   many1 space
   s <- parseTypeIdent
   many space

@@ -109,12 +109,15 @@ spec = do
       parseWhole parseTypeSig "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeSig "g" . fn tInt $ fn tBool tChar)
       parseWhole parseTypeSig "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeSig "g" . fn tInt $ fn tBool tChar)
 
-  describe "parseTypeDecl" $
+  describe "parseTypeDecl" $ do
     it "parses a type synonym" $ do
       parseWhole parseTypeDecl "type I = Int"                `shouldSatisfy` rightIs (TypeDecl "I" tInt)
       parseWhole parseTypeDecl "type Fn = Bool -> Char"      `shouldSatisfy` rightIs (TypeDecl "Fn" $ fn tBool tChar)
       parseWhole parseTypeDecl "type B = Int -> Int -> Bool" `shouldSatisfy` rightIs (TypeDecl "B" . fn tInt $ fn tInt tBool)
       parseWhole parseTypeDecl "type B=Int -> Int -> Bool"   `shouldSatisfy` rightIs (TypeDecl "B" . fn tInt $ fn tInt tBool)
+
+    it "fails if given an illegal syntax" $
+      parseWhole parseTypeDecl "typeI = Int" `shouldSatisfy` isLeft
 
   describe "parseEmptyList" $
     it "parses a empty list" $ do
