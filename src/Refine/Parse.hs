@@ -14,6 +14,7 @@ module Refine.Parse
   , parseEmptyList
   , parseCase
   , Decl(..)
+  , keyword
   ) where
 
 import Text.Parsec
@@ -82,6 +83,12 @@ paren = between (char '(' >> many space) (many space >> char ')')
 
 parseIdent :: Parser Expr
 parseIdent = Var <$> parseIdent'
+
+keyword :: String -> Parser String
+keyword s = do
+  string s
+  notFollowedBy $ alphaNum <|> char '\''
+  return s
 
 keywords :: [String]
 keywords = ["type", "case", "of"]

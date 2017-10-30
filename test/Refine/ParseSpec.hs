@@ -136,3 +136,38 @@ spec = do
       parseWhole parseCase "case 1 + 2 of 1 -> 1" `shouldSatisfy` rightIs (Case (BinOp "+" (int 1) $ int 2) [(PLit (LitInt 1), int 1)])
       parseWhole parseCase "case 1 of _ -> 1"     `shouldSatisfy` rightIs (Case (int 1) [(PWildcard, int 1)])
       parseWhole parseCase "case 1 of n -> n"     `shouldSatisfy` rightIs (Case (int 1) [(PVar "n", Var "n")])
+
+  describe "keyword" $ do
+    it "parses a keyword" $ do
+      parse' (keyword "case") "case" `shouldSatisfy` rightIs "case"
+      parse' (keyword "ABC")  "ABC"  `shouldSatisfy` rightIs "ABC"
+      parse' (keyword "let'") "let'" `shouldSatisfy` rightIs "let'"
+      parse' (keyword "  ")   "  "   `shouldSatisfy` rightIs "  "
+      parse' (keyword "aaa1") "aaa1" `shouldSatisfy` rightIs "aaa1"
+      parse' (keyword "a1b")  "a1b"  `shouldSatisfy` rightIs "a1b"
+      parse' (keyword "1 ")   "1 "   `shouldSatisfy` rightIs "1 "
+
+    it "parses a keyword even if followed by spaces or symbols" $ do
+      parse' (keyword "case") "case is" `shouldSatisfy` rightIs "case"
+      parse' (keyword "case") "case@@"  `shouldSatisfy` rightIs "case"
+      parse' (keyword "case") "case()"  `shouldSatisfy` rightIs "case"
+      parse' (keyword "ABC")  "ABC DE"  `shouldSatisfy` rightIs "ABC"
+      parse' (keyword "ABC")  "ABC#@"   `shouldSatisfy` rightIs "ABC"
+      parse' (keyword "let'") "let'&"   `shouldSatisfy` rightIs "let'"
+      parse' (keyword "let'") "let' "   `shouldSatisfy` rightIs "let'"
+      parse' (keyword "a1b")  "a1b "    `shouldSatisfy` rightIs "a1b"
+      parse' (keyword "1 ")   "1 @"     `shouldSatisfy` rightIs "1 "
+      parse' (keyword "1 ")   "1  "     `shouldSatisfy` rightIs "1 "
+
+    it "fails if it is an identifier" $ do
+      parse' (keyword "case") "cases" `shouldSatisfy` isLeft
+      parse' (keyword "case") "case'" `shouldSatisfy` isLeft
+      parse' (keyword "case") "caseA" `shouldSatisfy` isLeft
+      parse' (keyword "case") "case1" `shouldSatisfy` isLeft
+      parse' (keyword "case") "cas"   `shouldSatisfy` isLeft
+      parse' (keyword "ABC")  "ABCD"  `shouldSatisfy` isLeft
+      parse' (keyword "ABC")  "ABCd"  `shouldSatisfy` isLeft
+      parse' (keyword "ABC")  "ABC'"  `shouldSatisfy` isLeft
+      parse' (keyword "  ")   "  '"   `shouldSatisfy` isLeft
+      parse' (keyword "  ")   "  a"   `shouldSatisfy` isLeft
+      parse' (keyword "1 ")   "1 a"   `shouldSatisfy` isLeft
