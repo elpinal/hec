@@ -52,15 +52,18 @@ runRegister (Register n) = fromIntegral n
 
 encode :: Inst -> B.ByteString
 
-encode (Load r (Const c)) = B.pack [rex .|. rexW, 0xb8 + runRegister r] `B.append` encodeConstAs64 c
-encode (Load r (Loc l)) = B.pack [rex .|. rexW, 0x8b] `B.snoc` modRM l (runRegister r)
+encode (Load r (Const c)) = packWithRexW [0xb8 + runRegister r] `B.append` encodeConstAs64 c
+encode (Load r (Loc l))   = packWithRexW [0x8b] `B.snoc` modRM l (runRegister r)
 
-encode (IAdd r (Loc (Reg r')) (Const c)) | r == r' = B.pack [rex .|. rexW, 0x81, 0xc0 + runRegister r] `B.append` encodeConstAs32 c
-encode (IAdd r1 (Loc (Reg r')) (Loc (Reg r2))) | r1 == r' = B.pack [rex .|. rexW, 0x01, modRM (Reg r1) $ runRegister r2]
-encode (IAdd r (Loc (Reg r')) (Loc (Mem (Memory IP disp)))) | r == r' = B.pack [rex .|. rexW, 0x03, runRegister r .|. 0x05] `B.append` encodeConstAs32 (CInt32 $ fromIntegral disp)
+encode (IAdd r  (Loc (Reg r')) (Const c))                    | r  == r' = packWithRexW [0x81, 0xc0 + runRegister r] `B.append` encodeConstAs32 c
+encode (IAdd r1 (Loc (Reg r')) (Loc (Reg r2)))               | r1 == r' = packWithRexW [0x01, modRM (Reg r1) $ runRegister r2]
+encode (IAdd r  (Loc (Reg r')) (Loc (Mem (Memory IP disp)))) | r  == r' = packWithRexW [0x03, runRegister r .|. 0x05] `B.append` encodeConstAs32 (CInt32 $ fromIntegral disp)
 
-encode (ISub r (Loc (Reg r')) (Const c)) | r == r' = B.pack [rex .|. rexW, 0x81, 0xe8 + runRegister r] `B.append` encodeConstAs32 c
-encode (ISub r1 (Loc (Reg r')) (Loc (Reg r2))) | r1 == r' = B.pack [rex .|. rexW, 0x29, modRM (Reg r1) $ runRegister r2]
+encode (ISub r  (Loc (Reg r')) (Const c))      | r  == r' = packWithRexW [0x81, 0xe8 + runRegister r] `B.append` encodeConstAs32 c
+encode (ISub r1 (Loc (Reg r')) (Loc (Reg r2))) | r1 == r' = packWithRexW [0x29, modRM (Reg r1) $ runRegister r2]
+
+packWithRexW :: [Word8] -> B.ByteString
+packWithRexW xs = B.pack $ (rex .|. rexW) : xs
 
 encodeConstAs64 :: Constant -> B.ByteString
 encodeConstAs64 (CInt8 n) = fromIntegral n `B.cons` B.pack (replicate 7 0x00)
