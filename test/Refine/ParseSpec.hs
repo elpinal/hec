@@ -130,12 +130,35 @@ spec = do
       parseWhole parseList' "[False , True]" `shouldSatisfy` rightIs [bool False, bool True]
       parseWhole parseList' "[ 1 , 2 ]"      `shouldSatisfy` rightIs [int 1, int 2]
 
-  describe "parseCase" $
+  describe "parseCase" $ do
     it "parses a case" $ do
       parseWhole parseCase "case 1 of 1 -> 1"     `shouldSatisfy` rightIs (Case (int 1) [(PLit (LitInt 1), int 1)])
       parseWhole parseCase "case 1 + 2 of 1 -> 1" `shouldSatisfy` rightIs (Case (BinOp "+" (int 1) $ int 2) [(PLit (LitInt 1), int 1)])
       parseWhole parseCase "case 1 of _ -> 1"     `shouldSatisfy` rightIs (Case (int 1) [(PWildcard, int 1)])
       parseWhole parseCase "case 1 of n -> n"     `shouldSatisfy` rightIs (Case (int 1) [(PVar "n", Var "n")])
+
+      parseWhole parseCase "case 1of 1->1"        `shouldSatisfy` rightIs (Case (int 1) [(PLit (LitInt 1), int 1)])
+      parseWhole parseCase "case(1 + 2)of 1 -> 1" `shouldSatisfy` rightIs (Case (BinOp "+" (int 1) $ int 2) [(PLit (LitInt 1), int 1)])
+
+      parseWhole parseCase "case(s)of 1 -> 1" `shouldSatisfy` rightIs (Case (Var "s") [(PLit (LitInt 1), int 1)])
+      parseWhole parseCase "case s of 1 -> 1" `shouldSatisfy` rightIs (Case (Var "s") [(PLit (LitInt 1), int 1)])
+
+    it "fails if given an invalid syntax" $ do
+      parseWhole parseCase "case1 of 1 -> 1" `shouldSatisfy` isLeft
+      parseWhole parseCase "case 1 of1 -> 1" `shouldSatisfy` isLeft
+
+      parseWhole parseCase "case 1 of 1 ->" `shouldSatisfy` isLeft
+      parseWhole parseCase "case 1 of 1"    `shouldSatisfy` isLeft
+      parseWhole parseCase "case 1 of"      `shouldSatisfy` isLeft
+      parseWhole parseCase "case 1"         `shouldSatisfy` isLeft
+      parseWhole parseCase "case"           `shouldSatisfy` isLeft
+      parseWhole parseCase ""               `shouldSatisfy` isLeft
+      parseWhole parseCase "1"              `shouldSatisfy` isLeft
+      parseWhole parseCase "case of 1 -> 1" `shouldSatisfy` isLeft
+      parseWhole parseCase "case 1 -> 1"    `shouldSatisfy` isLeft
+
+      parseWhole parseCase "casesof1 -> 1"   `shouldSatisfy` isLeft
+      parseWhole parseCase "case sof 1 -> 1" `shouldSatisfy` isLeft
 
   describe "keyword" $ do
     it "parses a keyword" $ do

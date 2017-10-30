@@ -212,11 +212,11 @@ parsePat = PVar <$> parseIdent'
 
 parseCase :: Parser Expr
 parseCase = do
-  string "case"
-  many1 space -- TODO: Support a case like: `case(1 + 2)of ...`.
+  keyword "case"
+  many space
   e <- parseExpr'
-  many1 space
-  string "of"
+  many space
+  keyword "of"
   many space
   p <- parsePat
   many space
