@@ -171,3 +171,37 @@ spec = do
       parse' (keyword "  ")   "  '"   `shouldSatisfy` isLeft
       parse' (keyword "  ")   "  a"   `shouldSatisfy` isLeft
       parse' (keyword "1 ")   "1 a"   `shouldSatisfy` isLeft
+
+  describe "parseIdent'" $ do
+    it "parses an identifier" $ do
+      parseWhole parseIdent' "a"              `shouldSatisfy` rightIs "a"
+      parseWhole parseIdent' "abc"            `shouldSatisfy` rightIs "abc"
+      parseWhole parseIdent' "abcDE"          `shouldSatisfy` rightIs "abcDE"
+      parseWhole parseIdent' "abcDe"          `shouldSatisfy` rightIs "abcDe"
+      parseWhole parseIdent' "abc123"         `shouldSatisfy` rightIs "abc123"
+      parseWhole parseIdent' "abc1def"        `shouldSatisfy` rightIs "abc1def"
+      parseWhole parseIdent' "abc'"           `shouldSatisfy` rightIs "abc'"
+      parseWhole parseIdent' "abc'a"          `shouldSatisfy` rightIs "abc'a"
+      parseWhole parseIdent' "abc'A2'12'3''4" `shouldSatisfy` rightIs "abc'A2'12'3''4"
+
+      parseWhole parseIdent' "cas"    `shouldSatisfy` rightIs "cas"
+      parseWhole parseIdent' "cases"  `shouldSatisfy` rightIs "cases"
+      parseWhole parseIdent' "case'"  `shouldSatisfy` rightIs "case'"
+      parseWhole parseIdent' "caseof" `shouldSatisfy` rightIs "caseof"
+      parseWhole parseIdent' "types"  `shouldSatisfy` rightIs "types"
+      parseWhole parseIdent' "cASE"   `shouldSatisfy` rightIs "cASE"
+
+    it "fails if it is not an identifier" $ do
+      parseWhole parseIdent' "1"      `shouldSatisfy` isLeft
+      parseWhole parseIdent' ""       `shouldSatisfy` isLeft
+      parseWhole parseIdent' " "      `shouldSatisfy` isLeft
+      parseWhole parseIdent' "'"      `shouldSatisfy` isLeft
+      parseWhole parseIdent' "A"      `shouldSatisfy` isLeft
+      parseWhole parseIdent' "123+"   `shouldSatisfy` isLeft
+      parseWhole parseIdent' "Abcd"   `shouldSatisfy` isLeft
+      parseWhole parseIdent' "'11'aA" `shouldSatisfy` isLeft
+
+    it "fails if it is keyword" $ do
+      parseWhole parseIdent' "case" `shouldSatisfy` isLeft
+      parseWhole parseIdent' "of"   `shouldSatisfy` isLeft
+      parseWhole parseIdent' "type" `shouldSatisfy` isLeft
