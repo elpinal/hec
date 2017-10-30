@@ -57,10 +57,15 @@ encode (Load r (Loc l))   = packWithRexW [0x8b] `B.snoc` modRM l (runRegister r)
 
 encode (IAdd r  (Loc (Reg r')) (Const c))                    | r  == r' = packWithRexW [0x81, 0xc0 + runRegister r] `B.append` encodeConstAs32 c
 encode (IAdd r1 (Loc (Reg r')) (Loc (Reg r2)))               | r1 == r' = packWithRexW [0x01, modRM (Reg r1) $ runRegister r2]
-encode (IAdd r  (Loc (Reg r')) (Loc (Mem (Memory IP disp)))) | r  == r' = packWithRexW [0x03, runRegister r .|. 0x05] `B.append` encodeConstAs32 (CInt32 $ fromIntegral disp)
+encode (IAdd r  (Loc (Reg r')) (Loc (Mem (Memory IP disp)))) | r  == r' = packWithRexW [0x03, runRegister r .|. disp32] `B.append` encodeConstAs32 (CInt32 $ fromIntegral disp)
 
-encode (ISub r  (Loc (Reg r')) (Const c))      | r  == r' = packWithRexW [0x81, 0xe8 + runRegister r] `B.append` encodeConstAs32 c
-encode (ISub r1 (Loc (Reg r')) (Loc (Reg r2))) | r1 == r' = packWithRexW [0x29, modRM (Reg r1) $ runRegister r2]
+encode (ISub r  (Loc (Reg r')) (Const c))                    | r  == r' = packWithRexW [0x81, 0xe8 + runRegister r] `B.append` encodeConstAs32 c
+encode (ISub r1 (Loc (Reg r')) (Loc (Reg r2)))               | r1 == r' = packWithRexW [0x29, modRM (Reg r1) $ runRegister r2]
+encode (ISub r  (Loc (Reg r')) (Loc (Mem (Memory IP disp)))) | r  == r' = packWithRexW [0x2b, runRegister r .|. disp32] `B.append` encodeConstAs32 (CInt32 $ fromIntegral disp)
+
+-- | 32-bit displacement (ModR/M byte: 00***101).
+disp32 :: Word8
+disp32 = 5
 
 packWithRexW :: [Word8] -> B.ByteString
 packWithRexW xs = B.pack $ (rex .|. rexW) : xs
