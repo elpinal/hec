@@ -99,7 +99,7 @@ parseIdent' = do
   x <- lower
   xs <- many $ alphaNum <|> char '\''
   if (x : xs) `elem` keywords
-    then parserFail "keyword"
+    then unexpected $ "keyword: " ++ show (x : xs)
     else return $ x : xs
 
 parseLit :: Parser Expr
