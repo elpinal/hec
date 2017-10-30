@@ -33,6 +33,6 @@ data Register =
   | IP -- ^ Instruction Pointer (the offset of the next instruction to be executed).
   deriving (Eq, Show)
 
--- | Holds base register and byte offset from the content of the base register.
+-- | Holds a base register and a byte offset from the content of it.
 data Memory = Memory Register Int
   deriving (Eq, Show)
