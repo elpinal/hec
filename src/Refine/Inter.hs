@@ -99,6 +99,14 @@ recons x @ (BinOp name (BinOp name1 lhs1 rhs1) rhs) = do
     swapped = BinOp name1 lhs1 $ BinOp name rhs1 rhs
 recons x = return x
 
+-- | Convert binary operations to function applications.
+binToFun :: Expr -> Expr
+binToFun (BinOp name lhs rhs) = App (Var name) (binToFun lhs) `App` binToFun rhs
+binToFun (App x y) = App (binToFun x) $ binToFun y
+binToFun (Abs name e) = Abs name $ binToFun e
+binToFun (Case e xs) = Case (binToFun e) [(p, binToFun x) | (p, x) <- xs]
+binToFun e = e
+
 data ThreeAddress =
     BinAssign Address Bin Address Address -- dest op lhs rhs
   | UAssign Address U Address -- dest op opearand

@@ -25,6 +25,12 @@ spec = do
       let st = interState { table = Map.singleton "op" (fn tInt $ fn tInt tInt, Just $ Fixity (Just RightAssoc) 9) }
       (evalEnv st . recons $ BinOp "op" lhs rhs) `shouldBe` Right (BinOp "op" (Lit $ LitInt 3) $ BinOp "op" (Lit $ LitInt 4) rhs)
 
+  describe "binToFun" $
+    it "convert binary operations to function applications" $ do
+      binToFun (Lit $ LitInt 3) `shouldBe` Lit (LitInt 3)
+      binToFun (BinOp "#" (Lit $ LitInt 1) . Lit $ LitInt 3) `shouldBe` (App (App (Var "#") . Lit $ LitInt 1) . Lit $ LitInt 3)
+      binToFun (BinOp "@" (Var "x") . App (Abs "n" $ Var "n") $ Var "y") `shouldBe` (App (App (Var "@") $ Var "x") . App (Abs "n" $ Var "n") $ Var "y")
+
   describe "genThreeAddress" $
     it "generates three address code" $ do
       translate interState (genThreeAddress (Lit $ LitInt 3)) `shouldBe` Right (Const $ CInt 3, [])
