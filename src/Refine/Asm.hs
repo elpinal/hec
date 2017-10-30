@@ -9,6 +9,7 @@ data Inst =
   | Load Register Operand
   | Store Location Register
   | Ret Operand
+  | Call Operand
   deriving (Eq, Show)
 
 data Operand =
