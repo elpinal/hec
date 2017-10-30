@@ -22,6 +22,7 @@ data Pat =
   | PWildcard
   | PAs String Pat
   | PLit Literal
-  -- FIXME: Don't depend on Assump.
-  -- | PCon Assump [Pat]
+  {- FIXME: Don't depend on Assump.
+     | PCon Assump [Pat]
+  -}
   deriving (Eq, Show)
