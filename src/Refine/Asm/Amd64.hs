@@ -101,6 +101,7 @@ machOAbi64 = 0x01000000
 machOAmd64 :: Word32
 machOAmd64 = 7 .|. machOAbi64
 
+-- | Amd64 cpu subtype.
 machOAmd64All :: Word32
 machOAmd64All = 3
 
