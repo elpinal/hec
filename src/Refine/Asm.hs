@@ -32,6 +32,7 @@ data Location =
 data Register =
     Register Int
   | IP -- ^ Instruction Pointer (the offset of the next instruction to be executed).
+  | SP
   deriving (Eq, Show)
 
 -- | Holds a base register and a byte offset from the content of it.
