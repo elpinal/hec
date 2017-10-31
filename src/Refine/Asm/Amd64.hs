@@ -95,3 +95,5 @@ machOAbi64 :: Word32
 machOAbi64 = 0x01000000
 
 machOAmd64 = 7 .|. machOAbi64
+
+machOAmd64All = 3
