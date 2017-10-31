@@ -105,6 +105,7 @@ machOAmd64 = 7 .|. machOAbi64
 machOAmd64All :: Word32
 machOAmd64All = 3
 
+-- | Filetype constant for relocatable object files.
 machOObject :: Word32
 machOObject = 1
 
