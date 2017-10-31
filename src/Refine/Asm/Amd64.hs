@@ -91,4 +91,4 @@ modRM (Mem (Memory IP disp)) reg = (shift reg 3 .|. disp32) `B.cons` encodeConst
 
 machOMagicNumber64 = [0xcf, 0xfa, 0xed, 0xfe]
 
-abi64 = 0x01000000
+machOAbi64 = 0x01000000
