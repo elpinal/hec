@@ -109,5 +109,6 @@ machOAmd64All = 3
 machOObject :: Word32
 machOObject = 1
 
+-- | Filetype constant for demand paged executable files.
 machOExecute :: Word32
 machOExecute = 2
