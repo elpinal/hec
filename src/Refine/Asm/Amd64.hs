@@ -93,6 +93,7 @@ modRM (Mem (Memory IP disp)) reg = (shift reg 3 .|. disp32) `B.cons` encodeConst
 machOMagicNumber64 :: B.ByteString
 machOMagicNumber64 = B.pack [0xcf, 0xfa, 0xed, 0xfe]
 
+-- | 64 bit ABI of cpu type.
 machOAbi64 :: Word32
 machOAbi64 = 0x01000000
 
