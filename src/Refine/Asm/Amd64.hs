@@ -94,6 +94,8 @@ machOMagicNumber64 = [0xcf, 0xfa, 0xed, 0xfe]
 machOAbi64 :: Word32
 machOAbi64 = 0x01000000
 
+machOAmd64 :: Word32
 machOAmd64 = 7 .|. machOAbi64
 
+machOAmd64All :: Word32
 machOAmd64All = 3
