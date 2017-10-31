@@ -32,7 +32,7 @@ data Location =
 data Register =
     Register Int
   | IP -- ^ Instruction Pointer (the offset of the next instruction to be executed).
-  | SP
+  | SP -- ^ Stack Pointer.
   | BP
   deriving (Eq, Show)
 
