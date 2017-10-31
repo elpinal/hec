@@ -33,7 +33,7 @@ data Register =
     Register Int
   | IP -- ^ Instruction Pointer (the offset of the next instruction to be executed).
   | SP -- ^ Stack Pointer.
-  | BP
+  | BP -- ^ Base Pointer.
   deriving (Eq, Show)
 
 -- | Holds a base register and a byte offset from the content of it.
