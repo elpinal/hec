@@ -89,6 +89,7 @@ modRM :: Location -> Word8 -> B.ByteString
 modRM (Reg r)                reg = B.singleton $ shift 0x03 6 .|. shift reg 3 .|. runRegister r
 modRM (Mem (Memory IP disp)) reg = (shift reg 3 .|. disp32) `B.cons` encodeConstAs32 (CInt32 $ fromIntegral disp)
 
+-- | The 64-bit Mach magic number.
 machOMagicNumber64 :: B.ByteString
 machOMagicNumber64 = B.pack [0xcf, 0xfa, 0xed, 0xfe]
 
