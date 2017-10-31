@@ -99,3 +99,9 @@ machOAmd64 = 7 .|. machOAbi64
 
 machOAmd64All :: Word32
 machOAmd64All = 3
+
+machOObject :: Word32
+machOObject = 1
+
+machOExecute :: Word32
+machOExecute = 2
