@@ -132,7 +132,7 @@ escapedString :: Parser Char
 escapedString = char '\\' >> char '"'
 
 data Decl =
-    Decl String Expr
+    VarDecl String Expr
   | TypeSig String Type
   | TypeDecl String Type
   deriving (Eq, Show)
@@ -143,7 +143,7 @@ parseDecl = do
   arg <- optionMaybe parseArg
   surroundedBySpaces $ char '='
   e <- parseExpr'
-  return . Decl name $ maybe e (flip Abs e) arg
+  return . VarDecl name $ maybe e (flip Abs e) arg
 
 parseArg :: Parser String
 parseArg = try $ many1 space >> parseIdent'

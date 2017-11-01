@@ -79,10 +79,10 @@ spec = do
 
   describe "parseDecl" $
     it "parses a declaration" $ do
-      parseWhole parseDecl "x = 12" `shouldSatisfy` rightIs (Decl "x" $ int 12)
+      parseWhole parseDecl "x = 12" `shouldSatisfy` rightIs (VarDecl "x" $ int 12)
 
-      parseWhole parseDecl "f = \\x -> x + 12" `shouldSatisfy` rightIs (Decl "f" . Abs "x" . BinOp "+" (Var "x") $ int 12)
-      parseWhole parseDecl "f x = x + 12"      `shouldSatisfy` rightIs (Decl "f" . Abs "x" . BinOp "+" (Var "x") $ int 12)
+      parseWhole parseDecl "f = \\x -> x + 12" `shouldSatisfy` rightIs (VarDecl "f" . Abs "x" . BinOp "+" (Var "x") $ int 12)
+      parseWhole parseDecl "f x = x + 12"      `shouldSatisfy` rightIs (VarDecl "f" . Abs "x" . BinOp "+" (Var "x") $ int 12)
 
   describe "parseType" $
     it "parses a type" $ do
