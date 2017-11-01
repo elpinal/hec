@@ -128,4 +128,4 @@ machOLCDysymtab = 0x0b
 machOLCUuid :: Word32
 machOLCUuid = 0x1b
 
-data machOSection64 = machOSection64
+data MachOSection64 = MachOSection64
