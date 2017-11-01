@@ -139,7 +139,7 @@ data Decl =
   deriving (Eq, Show)
 
 parseDecl :: Parser Decl
-parseDecl = parseVarDecl <|> parseTypeAnn <|> parseTypeDecl
+parseDecl = try parseVarDecl <|> parseTypeAnn <|> parseTypeDecl
 
 parseVarDecl :: Parser Decl
 parseVarDecl = do

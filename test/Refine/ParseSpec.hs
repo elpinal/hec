@@ -127,6 +127,7 @@ spec = do
       parseWhole parseDecl "x = 2"      `shouldSatisfy` rightIs (VarDecl "x" $ int 2)
       parseWhole parseDecl "f x = True" `shouldSatisfy` rightIs (VarDecl "f" $ Abs "x" $ bool True)
 
+      parseWhole parseDecl "x :: Int"       `shouldSatisfy` rightIs (TypeAnn "x" tInt)
   describe "parseEmptyList" $
     it "parses a empty list" $ do
       parseWhole parseEmptyList "[]"  `shouldSatisfy` rightIs LitEmptyList
