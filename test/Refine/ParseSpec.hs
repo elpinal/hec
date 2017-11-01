@@ -101,13 +101,13 @@ spec = do
       parseWhole parseType' "(Int -> Bool) -> Char"   `shouldSatisfy` rightIs (fn (fn tInt tBool) tChar)
       parseWhole parseType' "((Int -> Bool) -> Char)" `shouldSatisfy` rightIs (fn (fn tInt tBool) tChar)
 
-  describe "parseTypeSig" $
-    it "parses a type signature declaration" $ do
-      parseWhole parseTypeSig "i :: Int"                 `shouldSatisfy` rightIs (TypeSig "i" tInt)
-      parseWhole parseTypeSig "f :: Bool -> Char"        `shouldSatisfy` rightIs (TypeSig "f" $ fn tBool tChar)
-      parseWhole parseTypeSig "f::Bool->Char"            `shouldSatisfy` rightIs (TypeSig "f" $ fn tBool tChar)
-      parseWhole parseTypeSig "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeSig "g" . fn tInt $ fn tBool tChar)
-      parseWhole parseTypeSig "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeSig "g" . fn tInt $ fn tBool tChar)
+  describe "parseTypeAnn" $
+    it "parses a type annotation declaration" $ do
+      parseWhole parseTypeAnn "i :: Int"                 `shouldSatisfy` rightIs (TypeAnn "i" tInt)
+      parseWhole parseTypeAnn "f :: Bool -> Char"        `shouldSatisfy` rightIs (TypeAnn "f" $ fn tBool tChar)
+      parseWhole parseTypeAnn "f::Bool->Char"            `shouldSatisfy` rightIs (TypeAnn "f" $ fn tBool tChar)
+      parseWhole parseTypeAnn "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . fn tInt $ fn tBool tChar)
+      parseWhole parseTypeAnn "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . fn tInt $ fn tBool tChar)
 
   describe "parseTypeDecl" $ do
     it "parses a type synonym" $ do

@@ -8,7 +8,7 @@ module Refine.Parse
   , parseDecl
   , parseType
   , parseType'
-  , parseTypeSig
+  , parseTypeAnn
   , parseTypeDecl
   , parseList'
   , parseEmptyList
@@ -133,7 +133,7 @@ escapedString = char '\\' >> char '"'
 
 data Decl =
     VarDecl String Expr
-  | TypeSig String Type
+  | TypeAnn String Type
   | TypeDecl String Type
   deriving (Eq, Show)
 
@@ -148,12 +148,12 @@ parseDecl = do
 parseArg :: Parser String
 parseArg = try $ many1 space >> parseIdent'
 
-parseTypeSig :: Parser Decl
-parseTypeSig = do
+parseTypeAnn :: Parser Decl
+parseTypeAnn = do
   name <- parseIdent'
   surroundedBySpaces $ string "::"
   t <- parseType
-  return $ TypeSig name t
+  return $ TypeAnn name t
 
 parseType :: Parser Type
 parseType =
