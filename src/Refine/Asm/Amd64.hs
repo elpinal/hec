@@ -122,4 +122,5 @@ machOLCSegment64 = 0x19
 machOLCSymtab :: Word32
 machOLCSymtab = 0x02
 
+machOLCDysymtab :: Word32
 machOLCDysymtab = 0x0b
