@@ -189,7 +189,7 @@ parseFunctionType = do
 
 parseTypeIdent :: Parser String
 parseTypeIdent = do
-  x <- letter
+  x <- upper
   xs <- many $ alphaNum <|> char '\''
   return $ x : xs
 
