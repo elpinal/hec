@@ -119,4 +119,5 @@ machOExecute = 2
 machOLCSegment64 :: Word32
 machOLCSegment64 = 0x19
 
+machOLCSymtab :: Word32
 machOLCSymtab = 0x02
