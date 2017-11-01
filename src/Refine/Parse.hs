@@ -7,6 +7,7 @@ module Refine.Parse
   , parse'
   , parseDecl
   , parseVarDecl
+  , parseTypeIdent
   , parseType
   , parseType'
   , parseTypeAnn

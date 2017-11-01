@@ -87,6 +87,17 @@ spec = do
       -- Currently two or more parameters are not implemented and under consideration.
       parseWhole parseVarDecl "f x y = x + y" `shouldSatisfy` isLeft
 
+  describe "parseTypeIdent" $
+    it "parses a type identifier" $ do
+      parseWhole parseTypeIdent "A"          `shouldSatisfy` rightIs "A"
+      parseWhole parseTypeIdent "AB"         `shouldSatisfy` rightIs "AB"
+      parseWhole parseTypeIdent "X1"         `shouldSatisfy` rightIs "X1"
+      parseWhole parseTypeIdent "Z0Z"        `shouldSatisfy` rightIs "Z0Z"
+      parseWhole parseTypeIdent "A'"         `shouldSatisfy` rightIs "A'"
+      parseWhole parseTypeIdent "A'b"        `shouldSatisfy` rightIs "A'b"
+      parseWhole parseTypeIdent "A''"        `shouldSatisfy` rightIs "A''"
+      parseWhole parseTypeIdent "A0'a9b''11" `shouldSatisfy` rightIs "A0'a9b''11"
+
   describe "parseType" $
     it "parses a type" $ do
       parseWhole parseType "Int"                 `shouldSatisfy` rightIs tInt
