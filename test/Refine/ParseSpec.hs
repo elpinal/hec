@@ -77,12 +77,15 @@ spec = do
       parseExpr "TrueA"      `shouldSatisfy` isLeft
       parseExpr "f \\x -> x" `shouldSatisfy` isLeft
 
-  describe "parseVarDecl" $
-    it "parses a declaration" $ do
-      parseWhole parseVarDecl "x = 12" `shouldSatisfy` rightIs (VarDecl "x" $ int 12)
-
+  describe "parseVarDecl" $ do
+    it "parses a variable declaration" $ do
+      parseWhole parseVarDecl "x = 12"            `shouldSatisfy` rightIs (VarDecl "x" $ int 12)
       parseWhole parseVarDecl "f = \\x -> x + 12" `shouldSatisfy` rightIs (VarDecl "f" . Abs "x" . BinOp "+" (Var "x") $ int 12)
-      parseWhole parseVarDecl "f x = x + 12"      `shouldSatisfy` rightIs (VarDecl "f" . Abs "x" . BinOp "+" (Var "x") $ int 12)
+
+    it "parses a function to which one argument is passed" $ do
+      parseWhole parseVarDecl "f x = x + 12"   `shouldSatisfy` rightIs (VarDecl "f" . Abs "x" . BinOp "+" (Var "x") $ int 12)
+      -- Currently two or more parameters are not implemented and under consideration.
+      parseWhole parseVarDecl "f x y = x + y" `shouldSatisfy` isLeft
 
   describe "parseType" $
     it "parses a type" $ do
