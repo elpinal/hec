@@ -115,3 +115,5 @@ machOObject = 1
 -- | Filetype constant for demand paged executable files.
 machOExecute :: Word32
 machOExecute = 2
+
+machOLCSegment64 = 0x19
