@@ -5,7 +5,7 @@ module Refine.Parse
 
   , parseWhole
   , parse'
-  , parseDecl
+  , parseVarDecl
   , parseType
   , parseType'
   , parseTypeAnn
@@ -137,8 +137,8 @@ data Decl =
   | TypeDecl String Type
   deriving (Eq, Show)
 
-parseDecl :: Parser Decl
-parseDecl = do
+parseVarDecl :: Parser Decl
+parseVarDecl = do
   name <- parseIdent'
   arg <- optionMaybe parseArg
   surroundedBySpaces $ char '='
