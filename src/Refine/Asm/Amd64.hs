@@ -125,4 +125,4 @@ machOLCSymtab = 0x02
 machOLCDysymtab :: Word32
 machOLCDysymtab = 0x0b
 
-LCUuid = 0x1b
+machOLCUuid = 0x1b
