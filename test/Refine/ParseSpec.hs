@@ -119,6 +119,11 @@ spec = do
     it "fails if given an illegal syntax" $
       parseWhole parseTypeDecl "typeI = Int" `shouldSatisfy` isLeft
 
+  describe "parseDecl" $
+    it "parses a declaration" $ do
+      parseWhole parseDecl "x = 2"      `shouldSatisfy` rightIs (VarDecl "x" $ int 2)
+      parseWhole parseDecl "f x = True" `shouldSatisfy` rightIs (VarDecl "f" $ Abs "x" $ bool True)
+
   describe "parseEmptyList" $
     it "parses a empty list" $ do
       parseWhole parseEmptyList "[]"  `shouldSatisfy` rightIs LitEmptyList

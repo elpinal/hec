@@ -5,6 +5,7 @@ module Refine.Parse
 
   , parseWhole
   , parse'
+  , parseDecl
   , parseVarDecl
   , parseType
   , parseType'
@@ -136,6 +137,9 @@ data Decl =
   | TypeAnn String Type
   | TypeDecl String Type
   deriving (Eq, Show)
+
+parseDecl :: Parser Decl
+parseDecl = parseVarDecl <|> parseTypeAnn <|> parseTypeDecl
 
 parseVarDecl :: Parser Decl
 parseVarDecl = do
