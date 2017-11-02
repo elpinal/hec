@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Refine.Asm.Amd64 where
 
 import Data.Bits
@@ -92,6 +93,9 @@ modRM (Mem (Memory IP disp)) reg = (shift reg 3 .|. disp32) `B.cons` encodeConst
 
 {- 64-bit Mach header -}
 
+macgOHeaderSize :: Num a => a
+macgOHeaderSize = 24 -- 24 bytes
+
 word32ToBytes :: Word32 -> B.ByteString
 word32ToBytes = B.pack . intToWords
 
@@ -152,6 +156,28 @@ data MachOSection64 = MachOSection64
   , reserved1 :: Word32
   , reserved2 :: Word32
   , reserved3 :: Word32
+  }
+
+sectionAttrPureInstructions :: Word32
+sectionAttrPureInstructions = 0x80000000
+
+sectionAttrSomeInstructions :: Word32
+sectionAttrSomeInstructions = 0x400
+
+textSection :: B.ByteString -> Word32 -> MachOSection64
+textSection text off = MachOSection64
+  { sectname  = "__text" `B.append` B.pack (replicate 10 0x00) -- 10 bytes = 16 bytes - length of "__text" (6 bytes).
+  , segname   = "__TEXT" `B.append` B.pack (replicate 10 0x00)
+  , addr      = 0
+  , size      = fromIntegral $ B.length text
+  , offset    = off
+  , align     = 2^0
+  , reloff    = 0
+  , nreloc    = 0
+  , flags     = sectionAttrPureInstructions .|. sectionAttrSomeInstructions
+  , reserved1 = 0
+  , reserved2 = 0
+  , reserved3 = 0
   }
 
 -- | Virtual memory protection.
