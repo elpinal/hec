@@ -5,6 +5,7 @@ import Test.Hspec
 import Data.Either
 
 import Refine.AST
+import Refine.Kind
 import Refine.Parse
 import Refine.Type
 
@@ -122,6 +123,9 @@ spec = do
       parseWhole parseType' "(Int -> (Bool -> Char))" `shouldSatisfy` rightIs (fn tInt $ fn tBool tChar)
       parseWhole parseType' "(Int -> Bool) -> Char"   `shouldSatisfy` rightIs (fn (fn tInt tBool) tChar)
       parseWhole parseType' "((Int -> Bool) -> Char)" `shouldSatisfy` rightIs (fn (fn tInt tBool) tChar)
+
+      parseWhole parseType' "a"        `shouldSatisfy` rightIs (TypeVar $ TVar "a" Star)
+      parseWhole parseType' "a -> Int" `shouldSatisfy` rightIs (TypeVar (TVar "a" Star) `fn` tInt)
 
   describe "parseTypeAnn" $
     it "parses a type annotation declaration" $ do

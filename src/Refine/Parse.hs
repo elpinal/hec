@@ -24,6 +24,7 @@ import Text.Parsec
 import Text.Parsec.String
 
 import Refine.AST
+import Refine.Kind
 import Refine.Type
 
 parseWhole :: Parser a -> String -> Either ParseError a
@@ -173,6 +174,7 @@ parseType' = try parseFunctionType <|> parseTypeTerm
 
 parseSimpleType :: Parser Type
 parseSimpleType = readType <$> parseTypeIdent
+              <|> TypeVar . flip TVar Star <$> parseIdent'
               <|> paren parseSimpleType
 
 parseTypeTerm :: Parser Type
