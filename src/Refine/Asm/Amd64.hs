@@ -144,7 +144,7 @@ machOLCUuid :: Word32
 machOLCUuid = 0x1b
 
 data MachOSegment64 = MachOSegment64
-  { name       :: B.ByteString
+  { name       :: B.ByteString -- 16 bytes
   , vmaddr     :: Word64
   , vmsize     :: Word64
   , fileoffset :: Word64
@@ -156,8 +156,8 @@ data MachOSegment64 = MachOSegment64
   }
 
 data MachOSection64 = MachOSection64
-  { sectname  :: B.ByteString
-  , segname   :: B.ByteString
+  { sectname  :: B.ByteString -- 16 bytes
+  , segname   :: B.ByteString -- 16 bytes
   , addr      :: Word64
   , size      :: Word64
   , offset    :: Word32
@@ -169,6 +169,12 @@ data MachOSection64 = MachOSection64
   , reserved2 :: Word32
   , reserved3 :: Word32
   }
+
+segment64size :: Word64
+segment64size = 72
+
+section64size :: Word64
+section64size = 80
 
 sectionAttrPureInstructions :: Word32
 sectionAttrPureInstructions = 0x80000000
