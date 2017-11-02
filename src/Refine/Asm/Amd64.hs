@@ -129,3 +129,16 @@ machOLCUuid :: Word32
 machOLCUuid = 0x1b
 
 data MachOSection64 = MachOSection64
+  { sectname  :: B.ByteString
+  , segname   :: B.ByteString
+  , addr      :: Word64
+  , size      :: Word64
+  , offset    :: Word32
+  , align     :: Word32
+  , reloff    :: Word32
+  , nreloc    :: Word32
+  , flags     :: Word32
+  , reserved1 :: Word32
+  , reserved2 :: Word32
+  , reserved3 :: Word32
+  }
