@@ -135,6 +135,9 @@ spec = do
       parseWhole parseTypeAnn "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . fn tInt $ fn tBool tChar)
       parseWhole parseTypeAnn "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . fn tInt $ fn tBool tChar)
 
+      parseWhole parseTypeAnn "x :: a"      `shouldSatisfy` rightIs (TypeAnn "x" $ TypeVar $ TVar "a" Star)
+      parseWhole parseTypeAnn "x :: a -> a" `shouldSatisfy` rightIs (TypeAnn "x" $ (TypeVar $ TVar "a" Star) `fn` (TypeVar $ TVar "a" Star))
+
   describe "parseTypeDecl" $ do
     it "parses a type synonym" $ do
       parseWhole parseTypeDecl "type I = Int"                `shouldSatisfy` rightIs (TypeDecl "I" tInt)

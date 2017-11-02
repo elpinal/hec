@@ -158,7 +158,7 @@ parseTypeAnn :: Parser Decl
 parseTypeAnn = do
   name <- parseIdent'
   surroundedBySpaces $ string "::"
-  t <- parseType
+  t <- parseType'
   return $ TypeAnn name t
 
 parseType :: Parser Type
