@@ -142,3 +142,9 @@ data MachOSection64 = MachOSection64
   , reserved2 :: Word32
   , reserved3 :: Word32
   }
+
+-- | Virtual memory protection.
+data Prot =
+    Read
+  | Write
+  | Execute
