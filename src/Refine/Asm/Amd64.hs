@@ -143,6 +143,18 @@ machOLCDysymtab = 0x0b
 machOLCUuid :: Word32
 machOLCUuid = 0x1b
 
+data MachOSegment64 = MachOSegment64
+  { name       :: B.ByteString
+  , vmaddr     :: Word64
+  , vmsize     :: Word64
+  , fileoffset :: Word64
+  , filesize   :: Word64
+  , maxProt    :: Word32
+  , initProt   :: Word32
+  , nsect      :: Word32
+  , segFlag    :: Word32
+  }
+
 data MachOSection64 = MachOSection64
   { sectname  :: B.ByteString
   , segname   :: B.ByteString
@@ -152,7 +164,7 @@ data MachOSection64 = MachOSection64
   , align     :: Word32
   , reloff    :: Word32
   , nreloc    :: Word32
-  , flags     :: Word32
+  , sectFlag  :: Word32
   , reserved1 :: Word32
   , reserved2 :: Word32
   , reserved3 :: Word32
@@ -174,7 +186,7 @@ textSection text off = MachOSection64
   , align     = 2^0
   , reloff    = 0
   , nreloc    = 0
-  , flags     = sectionAttrPureInstructions .|. sectionAttrSomeInstructions
+  , sectFlag  = sectionAttrPureInstructions .|. sectionAttrSomeInstructions
   , reserved1 = 0
   , reserved2 = 0
   , reserved3 = 0
