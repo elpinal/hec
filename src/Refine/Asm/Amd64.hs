@@ -144,7 +144,13 @@ data MachOSection64 = MachOSection64
   }
 
 -- | Virtual memory protection.
-data Prot =
-    Read
-  | Write
-  | Execute
+type Prot = Word8
+
+read :: Prot
+read = 1
+
+write :: Prot
+write = 2
+
+execute :: Prot
+execute = 4
