@@ -92,6 +92,17 @@ modRM (Mem (Memory IP disp)) reg = (shift reg 3 .|. disp32) `B.cons` encodeConst
 
 {- 64-bit Mach header -}
 
+word32ToBytes :: Word32 -> B.ByteString
+word32ToBytes = B.pack . intToWords
+
+machOHeaderObject :: B.ByteString
+machOHeaderObject = B.concat
+  [ machOMagicNumber64
+  , word32ToBytes machOAmd64
+  , word32ToBytes machOAmd64All
+  , word32ToBytes machOObject
+  ]
+
 -- | The 64-bit Mach magic number.
 machOMagicNumber64 :: B.ByteString
 machOMagicNumber64 = B.pack [0xcf, 0xfa, 0xed, 0xfe]
