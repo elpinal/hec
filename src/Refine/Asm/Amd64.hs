@@ -228,7 +228,7 @@ textSection text off = MachOSection64
   }
 
 -- | Virtual memory protection.
-type Prot = Word8
+type Prot = Word32
 
 read :: Prot
 read = 1
