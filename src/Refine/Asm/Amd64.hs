@@ -93,6 +93,16 @@ modRM (Mem (Memory IP disp)) reg = (shift reg 3 .|. disp32) `B.cons` encodeConst
 
 {- 64-bit Mach header -}
 
+createMachOObject :: B.ByteString -> B.ByteString
+createMachOObject text = B.concat
+  [ machOHeaderObject 1 $ machOSegSize 1
+  , encodeMachOSegment64 $ textSegment text off
+  , encodeMachOSection64 $ textSection text off
+  ]
+  where
+    off :: Integral a => a
+    off = fromIntegral $ B.length text
+
 machOHeader64Size :: Num a => a
 machOHeader64Size = 32 -- 32 bytes
 
