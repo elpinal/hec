@@ -170,6 +170,19 @@ data MachOSection64 = MachOSection64
   , reserved3 :: Word32
   }
 
+textSegment :: B.ByteString -> Word64 -> MachOSegment64
+textSegment text off = MachOSegment64
+  { name       = B.pack $ replicate 16 0x00
+  , vmaddr     = 0
+  , vmsize     = fromIntegral $ B.length text
+  , fileoffset = off
+  , filesize   = fromIntegral $ B.length text
+  , maxProt    = allProt
+  , initProt   = allProt
+  , nsect      = 1
+  , segFlag    = 0
+  }
+
 encodeMachOSection64 :: MachOSection64 -> B.ByteString
 encodeMachOSection64 MachOSection64
   { sectname  = b1
