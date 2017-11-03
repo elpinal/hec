@@ -94,7 +94,7 @@ modRM (Mem (Memory IP disp)) reg = (shift reg 3 .|. disp32) `B.cons` encodeConst
 {- 64-bit Mach header -}
 
 macgOHeaderSize :: Num a => a
-macgOHeaderSize = 24 -- 24 bytes
+macgOHeaderSize = 32 -- 32 bytes
 
 intToBytes :: (FiniteBits a, Integral a) => a -> B.ByteString
 intToBytes = B.pack . intToWords
