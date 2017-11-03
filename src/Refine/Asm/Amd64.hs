@@ -96,15 +96,15 @@ modRM (Mem (Memory IP disp)) reg = (shift reg 3 .|. disp32) `B.cons` encodeConst
 macgOHeaderSize :: Num a => a
 macgOHeaderSize = 24 -- 24 bytes
 
-word32ToBytes :: Word32 -> B.ByteString
-word32ToBytes = B.pack . intToWords
+intToBytes :: (FiniteBits a, Integral a) => a -> B.ByteString
+intToBytes = B.pack . intToWords
 
 machOHeaderObject :: B.ByteString
 machOHeaderObject = B.concat
   [ machOMagicNumber64
-  , word32ToBytes machOAmd64
-  , word32ToBytes machOAmd64All
-  , word32ToBytes machOObject
+  , intToBytes machOAmd64
+  , intToBytes machOAmd64All
+  , intToBytes machOObject
   ]
 
 -- | The 64-bit Mach magic number.
