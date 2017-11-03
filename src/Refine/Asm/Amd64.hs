@@ -99,12 +99,16 @@ machOHeader64Size = 32 -- 32 bytes
 intToBytes :: (FiniteBits a, Integral a) => a -> B.ByteString
 intToBytes = B.pack . intToWords
 
-machOHeaderObject :: B.ByteString
-machOHeaderObject = B.concat $ map intToBytes
+machOHeaderObject :: Word32 -> Word32 -> B.ByteString
+machOHeaderObject n size = B.concat $ map intToBytes
   [ machOMagicNumber64
   , machOAmd64
   , machOAmd64All
   , machOObject
+  , n
+  , size
+  , 0x00
+  , 0x00
   ]
 
 -- | The 64-bit Mach magic number.
