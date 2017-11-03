@@ -170,6 +170,31 @@ data MachOSection64 = MachOSection64
   , reserved3 :: Word32
   }
 
+encodeMachOSegment64 :: MachOSegment64 -> B.ByteString
+encodeMachOSegment64 MachOSegment64
+  { name       = bs
+  , vmaddr     = dw1
+  , vmsize     = dw2
+  , fileoffset = dw3
+  , filesize   = dw4
+  , maxProt    = w1
+  , initProt   = w2
+  , nsect      = w3
+  , segFlag    = w4
+  } = B.concat
+  [ intToBytes machOLCSegment64
+  , intToBytes $ (fromIntegral segment64size + fromIntegral section64size * w3 :: Word32)
+  , bs
+  , intToBytes dw1
+  , intToBytes dw2
+  , intToBytes dw3
+  , intToBytes dw4
+  , intToBytes w1
+  , intToBytes w2
+  , intToBytes w3
+  , intToBytes w4
+  ]
+
 textSegment :: B.ByteString -> Word64 -> MachOSegment64
 textSegment text off = MachOSegment64
   { name       = B.pack $ replicate 16 0x00
