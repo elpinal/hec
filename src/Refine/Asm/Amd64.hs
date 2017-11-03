@@ -170,6 +170,9 @@ data MachOSection64 = MachOSection64
   , reserved3 :: Word32
   }
 
+machOSegSize :: Word32 -> Word32
+machOSegSize w = fromIntegral segment64size + fromIntegral section64size * w
+
 encodeMachOSegment64 :: MachOSegment64 -> B.ByteString
 encodeMachOSegment64 MachOSegment64
   { name       = bs
