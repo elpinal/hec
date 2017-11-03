@@ -186,7 +186,7 @@ encodeMachOSegment64 MachOSegment64
   , segFlag    = w4
   } = B.concat
   [ intToBytes machOLCSegment64
-  , intToBytes $ (fromIntegral segment64size + fromIntegral section64size * w3 :: Word32)
+  , intToBytes $ machOSegSize w3
   , bs
   , intToBytes dw1
   , intToBytes dw2
