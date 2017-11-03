@@ -101,7 +101,7 @@ createMachOObject text = B.concat
   ]
   where
     off :: Integral a => a
-    off = fromIntegral $ B.length text
+    off = fromIntegral $ machOHeader64Size + machOSegSize 1
 
 machOHeader64Size :: Num a => a
 machOHeader64Size = 32 -- 32 bytes
