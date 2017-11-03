@@ -170,6 +170,35 @@ data MachOSection64 = MachOSection64
   , reserved3 :: Word32
   }
 
+encodeMachOSection64 :: MachOSection64 -> B.ByteString
+encodeMachOSection64 MachOSection64
+  { sectname  = b1
+  , segname   = b2
+  , addr      = dw1
+  , size      = dw2
+  , offset    = w1
+  , align     = w2
+  , reloff    = w3
+  , nreloc    = w4
+  , sectFlag  = w5
+  , reserved1 = w6
+  , reserved2 = w7
+  , reserved3 = w8
+  } = B.concat
+  [ b1
+  , b2
+  , intToBytes dw1
+  , intToBytes dw2
+  , intToBytes w1
+  , intToBytes w2
+  , intToBytes w3
+  , intToBytes w4
+  , intToBytes w5
+  , intToBytes w6
+  , intToBytes w7
+  , intToBytes w8
+  ]
+
 segment64size :: Word64
 segment64size = 72
 
