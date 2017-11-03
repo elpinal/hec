@@ -238,3 +238,6 @@ write = 2
 
 execute :: Prot
 execute = 4
+
+allProt :: Prot
+allProt = Refine.Asm.Amd64.read .|. write .|. execute
