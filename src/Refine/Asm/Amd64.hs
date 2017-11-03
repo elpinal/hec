@@ -98,6 +98,7 @@ createMachOObject text = B.concat
   [ machOHeaderObject 1 $ machOSegSize 1
   , encodeMachOSegment64 $ textSegment text off
   , encodeMachOSection64 $ textSection text off
+  , text
   ]
   where
     off :: Integral a => a
