@@ -40,7 +40,7 @@ spec = do
       encode (ISub (Register 1) (Loc . Reg $ Register 1) . Loc $ Mem $ Memory IP 8) `shouldBe` B.pack [0x48, 0x2b, 0x05, 0x08, 0, 0, 0]
 
   describe "encodeMachOSection64" $
-    it "encodes section_64 of Mach-O" $ do
+    it "encodes section_64 of Mach-O" $
       encodeMachOSection64 (textSection (B.singleton 0xc3) 0x77)
         `shouldBe`
         B.pack
