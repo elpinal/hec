@@ -100,16 +100,16 @@ intToBytes :: (FiniteBits a, Integral a) => a -> B.ByteString
 intToBytes = B.pack . intToWords
 
 machOHeaderObject :: B.ByteString
-machOHeaderObject = B.concat
+machOHeaderObject = B.concat $ map intToBytes
   [ machOMagicNumber64
-  , intToBytes machOAmd64
-  , intToBytes machOAmd64All
-  , intToBytes machOObject
+  , machOAmd64
+  , machOAmd64All
+  , machOObject
   ]
 
 -- | The 64-bit Mach magic number.
-machOMagicNumber64 :: B.ByteString
-machOMagicNumber64 = B.pack [0xcf, 0xfa, 0xed, 0xfe]
+machOMagicNumber64 :: Word32
+machOMagicNumber64 = 0xfeedfacf
 
 -- | 64 bit ABI of cpu type.
 machOAbi64 :: Word32
