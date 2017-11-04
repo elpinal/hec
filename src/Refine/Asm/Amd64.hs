@@ -386,3 +386,6 @@ dynamicSymbolTable = DynamicSymbolTable
   , locRelOff      = 0
   , nLocRel        = 0
   }
+
+dynamicSymbolTableCommandSize :: Word32
+dynamicSymbolTableCommandSize = 20 * 4 -- The bytes of twenty uint_32.
