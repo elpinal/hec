@@ -343,3 +343,24 @@ encodeSymbolTable (SymbolTable sym n str size) = B.concat $ map intToBytes
   , str
   , size
   ]
+
+data DynamicSymbolTable = DynamicSymbolTable
+  { iLocalSym      :: Word32
+  , nLocalSym      :: Word32
+  , iExtDefSym     :: Word32
+  , nExtDefSym     :: Word32
+  , iUndefSym      :: Word32
+  , nUndefSym      :: Word32
+  , tocOff         :: Word32
+  , nToc           :: Word32
+  , modTabOff      :: Word32
+  , nModTab        :: Word32
+  , extRefSymOff   :: Word32
+  , nExtRefSyms    :: Word32
+  , indirectSymOff :: Word32
+  , nIndirectSyms  :: Word32
+  , extRelOff      :: Word32
+  , nExtRel        :: Word32
+  , locRelOff      :: Word32
+  , nLocRel        :: Word32
+  }
