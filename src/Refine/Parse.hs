@@ -95,7 +95,7 @@ keyword s = do
   return s
 
 keywords :: [String]
-keywords = ["type", "case", "of"]
+keywords = ["type", "case", "of", "newtype"]
 
 parseIdent' :: Parser String
 parseIdent' = do
