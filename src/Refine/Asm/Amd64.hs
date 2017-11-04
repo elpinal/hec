@@ -306,6 +306,9 @@ data NList = NList
   , value   :: Word64
   }
 
+nSect :: Word8
+nSect = 0x0e
+
 encodeNList :: NList -> B.ByteString
 encodeNList NList
   { stridx  = i
