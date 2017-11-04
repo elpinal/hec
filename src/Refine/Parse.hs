@@ -138,6 +138,7 @@ data Decl =
     VarDecl String Expr
   | TypeAnn String Type
   | TypeDecl String Type
+  | NewTypeDecl String String Type
   deriving (Eq, Show)
 
 parseDecl :: Parser Decl
