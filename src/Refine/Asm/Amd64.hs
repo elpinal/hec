@@ -305,3 +305,18 @@ data NList = NList
   , desc    :: Word16
   , value   :: Word64
   }
+
+encodeNList :: NList -> B.ByteString
+encodeNList NList
+  { stridx  = i
+  , symType = t
+  , sect    = n
+  , desc    = d
+  , value   = v
+  } = B.concat
+  [ intToBytes i
+  , intToBytes t
+  , intToBytes n
+  , intToBytes d
+  , intToBytes v
+  ]
