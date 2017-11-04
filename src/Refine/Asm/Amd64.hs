@@ -297,3 +297,11 @@ execute = 4
 
 allProt :: Prot
 allProt = Refine.Asm.Amd64.read .|. write .|. execute
+
+data NList = NList
+  { stridx  :: Word32
+  , symType :: Word8
+  , sect    :: Word8
+  , desc    :: Word16
+  , value   :: Word64
+  }
