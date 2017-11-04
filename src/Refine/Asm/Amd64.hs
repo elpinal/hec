@@ -333,3 +333,13 @@ data SymbolTable = SymbolTable
 
 symbolTableCommandSize :: Word32
 symbolTableCommandSize = 6 * 4 -- The bytes of six uint_32.
+
+encodeSymbolTable :: SymbolTable -> B.ByteString
+encodeSymbolTable (SymbolTable sym n str size) = B.concat $ map intToBytes
+  [ machOLCSymtab
+  , symbolTableCommandSize
+  , sym
+  , n
+  , str
+  , size
+  ]
