@@ -246,3 +246,16 @@ parseEmptyList = do
   many space
   char ']'
   return LitEmptyList
+
+parseNewType :: Parser Decl
+parseNewType = do
+  keyword "newtype"
+  many space
+  s <- parseTypeIdent
+  many space
+  char '='
+  many space
+  con <- parseTypeIdent
+  many space
+  t <- parseTypeTerm
+  return $ NewTypeDecl s con t
