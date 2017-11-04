@@ -330,3 +330,6 @@ data SymbolTable = SymbolTable
   , stroff  :: Word32
   , strsize :: Word32
   }
+
+symbolTableCommandSize :: Word32
+symbolTableCommandSize = 6 * 4 -- The bytes of six uint_32.
