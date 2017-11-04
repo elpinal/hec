@@ -323,3 +323,10 @@ encodeNList NList
   , intToBytes d
   , intToBytes v
   ]
+
+data SymbolTable = SymbolTable
+  { symoff  :: Word32
+  , nsyms   :: Word32
+  , stroff  :: Word32
+  , strsize :: Word32
+  }
