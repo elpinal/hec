@@ -309,6 +309,9 @@ data NList = NList
 nExt :: Word8
 nExt = 0x01
 
+nPExt :: Word8
+nPExt = 0x10
+
 nSect :: Word8
 nSect = 0x0e
 
