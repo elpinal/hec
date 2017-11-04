@@ -142,6 +142,9 @@ data Decl =
   | NewTypeDecl String String Type
   deriving (Eq, Show)
 
+parseDecls :: Parser [Decl]
+parseDecls = parseDecl `sepBy` newline
+
 parseDecl :: Parser Decl
 parseDecl = try parseVarDecl <|> try parseTypeAnn <|> parseTypeDecl
 
