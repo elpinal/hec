@@ -269,3 +269,7 @@ spec = do
       parseWhole parseIdent' "case" `shouldSatisfy` isLeft
       parseWhole parseIdent' "of"   `shouldSatisfy` isLeft
       parseWhole parseIdent' "type" `shouldSatisfy` isLeft
+
+  describe "parseNewType" $
+    it "parses a newtype declaration" $ do
+      parseWhole parseNewType "newtype A = B Int" `shouldSatisfy` rightIs (NewTypeDecl "A" "B" tInt)
