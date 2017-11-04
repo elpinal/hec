@@ -273,3 +273,6 @@ spec = do
   describe "parseNewType" $
     it "parses a newtype declaration" $ do
       parseWhole parseNewType "newtype A = B Int" `shouldSatisfy` rightIs (NewTypeDecl "A" "B" tInt)
+      parseWhole parseNewType "newtype A = A Int" `shouldSatisfy` rightIs (NewTypeDecl "A" "A" tInt)
+      parseWhole parseNewType "newtype A=B Int"   `shouldSatisfy` rightIs (NewTypeDecl "A" "B" tInt)
+      parseWhole parseNewType "newtype A = B a"   `shouldSatisfy` rightIs (NewTypeDecl "A" "B" (TypeVar $ TVar "a" Star))
