@@ -312,8 +312,20 @@ nExt = 0x01
 nPExt :: Word8
 nPExt = 0x10
 
+nUndf :: Word8
+nUndf = 0x00
+
+nAbs :: Word8
+nAbs = 0x02
+
 nSect :: Word8
 nSect = 0x0e
+
+nPbud :: Word8
+nPbud = 0x0c
+
+nIndr :: Word8
+nIndr = 0x0a
 
 encodeNList :: NList -> B.ByteString
 encodeNList NList
