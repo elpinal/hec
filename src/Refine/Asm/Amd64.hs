@@ -306,6 +306,9 @@ data NList = NList
   , value   :: Word64
   }
 
+nExt :: Word8
+nExt = 0x01
+
 nSect :: Word8
 nSect = 0x0e
 
