@@ -364,3 +364,25 @@ data DynamicSymbolTable = DynamicSymbolTable
   , locRelOff      :: Word32
   , nLocRel        :: Word32
   }
+
+dynamicSymbolTable :: DynamicSymbolTable
+dynamicSymbolTable = DynamicSymbolTable
+  { iLocalSym      = 0
+  , nLocalSym      = 0
+  , iExtDefSym     = 0
+  , nExtDefSym     = 0
+  , iUndefSym      = 0
+  , nUndefSym      = 0
+  , tocOff         = 0
+  , nToc           = 0
+  , modTabOff      = 0
+  , nModTab        = 0
+  , extRefSymOff   = 0
+  , nExtRefSyms    = 0
+  , indirectSymOff = 0
+  , nIndirectSyms  = 0
+  , extRelOff      = 0
+  , nExtRel        = 0
+  , locRelOff      = 0
+  , nLocRel        = 0
+  }
