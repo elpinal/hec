@@ -263,3 +263,12 @@ parseNewType = do
   many space
   t <- parseTypeTerm
   return $ NewTypeDecl s con t
+
+parsePair :: Parser Expr
+parsePair = do
+  char '('
+  e1 <- parseExpr'
+  char ','
+  e2 <- parseExpr'
+  char ')'
+  return $ Pair e1 e2
