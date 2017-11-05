@@ -81,7 +81,7 @@ parseApp = followTo parseTerm
       try (followTo $ flip App <$> (many1 space *> parseTerm) <*> return x) <|> return x
 
 parseTerm :: Parser Expr
-parseTerm = parseLit
+parseTerm = try parseLit
         <|> parseIdent
         <|> try parsePair
         <|> paren parseExpr'
@@ -118,6 +118,10 @@ parseLit' = parseNum
         <|> parseChar
         <|> parseString
         <|> parseEmptyList
+        <|> parseUnit
+
+parseUnit :: Parser Literal
+parseUnit = LitUnit <$ (char '(' >> many space >> char ')')
 
 parseNum :: Parser Literal
 parseNum = LitInt . read <$> many1 digit
