@@ -268,8 +268,12 @@ parseNewType = do
 parsePair :: Parser Expr
 parsePair = do
   char '('
+  many space
   e1 <- parseExpr'
+  many space
   char ','
+  many space
   e2 <- parseExpr'
+  many space
   char ')'
   return $ Pair e1 e2
