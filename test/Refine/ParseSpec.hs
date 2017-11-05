@@ -278,5 +278,7 @@ spec = do
       parseWhole parseNewType "newtype A = B a"   `shouldSatisfy` rightIs (NewTypeDecl "A" "B" (TypeVar $ TVar "a" Star))
 
   describe "parsePair" $
-    it "parses a pair" $
-      parseWhole parsePair "(1,2)" `shouldSatisfy` rightIs (Pair (int 1) (int 2))
+    it "parses a pair" $ do
+      parseWhole parsePair "(1,2)"     `shouldSatisfy` rightIs (Pair (int 1) (int 2))
+      parseWhole parsePair "(1, 2)"    `shouldSatisfy` rightIs (Pair (int 1) (int 2))
+      parseWhole parsePair "( 1 , 2 )" `shouldSatisfy` rightIs (Pair (int 1) (int 2))
