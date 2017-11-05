@@ -6,6 +6,7 @@ data Literal =
   | LitChar Char
   | LitString String
   | LitEmptyList
+  | LitUnit
   deriving (Eq, Show)
 
 data Expr =
