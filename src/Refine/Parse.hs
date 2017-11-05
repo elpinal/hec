@@ -188,6 +188,19 @@ parseTypeTerm :: Parser Type
 parseTypeTerm = paren (try parseFunctionType <|> parseSimpleType)
             <|> parseSimpleType
 
+parsePairType :: Parser Type
+parsePairType = do
+  char '('
+  many space
+  t1 <- parseType'
+  many space
+  char ','
+  many space
+  t2 <- parseType'
+  many space
+  char ')'
+  return $ pair t1 t2
+
 parseFunctionType :: Parser Type
 parseFunctionType = do
   t <- parseTypeTerm
