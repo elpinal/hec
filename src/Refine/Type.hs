@@ -354,6 +354,7 @@ tiLit (LitInt _) = do
   v <- newTVar Star
   return ([IsIn "Num" v], v)
 tiLit (LitString _) = return ([], tString)
+tiLit LitUnit = return ([], tUnit)
 
 tiPat :: Pat -> TI ([Pred], [Assump], Type)
 tiPat (PVar i) = do
