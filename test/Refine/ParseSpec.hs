@@ -284,3 +284,9 @@ spec = do
       parseWhole parsePair "( 1 , 2 )" `shouldSatisfy` rightIs (Pair (int 1) (int 2))
 
       parseWhole parsePair "((7, True), (False, 8))" `shouldSatisfy` rightIs (Pair (Pair (int 7) (bool True)) (Pair (bool False) (int 8)))
+
+  describe "parsePairType" $
+    it "parses a pair type" $ do
+      parseWhole parsePairType "(Int,Int)"      `shouldSatisfy` rightIs (pair tInt tInt)
+      parseWhole parsePairType "(Int, Bool)"    `shouldSatisfy` rightIs (pair tInt tBool)
+      parseWhole parsePairType "( Char , Int )" `shouldSatisfy` rightIs (pair tChar tInt)
