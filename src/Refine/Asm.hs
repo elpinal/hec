@@ -39,3 +39,5 @@ data Register =
 -- | Holds a base register and a byte offset from the content of it.
 data Memory = Memory Register Int
   deriving (Eq, Show)
+
+data Label a = Label Int a
