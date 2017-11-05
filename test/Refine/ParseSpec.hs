@@ -128,6 +128,7 @@ spec = do
       parseWhole parseType' "a -> Int" `shouldSatisfy` rightIs (TypeVar (TVar "a" Star) `fn` tInt)
 
       parseWhole parseType' "(Int, Bool)" `shouldSatisfy` rightIs (pair tInt tBool)
+      parseWhole parseType' "(a, b)"      `shouldSatisfy` rightIs (pair (TypeVar $ TVar "a" Star) (TypeVar $ TVar "b" Star))
 
   describe "parseTypeAnn" $
     it "parses a type annotation declaration" $ do
