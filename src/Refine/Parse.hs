@@ -183,11 +183,12 @@ parseType' = try parseFunctionType <|> parseTypeTerm
 parseSimpleType :: Parser Type
 parseSimpleType = readType <$> parseTypeIdent
               <|> TypeVar . flip TVar Star <$> parseIdent'
+              <|> try parsePairType
               <|> paren parseSimpleType
 
 parseTypeTerm :: Parser Type
-parseTypeTerm = paren (try parseFunctionType <|> parseSimpleType)
-            <|> parseSimpleType
+parseTypeTerm = try parseSimpleType
+            <|> paren (try parseFunctionType <|> try parseSimpleType)
 
 parsePairType :: Parser Type
 parsePairType = do
