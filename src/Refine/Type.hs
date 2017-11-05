@@ -25,8 +25,9 @@ data TVar = TVar String Kind
 data TCon = TCon String Kind
   deriving (Eq, Show)
 
-tBool, tChar, tInt, tString, tList, tArrow, tTuple2 :: Type
+tUnit, tBool, tChar, tInt, tString, tList, tArrow, tTuple2 :: Type
 
+tUnit = TypeCon $ TCon "()" Star
 tBool = TypeCon $ TCon "Bool" Star
 tChar = TypeCon $ TCon "Char" Star
 tInt = TypeCon $ TCon "Int" Star
