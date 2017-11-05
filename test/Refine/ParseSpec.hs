@@ -282,3 +282,5 @@ spec = do
       parseWhole parsePair "(1,2)"     `shouldSatisfy` rightIs (Pair (int 1) (int 2))
       parseWhole parsePair "(1, 2)"    `shouldSatisfy` rightIs (Pair (int 1) (int 2))
       parseWhole parsePair "( 1 , 2 )" `shouldSatisfy` rightIs (Pair (int 1) (int 2))
+
+      parseWhole parsePair "((7, True), (False, 8))" `shouldSatisfy` rightIs (Pair (Pair (int 7) (bool True)) (Pair (bool False) (int 8)))

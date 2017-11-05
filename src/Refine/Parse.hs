@@ -82,6 +82,7 @@ parseApp = followTo parseTerm
 parseTerm :: Parser Expr
 parseTerm = parseLit
         <|> parseIdent
+        <|> try parsePair
         <|> paren parseExpr'
 
 paren :: Parser a -> Parser a
