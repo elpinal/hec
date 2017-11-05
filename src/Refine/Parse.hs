@@ -10,6 +10,7 @@ module Refine.Parse
   , parseTypeIdent
   , parseType
   , parseType'
+  , parsePairType
   , parseTypeAnn
   , parseTypeDecl
   , parseList'
