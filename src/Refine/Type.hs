@@ -25,7 +25,7 @@ data TVar = TVar String Kind
 data TCon = TCon String Kind
   deriving (Eq, Show)
 
-tUnit, tBool, tChar, tInt, tString, tList, tArrow, tTuple2 :: Type
+tUnit, tBool, tChar, tInt, tString, tList, tArrow :: Type
 
 tUnit = TypeCon $ TCon "()" Star
 tBool = TypeCon $ TCon "Bool" Star
@@ -36,7 +36,6 @@ tString = list tChar
 
 tList = TypeCon . TCon "[]" $ KFun Star Star
 tArrow = TypeCon . TCon "(->)" . KFun Star $ KFun Star Star
-tTuple2 = TypeCon . TCon "(,)" . KFun Star $ KFun Star Star
 
 tTupleN :: Int -> Type
 tTupleN n = TypeCon . TCon ("(," ++ show n ++ ")") . foldr KFun Star $ replicate n Star
