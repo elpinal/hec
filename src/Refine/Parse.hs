@@ -214,8 +214,7 @@ parseTupleType = do
   many space
   ts <- (parseType' <* many space) `sepBy2` try (char ',' >> many space)
   char ')'
-  let f a b = TypeApp (tTupleN $ length ts) a `TypeApp` b
-  return $ foldl1 f ts
+  return $ foldl TypeApp (tTupleN $ length ts) ts
 
 parseFunctionType :: Parser Type
 parseFunctionType = do
