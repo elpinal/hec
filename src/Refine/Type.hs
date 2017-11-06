@@ -38,6 +38,9 @@ tList = TypeCon . TCon "[]" $ KFun Star Star
 tArrow = TypeCon . TCon "(->)" . KFun Star $ KFun Star Star
 tTuple2 = TypeCon . TCon "(,)" . KFun Star $ KFun Star Star
 
+tTupleN :: Int -> Type
+tTupleN n = TypeCon . TCon ("(," ++ show n ++ ")") . foldr KFun Star $ replicate n Star
+
 fn :: Type -> Type -> Type
 fn a = TypeApp $ TypeApp tArrow a
 
