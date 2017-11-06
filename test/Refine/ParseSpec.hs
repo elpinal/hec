@@ -19,6 +19,8 @@ spec = do
     it "parses an expression" $ do
       parseExpr "()"           `shouldSatisfy` rightIs (Lit LitUnit)
       parseExpr "( )"          `shouldSatisfy` rightIs (Lit LitUnit)
+      parseExpr "(())"         `shouldSatisfy` rightIs (Lit LitUnit)
+      parseExpr "((()))"       `shouldSatisfy` rightIs (Lit LitUnit)
       parseExpr "1"            `shouldSatisfy` rightIs (int 1)
       parseExpr "(1)"          `shouldSatisfy` rightIs (int 1)
       parseExpr "( 1 )"        `shouldSatisfy` rightIs (int 1)
