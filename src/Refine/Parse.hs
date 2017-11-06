@@ -289,8 +289,7 @@ parseTuple :: Parser Expr
 parseTuple = do
   char '('
   many space
-  es <- parseExpr' `sepBy2` try (many space >> char ',' >> many space)
-  many space
+  es <- (parseExpr' <* many space) `sepBy2` try (char ',' >> many space)
   char ')'
   return $ Tuple es
 
