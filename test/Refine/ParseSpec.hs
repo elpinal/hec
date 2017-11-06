@@ -312,3 +312,13 @@ spec = do
       parseWhole parseTuple "()"   `shouldSatisfy` isLeft
       parseWhole parseTuple "(1)"  `shouldSatisfy` isLeft
       parseWhole parseTuple "(1,)" `shouldSatisfy` isLeft
+
+  describe "parseTupleType" $ do
+    it "parses a tuple type" $ do
+      parseWhole parsePairType "(Int,Int)"      `shouldSatisfy` rightIs (pair tInt tInt)
+      parseWhole parsePairType "(Int, Bool)"    `shouldSatisfy` rightIs (pair tInt tBool)
+      parseWhole parsePairType "( Char , Int )" `shouldSatisfy` rightIs (pair tChar tInt)
+
+    it "can parse a nested tuple type" $ do
+      parseWhole parsePairType "((Int, Char), Bool)"        `shouldSatisfy` rightIs (pair (pair tInt tChar) tBool)
+      parseWhole parsePairType "((Int, Int), (Bool, Bool))" `shouldSatisfy` rightIs (pair (pair tInt tInt) (pair tBool tBool))
