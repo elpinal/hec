@@ -48,7 +48,7 @@ list :: Type -> Type
 list = TypeApp tList
 
 pair :: Type -> Type -> Type
-pair = TypeApp . TypeApp tTuple2
+pair a b = tTupleN 2 `TypeApp` a `TypeApp` b
 
 class HasKind t where
   kind :: t -> Kind
