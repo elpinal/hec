@@ -289,14 +289,10 @@ parseTuple :: Parser Expr
 parseTuple = do
   char '('
   many space
-  e <- parseExpr'
-  many space
-  char ','
-  many space
-  es <- parseExpr' `sepBy1` try (many space >> char ',' >> many space)
+  es <- parseExpr' `sepBy2` try (many space >> char ',' >> many space)
   many space
   char ')'
-  return $ Tuple $ e : es
+  return $ Tuple es
 
 sepBy2 :: (Stream s m t) => ParsecT s u m a -> ParsecT s u m sep -> ParsecT s u m [a]
 sepBy2 p sep = do
