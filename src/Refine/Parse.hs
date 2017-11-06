@@ -18,7 +18,6 @@ module Refine.Parse
   , parseCase
   , parseIdent'
   , parseNewType
-  , parsePair
   , parseTuple
   , Decl(..)
   , keyword
@@ -84,7 +83,7 @@ parseApp = followTo parseTerm
 parseTerm :: Parser Expr
 parseTerm = try parseLit
         <|> parseIdent
-        <|> try parsePair
+        <|> try parseTuple
         <|> paren parseExpr'
 
 paren :: Parser a -> Parser a
@@ -285,19 +284,6 @@ parseNewType = do
   many space
   t <- parseTypeTerm
   return $ NewTypeDecl s con t
-
-parsePair :: Parser Expr
-parsePair = do
-  char '('
-  many space
-  e1 <- parseExpr'
-  many space
-  char ','
-  many space
-  e2 <- parseExpr'
-  many space
-  char ')'
-  return $ Pair e1 e2
 
 parseTuple :: Parser Expr
 parseTuple = do

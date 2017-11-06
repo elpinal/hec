@@ -16,7 +16,6 @@ data Expr =
   | Var String
   | Abs String Expr
   | Case Expr [(Pat, Expr)]
-  | Pair Expr Expr
   | Tuple [Expr]
     deriving (Eq, Show)
 

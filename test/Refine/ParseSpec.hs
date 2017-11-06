@@ -284,14 +284,6 @@ spec = do
       parseWhole parseNewType "newtype A=B Int"   `shouldSatisfy` rightIs (NewTypeDecl "A" "B" tInt)
       parseWhole parseNewType "newtype A = B a"   `shouldSatisfy` rightIs (NewTypeDecl "A" "B" (TypeVar $ TVar "a" Star))
 
-  describe "parsePair" $
-    it "parses a pair" $ do
-      parseWhole parsePair "(1,2)"     `shouldSatisfy` rightIs (Pair (int 1) (int 2))
-      parseWhole parsePair "(1, 2)"    `shouldSatisfy` rightIs (Pair (int 1) (int 2))
-      parseWhole parsePair "( 1 , 2 )" `shouldSatisfy` rightIs (Pair (int 1) (int 2))
-
-      parseWhole parsePair "((7, True), (False, 8))" `shouldSatisfy` rightIs (Pair (Pair (int 7) (bool True)) (Pair (bool False) (int 8)))
-
   describe "parsePairType" $ do
     it "parses a pair type" $ do
       parseWhole parsePairType "(Int,Int)"      `shouldSatisfy` rightIs (pair tInt tInt)
@@ -310,6 +302,10 @@ spec = do
 
       parseWhole parseTuple "(1, 2, 4)"           `shouldSatisfy` rightIs (Tuple [int 1, int 2, int 4])
       parseWhole parseTuple "(True, 3, 2, False)" `shouldSatisfy` rightIs (Tuple [bool True, int 3, int 2, bool False])
+
+    it "can parse a nested tuple" $ do
+      parseWhole parseTuple "((1, 3), True)"          `shouldSatisfy` rightIs (Tuple [Tuple [int 1, int 3], bool True])
+      parseWhole parseTuple "((False, 3), (2, True))" `shouldSatisfy` rightIs (Tuple [Tuple [bool False, int 3], Tuple [int 2, bool True]])
 
     it "fails if given no tuple (n >= 2)" $ do
       parseWhole parseTuple "()"   `shouldSatisfy` isLeft
