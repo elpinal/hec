@@ -237,11 +237,14 @@ parsePat :: Parser Pat
 parsePat = PVar <$> parseIdent'
        <|> PWildcard <$ string "_"
        <|> PLit <$> parseLit'
-       <|> do
-         i <- parseIdent'
-         char '@'
-         p <- parsePat
-         return $ PAs i p
+       <|> parsePAs
+
+parsePAs :: Parser Pat
+parsePAs =  do
+  i <- parseIdent'
+  char '@'
+  p <- parsePat
+  return $ PAs i p
 
 parseCase :: Parser Expr
 parseCase = do
