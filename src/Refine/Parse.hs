@@ -297,3 +297,9 @@ parseTuple = do
   many space
   char ')'
   return $ Tuple $ e : es
+
+sepBy2 :: (Stream s m t) => ParsecT s u m a -> ParsecT s u m sep -> ParsecT s u m [a]
+sepBy2 p sep = do
+  x <- p
+  xs <- many1 $ sep >> p
+  return $ x : xs
