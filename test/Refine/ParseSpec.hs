@@ -304,8 +304,9 @@ spec = do
       parseWhole parseTuple "(True, 3, 2, False)" `shouldSatisfy` rightIs (Tuple [bool True, int 3, int 2, bool False])
 
     it "can parse a nested tuple" $ do
-      parseWhole parseTuple "((1, 3), True)"          `shouldSatisfy` rightIs (Tuple [Tuple [int 1, int 3], bool True])
-      parseWhole parseTuple "((False, 3), (2, True))" `shouldSatisfy` rightIs (Tuple [Tuple [bool False, int 3], Tuple [int 2, bool True]])
+      parseWhole parseTuple "((1, 3), True)"               `shouldSatisfy` rightIs (Tuple [Tuple [int 1, int 3], bool True])
+      parseWhole parseTuple "((False, 3), (2, True))"      `shouldSatisfy` rightIs (Tuple [Tuple [bool False, int 3], Tuple [int 2, bool True]])
+      parseWhole parseTuple "((1, 3), True, (1, 2, 3, 4))" `shouldSatisfy` rightIs (Tuple [Tuple [int 1, int 3], bool True, Tuple [int 1, int 2, int 3, int 4]])
 
     it "fails if given no tuple (n >= 2)" $ do
       parseWhole parseTuple "()"   `shouldSatisfy` isLeft
