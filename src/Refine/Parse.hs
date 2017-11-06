@@ -242,7 +242,9 @@ parsePat = PVar <$> parseIdent'
 parsePAs :: Parser Pat
 parsePAs =  do
   i <- parseIdent'
+  many space
   char '@'
+  many space
   p <- parsePat
   return $ PAs i p
 
