@@ -301,3 +301,17 @@ spec = do
     it "can parse a nested pair type" $ do
       parseWhole parsePairType "((Int, Char), Bool)"        `shouldSatisfy` rightIs (pair (pair tInt tChar) tBool)
       parseWhole parsePairType "((Int, Int), (Bool, Bool))" `shouldSatisfy` rightIs (pair (pair tInt tInt) (pair tBool tBool))
+
+  describe "parseTuple" $ do
+    it "parses a tuple" $ do
+      parseWhole parseTuple "(1,2)"     `shouldSatisfy` rightIs (Tuple [int 1, int 2])
+      parseWhole parseTuple "(1, 2)"    `shouldSatisfy` rightIs (Tuple [int 1, int 2])
+      parseWhole parseTuple "( 1 , 2 )" `shouldSatisfy` rightIs (Tuple [int 1, int 2])
+
+      parseWhole parseTuple "(1, 2, 4)"           `shouldSatisfy` rightIs (Tuple [int 1, int 2, int 4])
+      parseWhole parseTuple "(True, 3, 2, False)" `shouldSatisfy` rightIs (Tuple [bool True, int 3, int 2, bool False])
+
+    it "fails if given no tuple (n >= 2)" $ do
+      parseWhole parseTuple "()"   `shouldSatisfy` isLeft
+      parseWhole parseTuple "(1)"  `shouldSatisfy` isLeft
+      parseWhole parseTuple "(1,)" `shouldSatisfy` isLeft

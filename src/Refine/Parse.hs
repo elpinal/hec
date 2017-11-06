@@ -19,6 +19,7 @@ module Refine.Parse
   , parseIdent'
   , parseNewType
   , parsePair
+  , parseTuple
   , Decl(..)
   , keyword
   ) where
@@ -297,3 +298,16 @@ parsePair = do
   many space
   char ')'
   return $ Pair e1 e2
+
+parseTuple :: Parser Expr
+parseTuple = do
+  char '('
+  many space
+  e <- parseExpr'
+  many space
+  char ','
+  many space
+  es <- parseExpr' `sepBy1` try (many space >> char ',' >> many space)
+  many space
+  char ')'
+  return $ Tuple $ e : es
