@@ -314,3 +314,8 @@ spec = do
     it "can parse a nested tuple type" $ do
       parseWhole parseTupleType "((Int, Char), Bool)"        `shouldSatisfy` rightIs (pair (pair tInt tChar) tBool)
       parseWhole parseTupleType "((Int, Int), (Bool, Bool))" `shouldSatisfy` rightIs (pair (pair tInt tInt) (pair tBool tBool))
+
+  describe "parsePAs" $
+    it "parses as-pattern" $ do
+      parseWhole parsePAs "x @ 1"  `shouldSatisfy` rightIs (PAs "x" . PLit $ LitInt 1)
+      parseWhole parsePAs "y' @ _" `shouldSatisfy` rightIs (PAs "y'" PWildcard)

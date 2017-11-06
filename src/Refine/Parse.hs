@@ -19,6 +19,7 @@ module Refine.Parse
   , parseIdent'
   , parseNewType
   , parseTuple
+  , parsePAs
   , Decl(..)
   , keyword
   ) where
