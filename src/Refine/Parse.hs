@@ -11,6 +11,7 @@ module Refine.Parse
   , parseType
   , parseType'
   , parsePairType
+  , parseTupleType
   , parseTypeAnn
   , parseTypeDecl
   , parseList'
@@ -206,6 +207,15 @@ parsePairType = do
   many space
   char ')'
   return $ pair t1 t2
+
+parseTupleType :: Parser Type
+parseTupleType = do
+  char '('
+  many space
+  ts <- (parseType' <* many space) `sepBy2` try (char ',' >> many space)
+  char ')'
+  let f a b = TypeApp (tTupleN $ length ts) a `TypeApp` b
+  return $ foldl1 f ts
 
 parseFunctionType :: Parser Type
 parseFunctionType = do
