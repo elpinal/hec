@@ -10,7 +10,6 @@ module Refine.Parse
   , parseTypeIdent
   , parseType
   , parseType'
-  , parsePairType
   , parseTupleType
   , parseTypeAnn
   , parseTypeDecl
@@ -188,25 +187,12 @@ parseType' = try parseFunctionType <|> parseTypeTerm
 parseSimpleType :: Parser Type
 parseSimpleType = readType <$> parseTypeIdent
               <|> TypeVar . flip TVar Star <$> parseIdent'
-              <|> try parsePairType
+              <|> try parseTupleType
               <|> paren parseSimpleType
 
 parseTypeTerm :: Parser Type
 parseTypeTerm = try parseSimpleType
             <|> paren (try parseFunctionType <|> try parseSimpleType)
-
-parsePairType :: Parser Type
-parsePairType = do
-  char '('
-  many space
-  t1 <- parseType'
-  many space
-  char ','
-  many space
-  t2 <- parseType'
-  many space
-  char ')'
-  return $ pair t1 t2
 
 parseTupleType :: Parser Type
 parseTupleType = do
