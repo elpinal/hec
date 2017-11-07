@@ -83,15 +83,15 @@ parseApp = followTo parseTerm
 
 parseTerm :: Parser Expr
 parseTerm = try parseLit
-        <|> parseIdent
+        <|> parseVar
         <|> try parseTuple
         <|> paren parseExpr'
 
 paren :: Parser a -> Parser a
 paren = between (char '(' >> many space) (many space >> char ')')
 
-parseIdent :: Parser Expr
-parseIdent = Var <$> parseIdent'
+parseVar :: Parser Expr
+parseVar = Var <$> parseIdent'
 
 keyword :: String -> Parser String
 keyword s = do
