@@ -40,6 +40,15 @@ tArrow = TypeCon . TCon "(->)" . KFun Star $ KFun Star Star
 tTupleN :: Int -> Type
 tTupleN n = TypeCon . TCon ("(," ++ show n ++ ")") . foldr KFun Star $ replicate n Star
 
+tRecordN :: [String] -> Type
+tRecordN xs = TypeCon . TCon ("{" ++ showFields ++ "}") . foldr KFun Star $ replicate (length xs) Star
+  where
+    showFields :: String
+    showFields = foldr (joinWith ", ") "" xs
+
+    joinWith :: String -> String -> String -> String
+    joinWith x a b = a ++ x ++ b
+
 fn :: Type -> Type -> Type
 fn a = TypeApp $ TypeApp tArrow a
 
