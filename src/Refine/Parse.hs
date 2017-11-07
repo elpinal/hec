@@ -304,3 +304,6 @@ sepBy2 p sep = do
   x <- p
   xs <- many1 $ sep >> p
   return $ x : xs
+
+fieldSpecifier :: Parser String
+fieldSpecifier = string "\\/"
