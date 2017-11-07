@@ -331,3 +331,9 @@ spec = do
 
       parseWhole record "{a=0,b=True}"         `shouldSatisfy` rightIs (Record [("a", int 0), ("b", bool True)])
       parseWhole record "{ a = 0 , b = True }" `shouldSatisfy` rightIs (Record [("a", int 0), ("b", bool True)])
+
+  describe "recordType" $
+    it "parses a record type" $ do
+      parseWhole recordType "{}"                  `shouldSatisfy` rightIs (tRecordN [])
+      parseWhole recordType "{a = Int}"           `shouldSatisfy` rightIs (tRecordN ["a"] `TypeApp` tInt)
+      parseWhole recordType "{a = Int, b = Bool}" `shouldSatisfy` rightIs (tRecordN ["a", "b"] `TypeApp` tInt `TypeApp` tBool)
