@@ -22,6 +22,7 @@ module Refine.Parse
   , parsePAs
   , Decl(..)
   , keyword
+  , record
   ) where
 
 import Text.Parsec
