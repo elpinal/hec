@@ -16,7 +16,7 @@ module Refine.Parse
   , parseList'
   , parseEmptyList
   , parseCase
-  , parseIdent'
+  , parseIdent
   , parseNewType
   , parseTuple
   , parsePAs
@@ -47,7 +47,7 @@ parseAbs :: Parser Expr
 parseAbs = do
   char '\\'
   many space
-  s <- parseIdent'
+  s <- parseIdent
   many space
   string "->"
   many space
@@ -91,7 +91,7 @@ paren :: Parser a -> Parser a
 paren = between (char '(' >> many space) (many space >> char ')')
 
 parseVar :: Parser Expr
-parseVar = Var <$> parseIdent'
+parseVar = Var <$> parseIdent
 
 keyword :: String -> Parser String
 keyword s = do
@@ -102,8 +102,8 @@ keyword s = do
 keywords :: [String]
 keywords = ["type", "case", "of", "newtype"]
 
-parseIdent' :: Parser String
-parseIdent' = do
+parseIdent :: Parser String
+parseIdent = do
   x <- lower
   xs <- many $ alphaNum <|> char '\''
   if (x : xs) `elem` keywords
@@ -158,18 +158,18 @@ parseDecl = try parseVarDecl <|> try parseTypeAnn <|> parseTypeDecl
 
 parseVarDecl :: Parser Decl
 parseVarDecl = do
-  name <- parseIdent'
+  name <- parseIdent
   arg <- optionMaybe parseArg
   surroundedBySpaces $ char '='
   e <- parseExpr'
   return . VarDecl name $ maybe e (flip Abs e) arg
 
 parseArg :: Parser String
-parseArg = try $ many1 space >> parseIdent'
+parseArg = try $ many1 space >> parseIdent
 
 parseTypeAnn :: Parser Decl
 parseTypeAnn = do
-  name <- parseIdent'
+  name <- parseIdent
   surroundedBySpaces $ string "::"
   t <- parseType'
   return $ TypeAnn name t
@@ -187,7 +187,7 @@ parseType' = try parseFunctionType <|> parseTypeTerm
 
 parseSimpleType :: Parser Type
 parseSimpleType = readType <$> parseTypeIdent
-              <|> TypeVar . flip TVar Star <$> parseIdent'
+              <|> TypeVar . flip TVar Star <$> parseIdent
               <|> try parseTupleType
               <|> paren parseSimpleType
 
@@ -235,14 +235,14 @@ parseTypeDecl = do
   return $ TypeDecl s t
 
 parsePat :: Parser Pat
-parsePat = PVar <$> parseIdent'
+parsePat = PVar <$> parseIdent
        <|> PWildcard <$ string "_"
        <|> PLit <$> parseLit'
        <|> parsePAs
 
 parsePAs :: Parser Pat
 parsePAs =  do
-  i <- parseIdent'
+  i <- parseIdent
   many space
   char '@'
   many space
@@ -309,4 +309,4 @@ fieldSpecifier :: Parser String
 fieldSpecifier = string "\\/"
 
 projField :: Parser String
-projField = fieldSpecifier >> parseIdent'
+projField = fieldSpecifier >> parseIdent
