@@ -18,6 +18,7 @@ data Expr =
   | Case Expr [(Pat, Expr)]
   | Tuple [Expr]
   | Field String
+  | Record [(String, Expr)]
     deriving (Eq, Show)
 
 data Pat =
