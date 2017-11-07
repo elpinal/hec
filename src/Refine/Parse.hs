@@ -23,6 +23,7 @@ module Refine.Parse
   , Decl(..)
   , keyword
   , record
+  , recordType
   ) where
 
 import Text.Parsec
