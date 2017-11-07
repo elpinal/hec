@@ -310,3 +310,20 @@ fieldSpecifier = string "\\/"
 
 projField :: Parser String
 projField = fieldSpecifier >> parseIdent
+
+record :: Parser Expr
+record = do
+  char '{'
+  many space
+  xs <- (f <* many space) `sepBy` (char ',' >> many space)
+  char '}'
+  return $ Record xs
+  where
+    f :: Parser (String, Expr)
+    f = do
+      s <- parseIdent
+      many space
+      char '='
+      many space
+      e <- parseExpr'
+      return (s, e)
