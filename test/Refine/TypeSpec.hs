@@ -137,6 +137,8 @@ spec = do
 
       tRecordN ["a"] `shouldBe` TypeCon (TCon "{a}" $ KFun Star Star)
 
+      tRecordN ["a", "b"] `shouldBe` TypeCon (TCon "{a, b}" $ KFun Star $ KFun Star Star)
+
 aToInt :: Subst
 aToInt = Map.fromList [(TVar "a" Star, tInt)]
 
