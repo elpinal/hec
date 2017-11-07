@@ -41,10 +41,11 @@ tTupleN :: Int -> Type
 tTupleN n = TypeCon . TCon ("(," ++ show n ++ ")") . foldr KFun Star $ replicate n Star
 
 tRecordN :: [String] -> Type
-tRecordN xs = TypeCon . TCon ("{" ++ showFields ++ "}") . foldr KFun Star $ replicate (length xs) Star
+tRecordN xs = TypeCon . TCon ("{" ++ showFields xs ++ "}") . foldr KFun Star $ replicate (length xs) Star
   where
-    showFields :: String
-    showFields = foldr (joinWith ", ") "" xs
+    showFields :: [String] -> String
+    showFields [] = ""
+    showFields xs = foldr1 (joinWith ", ") xs
 
     joinWith :: String -> String -> String -> String
     joinWith x a b = a ++ x ++ b
