@@ -307,3 +307,6 @@ sepBy2 p sep = do
 
 fieldSpecifier :: Parser String
 fieldSpecifier = string "\\/"
+
+projField :: Parser String
+projField = fieldSpecifier >> parseIdent'
