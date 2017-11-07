@@ -133,10 +133,8 @@ spec = do
 
   describe "tRecordN" $
     it "represents a record type" $ do
-      tRecordN [] `shouldBe` TypeCon (TCon "{}" Star)
-
-      tRecordN ["a"] `shouldBe` TypeCon (TCon "{a}" $ KFun Star Star)
-
+      tRecordN []         `shouldBe` TypeCon (TCon "{}" Star)
+      tRecordN ["a"]      `shouldBe` TypeCon (TCon "{a}" $ KFun Star Star)
       tRecordN ["a", "b"] `shouldBe` TypeCon (TCon "{a, b}" $ KFun Star $ KFun Star Star)
 
 aToInt :: Subst
