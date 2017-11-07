@@ -328,3 +328,6 @@ spec = do
 
       parseWhole record "{a = 0, a = True}"         `shouldSatisfy` rightIs (Record [("a", int 0), ("a", bool True)])
       parseWhole record "{a = 0, a = True, b' = 8}" `shouldSatisfy` rightIs (Record [("a", int 0), ("a", bool True), ("b'", int 8)])
+
+      parseWhole record "{a=0,b=True}"         `shouldSatisfy` rightIs (Record [("a", int 0), ("b", bool True)])
+      parseWhole record "{ a = 0 , b = True }" `shouldSatisfy` rightIs (Record [("a", int 0), ("b", bool True)])
