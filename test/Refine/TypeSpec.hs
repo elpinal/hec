@@ -131,6 +131,10 @@ spec = do
       overlap (IsIn "A" $ TypeVar $ TVar "a" Star) (IsIn "A" $ TypeVar $ TVar "a" $ KFun Star Star) `shouldBe` False
       overlap (IsIn "A" $ TypeVar $ TVar "a" Star) (IsIn "A" $ fn tInt . TypeVar $ TVar "a" Star) `shouldBe` False
 
+  describe "tRecordN" $
+    it "represents a record type" $
+      tRecordN [] `shouldBe` TypeCon (TCon "{}" Star)
+
 aToInt :: Subst
 aToInt = Map.fromList [(TVar "a" Star, tInt)]
 
