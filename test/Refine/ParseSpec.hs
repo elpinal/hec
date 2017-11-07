@@ -319,3 +319,9 @@ spec = do
     it "parses as-pattern" $ do
       parseWhole parsePAs "x @ 1"  `shouldSatisfy` rightIs (PAs "x" . PLit $ LitInt 1)
       parseWhole parsePAs "y' @ _" `shouldSatisfy` rightIs (PAs "y'" PWildcard)
+
+  describe "record" $
+    it "parses a record" $ do
+      parseWhole record "{}"                `shouldSatisfy` rightIs (Record [])
+      parseWhole record "{a = 1}"           `shouldSatisfy` rightIs (Record [("a", int 1)])
+      parseWhole record "{a = 0, b = True}" `shouldSatisfy` rightIs (Record [("a", int 0), ("b", bool True)])
