@@ -328,3 +328,20 @@ record = do
       many space
       e <- parseExpr'
       return (s, e)
+
+recordType :: Parser Type
+recordType = do
+  char '{'
+  many space
+  xs <- (f <* many space) `sepBy` (char ',' >> many space)
+  char '}'
+  return $ foldl TypeApp (tRecordN $ map fst xs) $ map snd xs
+  where
+    f :: Parser (String, Type)
+    f = do
+      s <- parseIdent
+      many space
+      char '='
+      many space
+      t <- parseType'
+      return (s, t)
