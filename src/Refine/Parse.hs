@@ -347,3 +347,16 @@ recordType = do
       many space
       t <- parseType'
       return (s, t)
+
+dataDecl :: Parser Decl
+dataDecl = do
+  keyword "data"
+  many space
+  t <- parseTypeIdent
+  many space
+  char '='
+  many space
+  c <- parseTypeIdent
+  many space
+  ts <- parseTypeTerm `sepBy` many space
+  return $ DataDecl t [(c, ts)]
