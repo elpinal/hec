@@ -194,6 +194,7 @@ parseSimpleType = readType <$> parseTypeIdent
               <|> TypeVar . flip TVar Star <$> parseIdent
               <|> try parseTupleType
               <|> paren parseSimpleType
+              <|> recordType
 
 parseTypeTerm :: Parser Type
 parseTypeTerm = try parseSimpleType
