@@ -77,20 +77,20 @@ type Subst = Map.Map TVar Type
 
 class Types t where
   apply :: Subst -> t -> t
-  ftv :: t -> Set.Set TVar
+  tv :: t -> Set.Set TVar
 
 instance Types Type where
   apply s v @ (TypeVar name) = Map.findWithDefault v name s
   apply s (TypeApp a b) = TypeApp (apply s a) (apply s b)
   apply _ t = t
 
-  ftv (TypeVar v) = Set.singleton v
-  ftv (TypeApp t u) = ftv t `Set.union` ftv u
-  ftv _ = Set.empty
+  tv (TypeVar v) = Set.singleton v
+  tv (TypeApp t u) = tv t `Set.union` tv u
+  tv _ = Set.empty
 
 instance Types t => Types [t] where
   apply = map . apply
-  ftv = Set.unions . map ftv
+  tv = Set.unions . map tv
 
 -- |
 -- Composes two @Subst@ from right in series, i.e.
@@ -126,7 +126,7 @@ mgu _ _ = fail "types do not unify"
 varBind :: Monad m => TVar -> Type -> m Subst
 varBind u t
   | t == TypeVar u = return Map.empty
-  | u `Set.member` ftv t = fail "occur check fails"
+  | u `Set.member` tv t = fail "occur check fails"
   | kind u /= kind t = fail "kinds do not match"
   | otherwise = return $ Map.singleton u t
 
@@ -151,11 +151,11 @@ data Pred = IsIn String Type
 
 instance Types t => Types (Qual t) where
   apply s (ps :=> t) = apply s ps :=> apply s t
-  ftv (ps :=> t) = ftv ps `Set.union` ftv t
+  tv (ps :=> t) = tv ps `Set.union` tv t
 
 instance Types Pred where
   apply s (IsIn i t) = IsIn i $ apply s t
-  ftv (IsIn _ t) = ftv t
+  tv (IsIn _ t) = tv t
 
 -- | 'mgu' on 'Pred'.
 mguPred :: Pred -> Pred -> Maybe Subst
@@ -284,13 +284,13 @@ data Scheme = Forall [Kind] (Qual Type)
 
 instance Types Scheme where
   apply s (Forall ks qt) = Forall ks $ apply s qt
-  ftv (Forall _ qt) = ftv qt
+  tv (Forall _ qt) = tv qt
 
 quantify :: Set.Set TVar -> Qual Type -> Scheme
 quantify vs qt = Forall ks $ apply s qt
   where
     vs' :: [TVar]
-    vs' = Set.toList . Set.intersection vs $ ftv qt
+    vs' = Set.toList . Set.intersection vs $ tv qt
 
     ks :: [Kind]
     ks = map kind vs'
@@ -305,7 +305,7 @@ data Assump = String :>: Scheme
 
 instance Types Assump where
   apply s (i :>:sc) = i :>: apply s sc
-  ftv (_ :>: sc) = ftv sc
+  tv (_ :>: sc) = tv sc
 
 find :: Monad m => String -> [Assump] -> m Scheme
 find i [] = fail $ "unbound identifier: " ++ i
@@ -437,14 +437,14 @@ tiAlts ce as alts t = do
 split :: Monad m => ClassEnv -> Set.Set TVar -> Set.Set TVar -> [Pred] -> m ([Pred], [Pred])
 split ce fs gs ps = do
   ps' <- reduce ce ps
-  let (ds, rs) = partition (all (`Set.member` fs) . ftv) ps'
+  let (ds, rs) = partition (all (`Set.member` fs) . tv) ps'
   rs' <- defaultedPreds ce (Set.union fs gs) rs
   return (ds, rs \\ rs')
 
 type Ambiguity = (TVar, [Pred])
 
 ambiguities :: ClassEnv -> Set.Set TVar -> [Pred] -> [Ambiguity]
-ambiguities _ vs ps = [(v, filter (elem v . ftv) ps) | v <- Set.toList $ ftv ps Set.\\ vs]
+ambiguities _ vs ps = [(v, filter (elem v . tv) ps) | v <- Set.toList $ tv ps Set.\\ vs]
 
 numClasses :: [String]
 numClasses = ["Num"]
@@ -492,8 +492,8 @@ tiExpl ce as (_, sc, alts) = do
   let
     qs' = apply s qs
     t' = apply s t
-    fs = ftv $ apply s as
-    gs = ftv t' Set.\\ fs
+    fs = tv $ apply s as
+    gs = tv t' Set.\\ fs
     sc' = quantify gs $ qs' :=> t'
     ps' = filter (not . entail ce qs') $ apply s ps
   (ds, rs) <- split ce fs gs ps'
@@ -522,7 +522,7 @@ tiImpls ce as bs = do
              else (ds, zipWith (:>:) is $ scs2 rs s ts)
   where
     scs1 :: [Pred] -> Subst -> [Type] -> [Scheme]
-    scs1 rs s ts = map (quantify (getGenerics s ts Set.\\ ftv rs) . ([] :=>)) $ apply s ts
+    scs1 rs s ts = map (quantify (getGenerics s ts Set.\\ tv rs) . ([] :=>)) $ apply s ts
 
     scs2 :: [Pred] -> Subst -> [Type] -> [Scheme]
     scs2 rs s ts = map (quantify (getGenerics s ts) . (rs :=>)) $ apply s ts
@@ -537,10 +537,10 @@ tiImpls ce as bs = do
     getPreds s = apply s . concat
 
     getFixed :: Subst -> Set.Set TVar
-    getFixed s = ftv $ apply s as
+    getFixed s = tv $ apply s as
 
     vssOf :: Subst -> [Type] -> [Set.Set TVar]
-    vssOf s = map ftv . apply s
+    vssOf s = map tv . apply s
 
     getGenerics :: Subst -> [Type] -> Set.Set TVar
     getGenerics s ts = foldr1 Set.union (vssOf s ts) Set.\\ getFixed s
