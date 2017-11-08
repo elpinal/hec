@@ -102,7 +102,7 @@ keyword s = do
   return s
 
 keywords :: [String]
-keywords = ["type", "case", "of", "newtype"]
+keywords = ["type", "case", "of", "newtype", "data"]
 
 parseIdent :: Parser String
 parseIdent = do
