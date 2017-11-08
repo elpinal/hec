@@ -286,11 +286,11 @@ instance Types Scheme where
   apply s (Forall ks qt) = Forall ks $ apply s qt
   ftv (Forall _ qt) = ftv qt
 
-quantify :: [TVar] -> Qual Type -> Scheme
+quantify :: Set.Set TVar -> Qual Type -> Scheme
 quantify vs qt = Forall ks $ apply s qt
   where
     vs' :: [TVar]
-    vs' = Set.toList . Set.filter (`elem` vs) $ ftv qt
+    vs' = Set.toList . Set.intersection vs $ ftv qt
 
     ks :: [Kind]
     ks = map kind vs'
@@ -494,7 +494,7 @@ tiExpl ce as (_, sc, alts) = do
     t' = apply s t
     fs = ftv $ apply s as
     gs = ftv t' Set.\\ fs
-    sc' = quantify (Set.toList gs) $ qs' :=> t'
+    sc' = quantify gs $ qs' :=> t'
     ps' = filter (not . entail ce qs') $ apply s ps
   (ds, rs) <- split ce fs gs ps'
   when (sc /= sc') $
@@ -522,10 +522,10 @@ tiImpls ce as bs = do
              else (ds, zipWith (:>:) is $ scs2 rs s ts)
   where
     scs1 :: [Pred] -> Subst -> [Type] -> [Scheme]
-    scs1 rs s ts = map (quantify (Set.toList $ getGenerics s ts Set.\\ ftv rs) . ([] :=>)) $ apply s ts
+    scs1 rs s ts = map (quantify (getGenerics s ts Set.\\ ftv rs) . ([] :=>)) $ apply s ts
 
     scs2 :: [Pred] -> Subst -> [Type] -> [Scheme]
-    scs2 rs s ts = map (quantify (Set.toList $ getGenerics s ts) . (rs :=>)) $ apply s ts
+    scs2 rs s ts = map (quantify (getGenerics s ts) . (rs :=>)) $ apply s ts
 
     is :: [String]
     is = map fst bs
