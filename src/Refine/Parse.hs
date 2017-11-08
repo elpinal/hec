@@ -150,6 +150,7 @@ data Decl =
   | TypeAnn String Type
   | TypeDecl String Type
   | NewTypeDecl String String Type
+  | DataDecl String [(String, [Expr])]
   deriving (Eq, Show)
 
 parseDecls :: Parser [Decl]
