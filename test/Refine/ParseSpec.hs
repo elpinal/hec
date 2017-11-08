@@ -320,6 +320,8 @@ spec = do
       parseWhole parsePAs "x @ 1"  `shouldSatisfy` rightIs (PAs "x" . PLit $ LitInt 1)
       parseWhole parsePAs "y' @ _" `shouldSatisfy` rightIs (PAs "y'" PWildcard)
 
+      parseWhole parsePAs "x@1" `shouldSatisfy` rightIs (PAs "x" . PLit $ LitInt 1)
+
   describe "record" $
     it "parses a record" $ do
       parseWhole record "{}"                `shouldSatisfy` rightIs (Record [])
