@@ -355,3 +355,5 @@ spec = do
 
     it "fails if given invalid syntax" $ do
       parseWhole dataDecl "dataA=B Int" `shouldSatisfy` isLeft
+
+      parseWhole dataDecl "data A = B Int -> Bool" `shouldSatisfy` isLeft
