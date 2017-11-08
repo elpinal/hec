@@ -353,7 +353,13 @@ spec = do
 
       parseWhole dataDecl "data A=B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt])])
 
+      parseWhole dataDecl "data A = B" `shouldSatisfy` rightIs (DataDecl "A" [("B", [])])
+
     it "fails if given invalid syntax" $ do
       parseWhole dataDecl "dataA=B Int" `shouldSatisfy` isLeft
 
       parseWhole dataDecl "data A = B Int -> Bool" `shouldSatisfy` isLeft
+
+      parseWhole dataDecl "data A =" `shouldSatisfy` isLeft
+      parseWhole dataDecl "data A"   `shouldSatisfy` isLeft
+      parseWhole dataDecl "data"     `shouldSatisfy` isLeft
