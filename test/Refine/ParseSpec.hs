@@ -346,9 +346,12 @@ spec = do
 
       parseWhole recordType "{a = Int, a = Int, a = Int}" `shouldSatisfy` rightIs (tRecordN ["a", "a", "a"] `TypeApp` tInt `TypeApp` tInt `TypeApp` tInt)
 
-  describe "dataDecl" $
+  describe "dataDecl" $ do
     it "parses a datatype declaration" $ do
       parseWhole dataDecl "data A = A Int" `shouldSatisfy` rightIs (DataDecl "A" [("A", [tInt])])
       parseWhole dataDecl "data A = B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt])])
 
       parseWhole dataDecl "data A=B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt])])
+
+    it "fails if given invalid syntax" $ do
+      parseWhole dataDecl "dataA=B Int" `shouldSatisfy` isLeft
