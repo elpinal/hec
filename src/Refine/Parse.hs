@@ -24,6 +24,7 @@ module Refine.Parse
   , keyword
   , record
   , recordType
+  , dataDecl
   ) where
 
 import Text.Parsec
