@@ -118,6 +118,8 @@ spec = do
       parseWhole parseType "Int -> Bool -> Char" `shouldSatisfy` rightIs (fn tInt $ fn tBool tChar)
       parseWhole parseType "Int->Bool->Char"     `shouldSatisfy` rightIs (fn tInt $ fn tBool tChar)
 
+  describe "parseType'" $
+    it "parses a more complex type" $ do
       parseWhole parseType' "(Int)"                   `shouldSatisfy` rightIs tInt
       parseWhole parseType' "((Int))"                 `shouldSatisfy` rightIs tInt
       parseWhole parseType' "(Int -> Bool)"           `shouldSatisfy` rightIs (fn tInt tBool)
