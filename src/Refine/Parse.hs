@@ -68,7 +68,7 @@ parseBinOp = followTo parseApp
 
     parseBinOp' :: Expr -> Parser Expr
     parseBinOp' lhs = do
-      op <- BinOp <$> (surroundedBySpaces . many1) symbol <*> return lhs
+      op <- BinOp <$> surroundedBySpaces (many1 symbol <|> infixed) <*> return lhs
       fmap op parseAbs <|> followTo (fmap op parseApp)
 
 surroundedBySpaces :: Parser a -> Parser a
