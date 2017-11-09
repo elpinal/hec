@@ -403,5 +403,9 @@ spec = do
       parseWhole dataDecl "data"     `shouldSatisfy` isLeft
 
   describe "infixed" $
-    it "parses a infixed function" $
-      parseWhole infixed "`a`" `shouldSatisfy` rightIs "a"
+    it "parses a infixed function" $ do
+      parseWhole infixed "`a`"    `shouldSatisfy` rightIs "a"
+      parseWhole infixed "`a'`"   `shouldSatisfy` rightIs "a'"
+      parseWhole infixed "`a''`"  `shouldSatisfy` rightIs "a''"
+      parseWhole infixed "`a0b`"  `shouldSatisfy` rightIs "a0b"
+      parseWhole infixed "`qrst`" `shouldSatisfy` rightIs "qrst"
