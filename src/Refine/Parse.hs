@@ -358,11 +358,17 @@ dataDecl = do
   t <- parseTypeIdent
   many space
   char '='
-  many space
-  c <- parseTypeIdent
-  many space
-  ts <- parseTypeTerm `sepBy` many space
-  return $ DataDecl t [(c, ts)]
+  xs <- f `sepBy1` (many space >> char '|')
+  return $ DataDecl t xs
+  where
+    f :: Parser (String, [Type])
+    f = do
+      many space
+      c <- parseTypeIdent
+      many space
+      ts <- parseTypeTerm `sepBy` many space
+      return (c, ts)
+
 
 unitType :: Parser Type
 unitType = tUnit <$ (char '(' >> many space >> char ')')
