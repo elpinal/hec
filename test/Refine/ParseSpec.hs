@@ -134,6 +134,9 @@ spec = do
       parseWhole parseType' "(Int, Bool)" `shouldSatisfy` rightIs (pair tInt tBool)
       parseWhole parseType' "(a, b)"      `shouldSatisfy` rightIs (pair (TypeVar $ TVar "a" Star) (TypeVar $ TVar "b" Star))
 
+      parseWhole parseType' "()"  `shouldSatisfy` rightIs tUnit
+      parseWhole parseType' "( )" `shouldSatisfy` rightIs tUnit
+
   describe "parseTypeAnn" $
     it "parses a type annotation declaration" $ do
       parseWhole parseTypeAnn "i :: Int"                 `shouldSatisfy` rightIs (TypeAnn "i" tInt)
@@ -354,6 +357,8 @@ spec = do
       parseWhole dataDecl "data A=B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt])])
 
       parseWhole dataDecl "data A = B" `shouldSatisfy` rightIs (DataDecl "A" [("B", [])])
+
+      parseWhole dataDecl "data A = B ()" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
 
       parseWhole dataDecl "data A = B {}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN []])])
 

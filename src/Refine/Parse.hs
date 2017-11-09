@@ -192,6 +192,7 @@ parseType' = try parseFunctionType <|> parseTypeTerm
 parseSimpleType :: Parser Type
 parseSimpleType = readType <$> parseTypeIdent
               <|> TypeVar . flip TVar Star <$> parseIdent
+              <|> try unitType
               <|> try parseTupleType
               <|> paren parseSimpleType
               <|> recordType
