@@ -380,6 +380,9 @@ spec = do
       parseWhole dataDecl "data A = B Int Bool"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt, tBool])])
       parseWhole dataDecl "data A = B (Int -> Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt `fn` tBool])])
 
+    it "parses a variant declaration" $ do
+      parseWhole dataDecl "data A = B | C" `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", [])])
+
     it "fails if given invalid syntax" $ do
       parseWhole dataDecl "dataA=B Int" `shouldSatisfy` isLeft
 
