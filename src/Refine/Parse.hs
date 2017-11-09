@@ -362,3 +362,6 @@ dataDecl = do
   many space
   ts <- parseTypeTerm `sepBy` many space
   return $ DataDecl t [(c, ts)]
+
+unitType :: Parser Type
+unitType = tUnit <$ (char '(' >> many space >> char ')')
