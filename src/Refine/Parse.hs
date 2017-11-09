@@ -373,8 +373,4 @@ unitType :: Parser Type
 unitType = tUnit <$ (char '(' >> many space >> char ')')
 
 infixed :: Parser String
-infixed = do
-  char '`'
-  s <- parseIdent
-  char '`'
-  return s
+infixed = between (char '`') (char '`') $ parseIdent
