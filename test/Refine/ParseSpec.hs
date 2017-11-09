@@ -374,6 +374,9 @@ spec = do
       parseWhole dataDecl "data A = B {a = Int}"           `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a"] `TypeApp` tInt])])
       parseWhole dataDecl "data A = B {a = Bool, b = Int}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "b"] `TypeApp` tBool `TypeApp` tInt])])
       parseWhole dataDecl "data A = B {b = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["b", "a"] `TypeApp` tInt `TypeApp` tBool])])
+      parseWhole dataDecl "data A = B {a = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "a"] `TypeApp` tInt `TypeApp` tBool])])
+      parseWhole dataDecl "data A = B {a = Int, a = Int}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "a"] `TypeApp` tInt `TypeApp` tInt])])
+
       parseWhole dataDecl "data A = B Int Bool"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt, tBool])])
       parseWhole dataDecl "data A = B (Int -> Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt `fn` tBool])])
 
