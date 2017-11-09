@@ -385,6 +385,9 @@ spec = do
       parseWhole dataDecl "data A=B|C"         `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", [])])
       parseWhole dataDecl "data A = B | C | D" `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", []), ("D", [])])
 
+      parseWhole dataDecl "data A = B Int | C Bool" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [tBool])])
+      parseWhole dataDecl "data A = B Int | C"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [])])
+
     it "fails if given invalid syntax" $ do
       parseWhole dataDecl "dataA=B Int" `shouldSatisfy` isLeft
 
