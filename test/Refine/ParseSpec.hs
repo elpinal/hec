@@ -385,6 +385,7 @@ spec = do
       parseWhole dataDecl "data A=B|C"         `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", [])])
       parseWhole dataDecl "data A = B | C | D" `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", []), ("D", [])])
 
+      -- FIXME
       parseWhole dataDecl "data A = B Int | C Bool" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [tBool])])
       parseWhole dataDecl "data A = B Int | C"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [])])
 
