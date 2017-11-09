@@ -388,6 +388,7 @@ spec = do
       -- FIXME
       parseWhole dataDecl "data A = B Int | C Bool" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [tBool])])
       parseWhole dataDecl "data A = B Int | C"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [])])
+      parseWhole dataDecl "data A = B Int|C"        `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [])])
 
     it "fails if given invalid syntax" $ do
       parseWhole dataDecl "dataA=B Int" `shouldSatisfy` isLeft
