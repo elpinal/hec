@@ -358,7 +358,16 @@ spec = do
 
       parseWhole dataDecl "data A = B" `shouldSatisfy` rightIs (DataDecl "A" [("B", [])])
 
-      parseWhole dataDecl "data A = B ()" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
+      parseWhole dataDecl "data A = B ()"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
+      parseWhole dataDecl "data A = B (())" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
+
+      parseWhole dataDecl "data A = B (Int, Bool)"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` tInt `TypeApp` tBool])])
+      parseWhole dataDecl "data A = B ((Int), Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` tInt `TypeApp` tBool])])
+      parseWhole dataDecl "data A = B (Int, ())"     `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` tInt `TypeApp` tUnit])])
+
+      parseWhole dataDecl "data A = B ((), (), (Int, Bool))"
+        `shouldSatisfy`
+        rightIs (DataDecl "A" [("B", [tTupleN 3 `TypeApp` tUnit `TypeApp` tUnit `TypeApp` (tTupleN 2 `TypeApp` tInt `TypeApp` tBool)])])
 
       parseWhole dataDecl "data A = B {}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN []])])
 
