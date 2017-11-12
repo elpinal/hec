@@ -29,8 +29,8 @@ module Refine.Parse
   ) where
 
 import Text.Parsec
-import Text.Parsec.String
 import Text.Parsec.Language
+import Text.Parsec.String
 import Text.Parsec.Token hiding (symbol)
 
 import Refine.AST
