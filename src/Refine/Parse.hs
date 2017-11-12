@@ -77,8 +77,11 @@ parseBinOp = followTo parseApp
 surroundedBySpaces :: Parser a -> Parser a
 surroundedBySpaces = between (many space) $ many space
 
+symbols :: String
+symbols = "!#$%&+/<=>?@:"
+
 symbol :: Parser Char
-symbol = oneOf "!#$%&+/<=>?@:"
+symbol = oneOf symbols
 
 parseApp :: Parser Expr
 parseApp = followTo parseTerm
