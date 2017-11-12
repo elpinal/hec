@@ -388,4 +388,5 @@ def = emptyDef
   , identLetter = alphaNum <|> char '\''
   , opStart = symbol
   , opLetter = symbol
+  , reservedNames = keywords
   }
