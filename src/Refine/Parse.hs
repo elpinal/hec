@@ -390,3 +390,6 @@ def = emptyDef
   , opLetter = symbol
   , reservedNames = keywords
   }
+
+lexer :: TokenParser st
+lexer = makeTokenParser def
