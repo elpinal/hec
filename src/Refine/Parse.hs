@@ -403,3 +403,6 @@ app = do
   a <- ident
   b <- ident
   return $ App (Var a) (Var b)
+
+variable :: Parser Expr
+variable = Var <$> ident
