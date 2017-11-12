@@ -399,10 +399,7 @@ ident :: Parser String
 ident = identifier lexer
 
 app :: Parser Expr
-app = do
-  a <- ident
-  b <- ident
-  return $ App (Var a) (Var b)
+app = App <$> variable <*> variable
 
 variable :: Parser Expr
 variable = Var <$> ident
