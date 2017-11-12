@@ -411,3 +411,37 @@ spec = do
       parseWhole infixed "`a''`"  `shouldSatisfy` rightIs "a''"
       parseWhole infixed "`a0b`"  `shouldSatisfy` rightIs "a0b"
       parseWhole infixed "`qrst`" `shouldSatisfy` rightIs "qrst"
+
+  describe "ident" $ do
+    it "parses an identifier" $ do
+      parseWhole ident "a"              `shouldSatisfy` rightIs "a"
+      parseWhole ident "abc"            `shouldSatisfy` rightIs "abc"
+      parseWhole ident "abcDE"          `shouldSatisfy` rightIs "abcDE"
+      parseWhole ident "abcDe"          `shouldSatisfy` rightIs "abcDe"
+      parseWhole ident "abc123"         `shouldSatisfy` rightIs "abc123"
+      parseWhole ident "abc1def"        `shouldSatisfy` rightIs "abc1def"
+      parseWhole ident "abc'"           `shouldSatisfy` rightIs "abc'"
+      parseWhole ident "abc'a"          `shouldSatisfy` rightIs "abc'a"
+      parseWhole ident "abc'A2'12'3''4" `shouldSatisfy` rightIs "abc'A2'12'3''4"
+
+      parseWhole ident "cas"    `shouldSatisfy` rightIs "cas"
+      parseWhole ident "cases"  `shouldSatisfy` rightIs "cases"
+      parseWhole ident "case'"  `shouldSatisfy` rightIs "case'"
+      parseWhole ident "caseof" `shouldSatisfy` rightIs "caseof"
+      parseWhole ident "types"  `shouldSatisfy` rightIs "types"
+      parseWhole ident "cASE"   `shouldSatisfy` rightIs "cASE"
+
+    it "fails if it is not an identifier" $ do
+      parseWhole ident "1"      `shouldSatisfy` isLeft
+      parseWhole ident ""       `shouldSatisfy` isLeft
+      parseWhole ident " "      `shouldSatisfy` isLeft
+      parseWhole ident "'"      `shouldSatisfy` isLeft
+      parseWhole ident "A"      `shouldSatisfy` isLeft
+      parseWhole ident "123+"   `shouldSatisfy` isLeft
+      parseWhole ident "Abcd"   `shouldSatisfy` isLeft
+      parseWhole ident "'11'aA" `shouldSatisfy` isLeft
+
+    it "fails if it is keyword" $ do
+      parseWhole ident "case" `shouldSatisfy` isLeft
+      parseWhole ident "of"   `shouldSatisfy` isLeft
+      parseWhole ident "type" `shouldSatisfy` isLeft
