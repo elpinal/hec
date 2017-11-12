@@ -26,6 +26,7 @@ module Refine.Parse
   , recordType
   , dataDecl
   , infixed
+  , ident
   ) where
 
 import Text.Parsec
