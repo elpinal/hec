@@ -80,7 +80,7 @@ surroundedBySpaces = between (many space) $ many space
 symbols :: String
 symbols = "!#$%&+/<=>?@:"
 
-symbol :: Parser Char
+symbol :: Parsec String u Char
 symbol = oneOf symbols
 
 parseApp :: Parser Expr
