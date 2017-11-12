@@ -58,6 +58,7 @@ parseAbs = do
   body <- parseExpr'
   return $ Abs s body
 
+-- TODO: refactor: the current implementation is not readable.
 parseBinOp :: Parser Expr
 parseBinOp = followTo parseApp
   where
