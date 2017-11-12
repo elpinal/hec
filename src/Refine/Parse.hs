@@ -31,6 +31,7 @@ module Refine.Parse
 import Text.Parsec
 import Text.Parsec.String
 import Text.Parsec.Language
+import Text.Parsec.Token hiding (symbol)
 
 import Refine.AST
 import Refine.Kind
@@ -380,3 +381,6 @@ infixed = between (char '`') (char '`') $ parseIdent
 
 def :: LanguageDef st
 def = emptyDef
+  { identStart = lower
+  , identLetter = alphaNum <|> char '\''
+  }
