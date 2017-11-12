@@ -30,6 +30,7 @@ module Refine.Parse
 
 import Text.Parsec
 import Text.Parsec.String
+import Text.Parsec.Language
 
 import Refine.AST
 import Refine.Kind
@@ -376,3 +377,6 @@ unitType = tUnit <$ (char '(' >> many space >> char ')')
 
 infixed :: Parser String
 infixed = between (char '`') (char '`') $ parseIdent
+
+def :: LanguageDef st
+def = emptyDef
