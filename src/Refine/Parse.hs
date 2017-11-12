@@ -386,6 +386,6 @@ def :: LanguageDef st
 def = emptyDef
   { identStart = lower
   , identLetter = alphaNum <|> char '\''
-  , opStart = symbols
-  , opLetter = symbols
+  , opStart = symbol
+  , opLetter = symbol
   }
