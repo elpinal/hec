@@ -393,3 +393,6 @@ def = emptyDef
 
 lexer :: TokenParser st
 lexer = makeTokenParser def
+
+ident :: Parser String
+ident = identifier lexer
