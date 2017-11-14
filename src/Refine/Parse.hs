@@ -420,3 +420,6 @@ str = LitString <$> stringLiteral lexer
 
 emptyList :: Parser Literal
 emptyList = LitEmptyList <$ (Token.symbol lexer "[" >> Token.symbol lexer "]")
+
+unit :: Parser Literal
+unit = LitUnit <$ (Token.symbol lexer "(" >> Token.symbol lexer ")")
