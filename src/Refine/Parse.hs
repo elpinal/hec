@@ -441,7 +441,9 @@ app = do
 binary :: Parser Expr
 binary = do
   a <- app
-  chainl app (do
-    o <- operator lexer
-    return $ \a b -> BinOp o a b) a
+  chainl app operate a
 
+operate :: Parser (Expr -> Expr -> Expr)
+operate = do
+  o <- operator lexer
+  return $ \a b -> BinOp o a b
