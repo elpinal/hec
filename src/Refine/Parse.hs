@@ -446,4 +446,4 @@ binary = do
 operate :: Parser (Expr -> Expr -> Expr)
 operate = do
   o <- operator lexer
-  return $ \a b -> BinOp o a b
+  return $ BinOp o
