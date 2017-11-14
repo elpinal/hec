@@ -400,7 +400,9 @@ ident :: Parser String
 ident = identifier lexer
 
 app :: Parser Expr
-app = App <$> variable <*> variable
+app = do
+  t <- term
+  chainl term (return $ \a b -> App a b) t
 
 variable :: Parser Expr
 variable = Var <$> ident
