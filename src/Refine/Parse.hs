@@ -431,3 +431,7 @@ literal = number
       <|> str
       <|> emptyList
       <|> unit
+
+term :: Parser Expr
+term = Lit <$> literal
+   <|> variable
