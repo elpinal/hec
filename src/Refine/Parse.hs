@@ -447,7 +447,7 @@ operate :: Parser (Expr -> Expr -> Expr)
 operate = BinOp <$> operator lexer
 
 expression :: Parser Expr
-expression = binary
+expression = lambdaAbs <|> binary
 
 lambdaAbs :: Parser Expr
 lambdaAbs = do
