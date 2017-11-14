@@ -445,3 +445,6 @@ binary = do
 
 operate :: Parser (Expr -> Expr -> Expr)
 operate = BinOp <$> operator lexer
+
+expression :: Parser Expr
+expression = binary
