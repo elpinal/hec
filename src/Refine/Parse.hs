@@ -444,6 +444,4 @@ binary = do
   chainl app operate a
 
 operate :: Parser (Expr -> Expr -> Expr)
-operate = do
-  o <- operator lexer
-  return $ BinOp o
+operate = BinOp <$> operator lexer
