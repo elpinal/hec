@@ -448,3 +448,11 @@ operate = BinOp <$> operator lexer
 
 expression :: Parser Expr
 expression = binary
+
+lambdaAbs :: Parser Expr
+lambdaAbs = do
+  Token.symbol lexer "\\"
+  i <- ident
+  Token.symbol lexer "->"
+  e <- expression
+  return $ Abs i e
