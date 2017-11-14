@@ -423,3 +423,11 @@ emptyList = LitEmptyList <$ (Token.symbol lexer "[" >> Token.symbol lexer "]")
 
 unit :: Parser Literal
 unit = LitUnit <$ (Token.symbol lexer "(" >> Token.symbol lexer ")")
+
+literal :: Parser Literal
+literal = number
+      <|> bool
+      <|> character
+      <|> str
+      <|> emptyList
+      <|> unit
