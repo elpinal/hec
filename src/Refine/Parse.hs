@@ -33,6 +33,7 @@ import Text.Parsec
 import Text.Parsec.Language
 import Text.Parsec.String
 import Text.Parsec.Token hiding (symbol)
+import qualified Text.Parsec.Token as Token
 
 import Refine.AST
 import Refine.Kind
