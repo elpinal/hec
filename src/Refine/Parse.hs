@@ -399,11 +399,6 @@ lexer = makeTokenParser def
 ident :: Parser String
 ident = identifier lexer
 
-app :: Parser Expr
-app = do
-  t <- term
-  chainl term (return $ \a b -> App a b) t
-
 variable :: Parser Expr
 variable = Var <$> ident
 
@@ -437,3 +432,8 @@ literal = number
 term :: Parser Expr
 term = Lit <$> literal
    <|> variable
+
+app :: Parser Expr
+app = do
+  t <- term
+  chainl term (return $ \a b -> App a b) t
