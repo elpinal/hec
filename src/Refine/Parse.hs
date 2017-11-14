@@ -417,3 +417,6 @@ character = LitChar <$> charLiteral lexer
 
 str :: Parser Literal
 str = LitString <$> stringLiteral lexer
+
+emptyList :: Parser Literal
+emptyList = LitEmptyList <$ (Token.symbol lexer "[" >> Token.symbol lexer "]")
