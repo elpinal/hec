@@ -413,3 +413,6 @@ bool = LitBool False <$ lexeme lexer (string "False")
 
 character :: Parser Literal
 character = LitChar <$> charLiteral lexer
+
+str :: Parser Literal
+str = LitString <$> stringLiteral lexer
