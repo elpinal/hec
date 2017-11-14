@@ -391,6 +391,7 @@ def = emptyDef
   , opStart = symbol
   , opLetter = symbol
   , reservedNames = keywords
+  , reservedOpNames = ["\\", "->"]
   }
 
 lexer :: TokenParser st
@@ -451,8 +452,8 @@ expression = lambdaAbs <|> binary
 
 lambdaAbs :: Parser Expr
 lambdaAbs = do
-  Token.symbol lexer "\\"
+  reservedOp lexer "\\"
   i <- ident
-  Token.symbol lexer "->"
+  reservedOp lexer "->"
   e <- expression
   return $ Abs i e
