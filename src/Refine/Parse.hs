@@ -403,3 +403,6 @@ app = App <$> variable <*> variable
 
 variable :: Parser Expr
 variable = Var <$> ident
+
+number :: Parser Literal
+number = LitInt . fromIntegral <$> decimal lexer
