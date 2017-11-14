@@ -437,3 +437,11 @@ app :: Parser Expr
 app = do
   t <- term
   chainl term (return $ \a b -> App a b) t
+
+binary :: Parser Expr
+binary = do
+  a <- app
+  chainl app (do
+    o <- operator lexer
+    return $ \a b -> BinOp o a b) a
+
