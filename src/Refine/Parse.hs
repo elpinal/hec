@@ -35,7 +35,7 @@ import Text.Parsec.String
 import Text.Parsec.Token hiding (symbol)
 import qualified Text.Parsec.Token as Token
 
-import Refine.AST
+import Refine.AST hiding (bool)
 import Refine.Kind
 import Refine.Type
 
