@@ -410,3 +410,6 @@ number = LitInt . fromIntegral <$> decimal lexer
 bool :: Parser Literal
 bool = LitBool False <$ lexeme lexer (string "False")
    <|> LitBool True  <$ lexeme lexer (string "True")
+
+character :: Parser Literal
+character = LitChar <$> charLiteral lexer
