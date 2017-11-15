@@ -16,7 +16,6 @@ module Refine.Parse
   , parseList'
   , parseEmptyList
   , parseCase
-  , parseIdent
   , parseNewType
   , parseTuple
   , parsePAs
@@ -68,9 +67,6 @@ keyword s = do
 
 keywords :: [String]
 keywords = ["type", "case", "of", "newtype", "data"]
-
-parseIdent :: Parser String
-parseIdent = ident
 
 parseLit :: Parser Expr
 parseLit = Lit <$> literal

@@ -251,39 +251,39 @@ spec = do
       parse' (keyword "  ")   "  a"   `shouldSatisfy` isLeft
       parse' (keyword "1 ")   "1 a"   `shouldSatisfy` isLeft
 
-  describe "parseIdent" $ do
+  describe "ident" $ do
     it "parses an identifier" $ do
-      parseWhole parseIdent "a"              `shouldSatisfy` rightIs "a"
-      parseWhole parseIdent "abc"            `shouldSatisfy` rightIs "abc"
-      parseWhole parseIdent "abcDE"          `shouldSatisfy` rightIs "abcDE"
-      parseWhole parseIdent "abcDe"          `shouldSatisfy` rightIs "abcDe"
-      parseWhole parseIdent "abc123"         `shouldSatisfy` rightIs "abc123"
-      parseWhole parseIdent "abc1def"        `shouldSatisfy` rightIs "abc1def"
-      parseWhole parseIdent "abc'"           `shouldSatisfy` rightIs "abc'"
-      parseWhole parseIdent "abc'a"          `shouldSatisfy` rightIs "abc'a"
-      parseWhole parseIdent "abc'A2'12'3''4" `shouldSatisfy` rightIs "abc'A2'12'3''4"
+      parseWhole ident "a"              `shouldSatisfy` rightIs "a"
+      parseWhole ident "abc"            `shouldSatisfy` rightIs "abc"
+      parseWhole ident "abcDE"          `shouldSatisfy` rightIs "abcDE"
+      parseWhole ident "abcDe"          `shouldSatisfy` rightIs "abcDe"
+      parseWhole ident "abc123"         `shouldSatisfy` rightIs "abc123"
+      parseWhole ident "abc1def"        `shouldSatisfy` rightIs "abc1def"
+      parseWhole ident "abc'"           `shouldSatisfy` rightIs "abc'"
+      parseWhole ident "abc'a"          `shouldSatisfy` rightIs "abc'a"
+      parseWhole ident "abc'A2'12'3''4" `shouldSatisfy` rightIs "abc'A2'12'3''4"
 
-      parseWhole parseIdent "cas"    `shouldSatisfy` rightIs "cas"
-      parseWhole parseIdent "cases"  `shouldSatisfy` rightIs "cases"
-      parseWhole parseIdent "case'"  `shouldSatisfy` rightIs "case'"
-      parseWhole parseIdent "caseof" `shouldSatisfy` rightIs "caseof"
-      parseWhole parseIdent "types"  `shouldSatisfy` rightIs "types"
-      parseWhole parseIdent "cASE"   `shouldSatisfy` rightIs "cASE"
+      parseWhole ident "cas"    `shouldSatisfy` rightIs "cas"
+      parseWhole ident "cases"  `shouldSatisfy` rightIs "cases"
+      parseWhole ident "case'"  `shouldSatisfy` rightIs "case'"
+      parseWhole ident "caseof" `shouldSatisfy` rightIs "caseof"
+      parseWhole ident "types"  `shouldSatisfy` rightIs "types"
+      parseWhole ident "cASE"   `shouldSatisfy` rightIs "cASE"
 
     it "fails if it is not an identifier" $ do
-      parseWhole parseIdent "1"      `shouldSatisfy` isLeft
-      parseWhole parseIdent ""       `shouldSatisfy` isLeft
-      parseWhole parseIdent " "      `shouldSatisfy` isLeft
-      parseWhole parseIdent "'"      `shouldSatisfy` isLeft
-      parseWhole parseIdent "A"      `shouldSatisfy` isLeft
-      parseWhole parseIdent "123+"   `shouldSatisfy` isLeft
-      parseWhole parseIdent "Abcd"   `shouldSatisfy` isLeft
-      parseWhole parseIdent "'11'aA" `shouldSatisfy` isLeft
+      parseWhole ident "1"      `shouldSatisfy` isLeft
+      parseWhole ident ""       `shouldSatisfy` isLeft
+      parseWhole ident " "      `shouldSatisfy` isLeft
+      parseWhole ident "'"      `shouldSatisfy` isLeft
+      parseWhole ident "A"      `shouldSatisfy` isLeft
+      parseWhole ident "123+"   `shouldSatisfy` isLeft
+      parseWhole ident "Abcd"   `shouldSatisfy` isLeft
+      parseWhole ident "'11'aA" `shouldSatisfy` isLeft
 
     it "fails if it is keyword" $ do
-      parseWhole parseIdent "case" `shouldSatisfy` isLeft
-      parseWhole parseIdent "of"   `shouldSatisfy` isLeft
-      parseWhole parseIdent "type" `shouldSatisfy` isLeft
+      parseWhole ident "case" `shouldSatisfy` isLeft
+      parseWhole ident "of"   `shouldSatisfy` isLeft
+      parseWhole ident "type" `shouldSatisfy` isLeft
 
   describe "parseNewType" $
     it "parses a newtype declaration" $ do
