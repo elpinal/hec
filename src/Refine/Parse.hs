@@ -404,7 +404,7 @@ variable :: Parser Expr
 variable = Var <$> ident
 
 number :: Parser Literal
-number = LitInt . fromIntegral <$> decimal lexer
+number = LitInt . fromIntegral <$> (lexeme <*> decimal) lexer
 
 bool :: Parser Literal
 bool = LitBool False <$ lexeme lexer (string "False")
@@ -431,10 +431,12 @@ literal = number
       <|> unit
 
 term :: Parser Expr
-term = Lit <$> literal
-   <|> variable
-   <|> parens lexer expression
-   <|> tuple
+term = choice
+  [ try $ Lit <$> literal
+  , variable
+  , parens lexer expression
+  , tuple
+  ]
 
 app :: Parser Expr
 app = term `chainl1` return App
