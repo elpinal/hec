@@ -35,7 +35,7 @@ import Text.Parsec.String
 import Text.Parsec.Token hiding (symbol)
 import qualified Text.Parsec.Token as Token
 
-import Data.Char (isLower)
+import Data.Char (isLower, isUpper)
 
 import Refine.AST hiding (bool)
 import Refine.Kind
@@ -317,6 +317,13 @@ varid = do
     then return i
     else unexpected "constructor identifier" <?> "variable identifier"
 
+conid :: Parser String
+conid = do
+  i <- ident
+  if isUpper $ head i
+    then return i
+    else unexpected "variable identifier" <?> "constructor identifier"
+
 variable :: Parser Expr
 variable = Var <$> varid <?> "variable"
 
@@ -382,7 +389,7 @@ expression = lambdaAbs <|> binary
 lambdaAbs :: Parser Expr
 lambdaAbs = flip label "lambda abstraction" $ do
   reservedOp lexer "\\"
-  i <- ident
+  i <- varid
   reservedOp lexer "->"
   e <- expression
   return $ Abs i e
