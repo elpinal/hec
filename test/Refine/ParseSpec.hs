@@ -34,6 +34,8 @@ spec = do
       parseExpr "[ ]"          `shouldSatisfy` rightIs (Lit LitEmptyList)
       parseExpr "x 1"          `shouldSatisfy` rightIs (App (Var "x") (int 1))
       parseExpr "f 1"          `shouldSatisfy` rightIs (App (Var "f") (int 1))
+      parseExpr "1f"           `shouldSatisfy` rightIs (App (int 1) $ Var "f")
+      parseExpr "1 f"          `shouldSatisfy` rightIs (App (int 1) $ Var "f")
       parseExpr "(f 1)"        `shouldSatisfy` rightIs (App (Var "f") (int 1))
       parseExpr "( f 1 )"      `shouldSatisfy` rightIs (App (Var "f") (int 1))
       parseExpr "g False"      `shouldSatisfy` rightIs (App (Var "g") (bool False))
@@ -80,7 +82,6 @@ spec = do
       parseExpr "map $ \\x -> x" `shouldSatisfy` rightIs (BinOp "$" (Var "map") . Abs "x" $ Var "x")
 
     it "returns an error when extra tokens appear" $ do
-      parseExpr "1f"         `shouldSatisfy` isLeft
       parseExpr "TrueA"      `shouldSatisfy` isLeft
       parseExpr "f \\x -> x" `shouldSatisfy` isLeft
 

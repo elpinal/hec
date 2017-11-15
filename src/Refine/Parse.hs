@@ -49,32 +49,13 @@ parseExpr :: String -> Either ParseError Expr
 parseExpr = parseWhole parseExpr'
 
 parseExpr' :: Parser Expr
-parseExpr' = parseAbs <|> parseBinOp
+parseExpr' = expression
 
 parseAbs :: Parser Expr
-parseAbs = do
-  char '\\'
-  many space
-  s <- parseIdent
-  many space
-  string "->"
-  many space
-  body <- parseExpr'
-  return $ Abs s body
+parseAbs = lambdaAbs
 
--- TODO: refactor: the current implementation is not readable.
 parseBinOp :: Parser Expr
-parseBinOp = followTo parseApp
-  where
-    followTo :: Parser Expr -> Parser Expr
-    followTo p = do
-      x <- p
-      try (parseBinOp' x) <|> return x
-
-    parseBinOp' :: Expr -> Parser Expr
-    parseBinOp' lhs = do
-      op <- BinOp <$> surroundedBySpaces (many1 symbol <|> infixed) <*> return lhs
-      fmap op parseAbs <|> followTo (fmap op parseApp)
+parseBinOp = binary
 
 surroundedBySpaces :: Parser a -> Parser a
 surroundedBySpaces = between (many space) $ many space
@@ -86,24 +67,16 @@ symbol :: Parsec String u Char
 symbol = oneOf symbols
 
 parseApp :: Parser Expr
-parseApp = followTo parseTerm
-  where
-    followTo :: Parser Expr -> Parser Expr
-    followTo p = do
-      x <- p
-      try (followTo $ flip App <$> (many1 space *> parseTerm) <*> return x) <|> return x
+parseApp = app
 
 parseTerm :: Parser Expr
-parseTerm = try parseLit
-        <|> parseVar
-        <|> try parseTuple
-        <|> paren parseExpr'
+parseTerm = term
 
 paren :: Parser a -> Parser a
 paren = between (char '(' >> many space) (many space >> char ')')
 
 parseVar :: Parser Expr
-parseVar = Var <$> parseIdent
+parseVar = variable
 
 keyword :: String -> Parser String
 keyword s = do
@@ -115,45 +88,28 @@ keywords :: [String]
 keywords = ["type", "case", "of", "newtype", "data"]
 
 parseIdent :: Parser String
-parseIdent = do
-  x <- lower
-  xs <- many $ alphaNum <|> char '\''
-  if (x : xs) `elem` keywords
-    then unexpected $ "keyword: " ++ show (x : xs)
-    else return $ x : xs
+parseIdent = ident
 
 parseLit :: Parser Expr
-parseLit = Lit <$> parseLit'
+parseLit = Lit <$> literal
 
 parseLit' :: Parser Literal
-parseLit' = parseNum
-        <|> parseBool
-        <|> parseChar
-        <|> parseString
-        <|> parseEmptyList
-        <|> parseUnit
+parseLit' = literal
 
 parseUnit :: Parser Literal
-parseUnit = LitUnit <$ (char '(' >> many space >> char ')')
+parseUnit = unit
 
 parseNum :: Parser Literal
-parseNum = LitInt . read <$> many1 digit
+parseNum = number
 
 parseBool :: Parser Literal
-parseBool = LitBool False <$ string "False"
-        <|> LitBool True <$ string "True"
+parseBool = bool
 
 parseChar :: Parser Literal
-parseChar = fmap LitChar $ between (char '\'') (char '\'') $ escapedChar <|> noneOf "'"
-
-escapedChar :: Parser Char
-escapedChar = char '\\' >> char '\''
+parseChar = character
 
 parseString :: Parser Literal
-parseString = fmap LitString $ between (char '"') (char '"') . many $ escapedString <|> noneOf "\""
-
-escapedString :: Parser Char
-escapedString = char '\\' >> char '"'
+parseString = str
 
 data Decl =
     VarDecl String Expr
@@ -171,18 +127,18 @@ parseDecl = try parseVarDecl <|> try parseTypeAnn <|> parseTypeDecl
 
 parseVarDecl :: Parser Decl
 parseVarDecl = do
-  name <- parseIdent
+  name <- ident
   arg <- optionMaybe parseArg
   surroundedBySpaces $ char '='
   e <- parseExpr'
   return . VarDecl name $ maybe e (flip Abs e) arg
 
 parseArg :: Parser String
-parseArg = try $ many1 space >> parseIdent
+parseArg = try ident
 
 parseTypeAnn :: Parser Decl
 parseTypeAnn = do
-  name <- parseIdent
+  name <- ident
   surroundedBySpaces $ string "::"
   t <- parseType'
   return $ TypeAnn name t
@@ -200,7 +156,7 @@ parseType' = try parseFunctionType <|> parseTypeTerm
 
 parseSimpleType :: Parser Type
 parseSimpleType = readType <$> parseTypeIdent
-              <|> TypeVar . flip TVar Star <$> parseIdent
+              <|> TypeVar . flip TVar Star <$> ident
               <|> try unitType
               <|> try parseTupleType
               <|> paren parseSimpleType
@@ -250,14 +206,14 @@ parseTypeDecl = do
   return $ TypeDecl s t
 
 parsePat :: Parser Pat
-parsePat = PVar <$> parseIdent
+parsePat = PVar <$> ident
        <|> PWildcard <$ string "_"
        <|> PLit <$> parseLit'
        <|> parsePAs
 
 parsePAs :: Parser Pat
 parsePAs =  do
-  i <- parseIdent
+  i <- ident
   many space
   char '@'
   many space
@@ -324,7 +280,7 @@ fieldSpecifier :: Parser String
 fieldSpecifier = string "\\/"
 
 projField :: Parser String
-projField = fieldSpecifier >> parseIdent
+projField = fieldSpecifier >> ident
 
 record :: Parser Expr
 record = do
@@ -336,7 +292,7 @@ record = do
   where
     f :: Parser (String, Expr)
     f = do
-      s <- parseIdent
+      s <- ident
       many space
       char '='
       many space
@@ -353,7 +309,7 @@ recordType = do
   where
     f :: Parser (String, Type)
     f = do
-      s <- parseIdent
+      s <- ident
       many space
       char '='
       many space
@@ -382,7 +338,7 @@ unitType :: Parser Type
 unitType = tUnit <$ (char '(' >> many space >> char ')')
 
 infixed :: Parser String
-infixed = between (char '`') (char '`') $ parseIdent
+infixed = between (char '`') (char '`') $ ident
 
 def :: LanguageDef st
 def = emptyDef
