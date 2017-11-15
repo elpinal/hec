@@ -445,7 +445,11 @@ binary :: Parser Expr
 binary = chainl1 app operate
 
 operate :: Parser (Expr -> Expr -> Expr)
-operate = BinOp <$> operator lexer
+operate = fmap BinOp $
+  operator lexer <|> infixed1
+
+infixed1 :: Parser String
+infixed1 = between (Token.symbol lexer "`") (Token.symbol lexer "`") ident
 
 expression :: Parser Expr
 expression = lambdaAbs <|> binary
