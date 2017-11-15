@@ -48,12 +48,6 @@ parse' p = parse p "<no filename>"
 parseExpr :: String -> Either ParseError Expr
 parseExpr = parseWhole expression
 
-parseAbs :: Parser Expr
-parseAbs = lambdaAbs
-
-parseBinOp :: Parser Expr
-parseBinOp = binary
-
 surroundedBySpaces :: Parser a -> Parser a
 surroundedBySpaces = between (many space) $ many space
 
@@ -63,17 +57,8 @@ symbols = "!#$%&+/<=>?@:"
 symbol :: Parsec String u Char
 symbol = oneOf symbols
 
-parseApp :: Parser Expr
-parseApp = app
-
-parseTerm :: Parser Expr
-parseTerm = term
-
 paren :: Parser a -> Parser a
 paren = between (char '(' >> many space) (many space >> char ')')
-
-parseVar :: Parser Expr
-parseVar = variable
 
 keyword :: String -> Parser String
 keyword s = do
