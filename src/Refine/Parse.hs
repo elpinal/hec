@@ -435,9 +435,7 @@ term = Lit <$> literal
    <|> variable
 
 app :: Parser Expr
-app = do
-  t <- term
-  chainl term (return App) t
+app = term `chainl1` return App
 
 binary :: Parser Expr
 binary = do
