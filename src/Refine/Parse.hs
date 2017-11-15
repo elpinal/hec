@@ -46,10 +46,7 @@ parse' :: Parser a -> String -> Either ParseError a
 parse' p = parse p "<no filename>"
 
 parseExpr :: String -> Either ParseError Expr
-parseExpr = parseWhole parseExpr'
-
-parseExpr' :: Parser Expr
-parseExpr' = expression
+parseExpr = parseWhole expression
 
 parseAbs :: Parser Expr
 parseAbs = lambdaAbs
@@ -130,7 +127,7 @@ parseVarDecl = do
   name <- ident
   arg <- optionMaybe parseArg
   surroundedBySpaces $ char '='
-  e <- parseExpr'
+  e <- expression
   return . VarDecl name $ maybe e (flip Abs e) arg
 
 parseArg :: Parser String
@@ -224,7 +221,7 @@ parseCase :: Parser Expr
 parseCase = do
   keyword "case"
   many space
-  e <- parseExpr'
+  e <- expression
   many space
   keyword "of"
   many space
@@ -232,13 +229,13 @@ parseCase = do
   many space
   string "->"
   many space
-  e1 <- parseExpr'
+  e1 <- expression
   return $ Case e [(p, e1)]
 
 parseList' :: Parser [Expr]
 parseList' = do
   char '['
-  es <- surroundedBySpaces parseExpr' `sepBy` string ","
+  es <- surroundedBySpaces expression `sepBy` string ","
   char ']'
   return es
 
@@ -266,7 +263,7 @@ parseTuple :: Parser Expr
 parseTuple = do
   char '('
   many space
-  es <- (parseExpr' <* many space) `sepBy2` try (char ',' >> many space)
+  es <- (expression <* many space) `sepBy2` try (char ',' >> many space)
   char ')'
   return $ Tuple es
 
@@ -296,7 +293,7 @@ record = do
       many space
       char '='
       many space
-      e <- parseExpr'
+      e <- expression
       return (s, e)
 
 recordType :: Parser Type
