@@ -398,29 +398,30 @@ lexer :: TokenParser st
 lexer = makeTokenParser def
 
 ident :: Parser String
-ident = identifier lexer
+ident = identifier lexer <?> "identifier"
 
 variable :: Parser Expr
-variable = Var <$> ident
+variable = Var <$> ident <?> "variable"
 
 number :: Parser Literal
-number = LitInt . fromIntegral <$> (lexeme <*> decimal) lexer
+number = LitInt . fromIntegral <$> (lexeme <*> decimal) lexer <?> "number"
 
 bool :: Parser Literal
 bool = LitBool False <$ lexeme lexer (string "False")
    <|> LitBool True  <$ lexeme lexer (string "True")
+  <?> "bool"
 
 character :: Parser Literal
-character = LitChar <$> charLiteral lexer
+character = LitChar <$> charLiteral lexer <?> "character"
 
 str :: Parser Literal
-str = LitString <$> stringLiteral lexer
+str = LitString <$> stringLiteral lexer <?> "string"
 
 emptyList :: Parser Literal
-emptyList = LitEmptyList <$ (Token.symbol lexer "[" >> Token.symbol lexer "]")
+emptyList = LitEmptyList <$ (Token.symbol lexer "[" >> Token.symbol lexer "]") <?> "[]"
 
 unit :: Parser Literal
-unit = LitUnit <$ (Token.symbol lexer "(" >> Token.symbol lexer ")")
+unit = LitUnit <$ (Token.symbol lexer "(" >> Token.symbol lexer ")") <?> "unit"
 
 literal :: Parser Literal
 literal = number
@@ -429,6 +430,7 @@ literal = number
       <|> str
       <|> emptyList
       <|> unit
+  <?> "literal"
 
 term :: Parser Expr
 term = choice
@@ -436,10 +438,10 @@ term = choice
   , variable
   , try tuple
   , parens lexer expression
-  ]
+  ] <?> "term"
 
 app :: Parser Expr
-app = term `chainl1` return App
+app = term `chainl1` return App <?> "function application"
 
 binary :: Parser Expr
 binary = flip label "binary operation" $ do
@@ -450,17 +452,18 @@ binary = flip label "binary operation" $ do
     return $ o as a
 
 operate :: Parser (Expr -> Expr -> Expr)
-operate = fmap BinOp $
+operate = flip label "binary operator" $ fmap BinOp $
   operator lexer <|> infixed1
 
 infixed1 :: Parser String
 infixed1 = between (Token.symbol lexer "`") (Token.symbol lexer "`") ident
+  <?> "infixed function"
 
 expression :: Parser Expr
 expression = lambdaAbs <|> binary
 
 lambdaAbs :: Parser Expr
-lambdaAbs = do
+lambdaAbs = flip label "lambda abstraction" $ do
   reservedOp lexer "\\"
   i <- ident
   reservedOp lexer "->"
@@ -468,7 +471,7 @@ lambdaAbs = do
   return $ Abs i e
 
 tuple :: Parser Expr
-tuple = fmap Tuple . parens lexer $ commaSep2 expression
+tuple = flip label "tuple" $ fmap Tuple . parens lexer $ commaSep2 expression
 
 commaSep2 :: Parser a -> Parser [a]
 commaSep2 p = sepBy2 p $ comma lexer
