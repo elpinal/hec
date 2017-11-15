@@ -26,6 +26,7 @@ module Refine.Parse
   , dataDecl
   , infixed
   , ident
+  , varid
   ) where
 
 import Text.Parsec
@@ -33,6 +34,8 @@ import Text.Parsec.Language
 import Text.Parsec.String
 import Text.Parsec.Token hiding (symbol)
 import qualified Text.Parsec.Token as Token
+
+import Data.Char (isLower)
 
 import Refine.AST hiding (bool)
 import Refine.Kind
@@ -84,18 +87,18 @@ parseDecl = try parseVarDecl <|> try parseTypeAnn <|> parseTypeDecl
 
 parseVarDecl :: Parser Decl
 parseVarDecl = do
-  name <- ident
+  name <- varid
   arg <- optionMaybe parseArg
   surroundedBySpaces $ char '='
   e <- expression
   return . VarDecl name $ maybe e (flip Abs e) arg
 
 parseArg :: Parser String
-parseArg = try ident
+parseArg = try varid
 
 parseTypeAnn :: Parser Decl
 parseTypeAnn = do
-  name <- ident
+  name <- varid
   surroundedBySpaces $ string "::"
   t <- parseType'
   return $ TypeAnn name t
@@ -113,7 +116,7 @@ parseType' = try parseFunctionType <|> parseTypeTerm
 
 parseSimpleType :: Parser Type
 parseSimpleType = readType <$> parseTypeIdent
-              <|> TypeVar . flip TVar Star <$> ident
+              <|> TypeVar . flip TVar Star <$> varid
               <|> try unitT
               <|> try parseTupleType
               <|> paren parseSimpleType
@@ -163,14 +166,14 @@ parseTypeDecl = do
   return $ TypeDecl s t
 
 parsePat :: Parser Pat
-parsePat = PVar <$> ident
+parsePat = PVar <$> varid
        <|> PWildcard <$ string "_"
        <|> PLit <$> literal
        <|> parsePAs
 
 parsePAs :: Parser Pat
 parsePAs =  do
-  i <- ident
+  i <- varid
   many space
   char '@'
   many space
@@ -237,7 +240,7 @@ fieldSpecifier :: Parser String
 fieldSpecifier = string "\\/"
 
 projField :: Parser String
-projField = fieldSpecifier >> ident
+projField = fieldSpecifier >> varid
 
 record :: Parser Expr
 record = do
@@ -249,7 +252,7 @@ record = do
   where
     f :: Parser (String, Expr)
     f = do
-      s <- ident
+      s <- varid
       many space
       char '='
       many space
@@ -266,7 +269,7 @@ recordType = do
   where
     f :: Parser (String, Type)
     f = do
-      s <- ident
+      s <- varid
       many space
       char '='
       many space
@@ -293,7 +296,7 @@ dataDecl = do
 
 def :: LanguageDef st
 def = emptyDef
-  { identStart = lower
+  { identStart = letter
   , identLetter = alphaNum <|> char '\''
   , opStart = symbol
   , opLetter = symbol
@@ -307,8 +310,15 @@ lexer = makeTokenParser def
 ident :: Parser String
 ident = identifier lexer <?> "identifier"
 
+varid :: Parser String
+varid = do
+  i <- ident
+  if isLower $ head i
+    then return i
+    else unexpected "constructor identifier" <?> "variable identifier"
+
 variable :: Parser Expr
-variable = Var <$> ident <?> "variable"
+variable = Var <$> varid <?> "variable"
 
 number :: Parser Literal
 number = LitInt . fromIntegral <$> (lexeme <*> decimal) lexer <?> "number"
