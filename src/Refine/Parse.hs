@@ -438,9 +438,7 @@ app :: Parser Expr
 app = term `chainl1` return App
 
 binary :: Parser Expr
-binary = do
-  a <- app
-  chainl app operate a
+binary = chainl1 app operate
 
 operate :: Parser (Expr -> Expr -> Expr)
 operate = BinOp <$> operator lexer
