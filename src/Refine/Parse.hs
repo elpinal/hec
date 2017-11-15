@@ -434,6 +434,7 @@ term :: Parser Expr
 term = Lit <$> literal
    <|> variable
    <|> parens lexer expression
+   <|> tuple
 
 app :: Parser Expr
 app = term `chainl1` return App
@@ -454,3 +455,9 @@ lambdaAbs = do
   reservedOp lexer "->"
   e <- expression
   return $ Abs i e
+
+tuple :: Parser Expr
+tuple = fmap Tuple . parens lexer $ commaSep2 expression
+
+commaSep2 :: Parser a -> Parser [a]
+commaSep2 p = sepBy2 p $ comma lexer
