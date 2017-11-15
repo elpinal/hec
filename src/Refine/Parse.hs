@@ -35,8 +35,6 @@ import Text.Parsec.String
 import Text.Parsec.Token hiding (symbol)
 import qualified Text.Parsec.Token as Token
 
-import Data.Char (isLower, isUpper)
-
 import Refine.AST hiding (bool)
 import Refine.Kind
 import Refine.Type
@@ -311,18 +309,10 @@ ident :: Parser String
 ident = identifier lexer <?> "identifier"
 
 varid :: Parser String
-varid = do
-  i <- ident
-  if isLower $ head i
-    then return i
-    else unexpected "constructor identifier" <?> "variable identifier"
+varid = lookAhead lower >> ident
 
 conid :: Parser String
-conid = do
-  i <- ident
-  if isUpper $ head i
-    then return i
-    else unexpected "variable identifier" <?> "constructor identifier"
+conid = lookAhead upper >> ident
 
 variable :: Parser Expr
 variable = Var <$> varid <?> "variable"
