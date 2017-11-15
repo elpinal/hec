@@ -394,3 +394,9 @@ unitT :: Parser Type
 unitT = tUnit <$ do
   Token.symbol lexer "("
   Token.symbol lexer ")"
+
+typeVariable :: Parser (Kind -> Type)
+typeVariable = fmap (TypeVar .) $ TVar <$> varid
+
+typeCon :: Parser (Kind -> Type)
+typeCon = fmap (TypeCon .) $ TCon <$> conid
