@@ -433,6 +433,7 @@ literal = number
 term :: Parser Expr
 term = Lit <$> literal
    <|> variable
+   <|> parens lexer expression
 
 app :: Parser Expr
 app = term `chainl1` return App
