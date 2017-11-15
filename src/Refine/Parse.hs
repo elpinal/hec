@@ -434,15 +434,20 @@ term :: Parser Expr
 term = choice
   [ try $ Lit <$> literal
   , variable
+  , try tuple
   , parens lexer expression
-  , tuple
   ]
 
 app :: Parser Expr
 app = term `chainl1` return App
 
 binary :: Parser Expr
-binary = chainl1 app operate
+binary = flip label "binary operation" $ do
+  as <- chainl1 app . try $ operate <* notFollowedBy lambdaAbs
+  option as $ do
+    o <- operate
+    a <- lambdaAbs
+    return $ o as a
 
 operate :: Parser (Expr -> Expr -> Expr)
 operate = fmap BinOp $
