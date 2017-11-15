@@ -294,9 +294,6 @@ dataDecl = do
 unitType :: Parser Type
 unitType = tUnit <$ (char '(' >> many space >> char ')')
 
-infixed :: Parser String
-infixed = between (char '`') (char '`') $ ident
-
 def :: LanguageDef st
 def = emptyDef
   { identStart = lower
@@ -366,10 +363,10 @@ binary = flip label "binary operation" $ do
 
 operate :: Parser (Expr -> Expr -> Expr)
 operate = flip label "binary operator" $ fmap BinOp $
-  operator lexer <|> infixed1
+  operator lexer <|> infixed
 
-infixed1 :: Parser String
-infixed1 = between (Token.symbol lexer "`") (Token.symbol lexer "`") ident
+infixed :: Parser String
+infixed = between (Token.symbol lexer "`") (Token.symbol lexer "`") ident
   <?> "infixed function"
 
 expression :: Parser Expr
