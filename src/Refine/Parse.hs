@@ -68,27 +68,6 @@ keyword s = do
 keywords :: [String]
 keywords = ["type", "case", "of", "newtype", "data"]
 
-parseLit :: Parser Expr
-parseLit = Lit <$> literal
-
-parseLit' :: Parser Literal
-parseLit' = literal
-
-parseUnit :: Parser Literal
-parseUnit = unit
-
-parseNum :: Parser Literal
-parseNum = number
-
-parseBool :: Parser Literal
-parseBool = bool
-
-parseChar :: Parser Literal
-parseChar = character
-
-parseString :: Parser Literal
-parseString = str
-
 data Decl =
     VarDecl String Expr
   | TypeAnn String Type
@@ -186,7 +165,7 @@ parseTypeDecl = do
 parsePat :: Parser Pat
 parsePat = PVar <$> ident
        <|> PWildcard <$ string "_"
-       <|> PLit <$> parseLit'
+       <|> PLit <$> literal
        <|> parsePAs
 
 parsePAs :: Parser Pat
