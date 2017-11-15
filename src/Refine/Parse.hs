@@ -114,7 +114,7 @@ parseType' = try parseFunctionType <|> parseTypeTerm
 parseSimpleType :: Parser Type
 parseSimpleType = readType <$> parseTypeIdent
               <|> TypeVar . flip TVar Star <$> ident
-              <|> try unitType
+              <|> try unitT
               <|> try parseTupleType
               <|> paren parseSimpleType
               <|> recordType
@@ -291,9 +291,6 @@ dataDecl = do
       ts <- parseTypeTerm `sepBy` many space
       return (c, ts)
 
-unitType :: Parser Type
-unitType = tUnit <$ (char '(' >> many space >> char ')')
-
 def :: LanguageDef st
 def = emptyDef
   { identStart = lower
@@ -385,3 +382,8 @@ tuple = flip label "tuple" $ fmap Tuple . parens lexer $ commaSep2 expression
 
 commaSep2 :: Parser a -> Parser [a]
 commaSep2 p = sepBy2 p $ comma lexer
+
+unitT :: Parser Type
+unitT = tUnit <$ do
+  Token.symbol lexer "("
+  Token.symbol lexer ")"
