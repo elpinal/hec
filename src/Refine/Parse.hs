@@ -410,6 +410,14 @@ typeApp = foldl1 S.TypeApp <$> many1 typeTerm
 typeTerm :: Parser S.Type
 typeTerm = try typeAtom <|> parens lexer typeFn
 
+typeAtom :: Parser S.Type
+typeAtom = choice
+  [ typeVariable
+  , typeCon
+  , try unitType
+  , tupleType
+  ]
+
 typeVariable :: Parser S.Type
 typeVariable = S.TypeVar <$> varid
 
