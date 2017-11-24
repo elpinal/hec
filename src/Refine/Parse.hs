@@ -407,6 +407,9 @@ typeFn = typeApp `chainr1` do
 typeApp :: Parser S.Type
 typeApp = foldl1 S.TypeApp <$> many1 typeTerm
 
+typeTerm :: Parser S.Type
+typeTerm = try typeAtom <|> parens lexer typeFn
+
 typeVariable :: Parser S.Type
 typeVariable = S.TypeVar <$> varid
 
