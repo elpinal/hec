@@ -465,3 +465,27 @@ spec = do
 
       parseWhole typeFn "(a, b)"    `shouldSatisfy` rightIs (S.tTupleN 2 `S.TypeApp` var "a" `S.TypeApp` var "b")
       parseWhole typeFn "(a, b, c)" `shouldSatisfy` rightIs (S.tTupleN 3 `S.TypeApp` var "a" `S.TypeApp` var "b" `S.TypeApp` var "c")
+
+  describe "typeTerm" $
+    it "parses a type term" $ do
+      let var = S.TypeVar
+          con = S.TypeCon
+
+      parseWhole typeTerm "A"   `shouldSatisfy` rightIs (con "A")
+      parseWhole typeTerm "(A)" `shouldSatisfy` rightIs (con "A")
+
+      parseWhole typeTerm "(A -> B)"       `shouldSatisfy` rightIs (con "A" `S.fn` con "B")
+      parseWhole typeTerm "((A) -> (B))"   `shouldSatisfy` rightIs (con "A" `S.fn` con "B")
+      parseWhole typeTerm "(((A) -> (B)))" `shouldSatisfy` rightIs (con "A" `S.fn` con "B")
+
+      parseWhole typeTerm "(a b)" `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b")
+
+      parseWhole typeTerm "(a b -> C)"   `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b" `S.fn` con "C")
+      parseWhole typeTerm "(a (b -> C))" `shouldSatisfy` rightIs (S.TypeApp (var "a") $ var "b" `S.fn` con "C")
+
+      parseWhole typeTerm "(A B C)"   `shouldSatisfy` rightIs (foldl1 S.TypeApp [con "A", con "B", con "C"])
+      parseWhole typeTerm "((A B) C)" `shouldSatisfy` rightIs (foldl1 S.TypeApp [con "A", con "B", con "C"])
+      parseWhole typeTerm "(A (B C))" `shouldSatisfy` rightIs (foldr1 S.TypeApp [con "A", con "B", con "C"])
+
+      parseWhole typeTerm "(A B C -> BC cC A)"   `shouldSatisfy` rightIs (foldl1 S.TypeApp [con "A", con "B", con "C"] `S.fn` foldl1 S.TypeApp [con "BC", var "cC", con "A"])
+      parseWhole typeTerm "(A (B C -> BC) cC A)" `shouldSatisfy` (rightIs . foldl1 S.TypeApp) [con "A", con "B" `S.TypeApp` con "C" `S.fn` con "BC", var "cC", con "A"]
