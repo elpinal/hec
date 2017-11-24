@@ -405,3 +405,7 @@ typeVariable = S.TypeVar <$> varid
 typeCon :: Parser S.Type
 typeCon = S.TypeCon <$> conid
 
+unitType :: Parser S.Type
+unitType = S.tUnit <$ do
+  Token.symbol lexer "("
+  Token.symbol lexer ")"
