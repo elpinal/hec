@@ -409,3 +409,9 @@ unitType :: Parser S.Type
 unitType = S.tUnit <$ do
   Token.symbol lexer "("
   Token.symbol lexer ")"
+
+tupleType :: Parser S.Type
+tupleType = do
+  types <- parens lexer $ commaSep2 typeFn
+  let c = S.tTupleN $ length types
+  return $ foldl S.TypeApp c types
