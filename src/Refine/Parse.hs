@@ -454,3 +454,11 @@ typeAnn = do
   Token.symbol lexer "::"
   t <- typeFn
   return (i, t)
+
+typeSynonym :: Parser (String, S.Type)
+typeSynonym = do
+  reserved lexer "type"
+  i <- conid
+  Token.symbol lexer "="
+  t <- typeFn
+  return (i, t)
