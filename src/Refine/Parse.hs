@@ -381,9 +381,11 @@ lambdaAbs :: Parser Expr
 lambdaAbs = flip label "lambda abstraction" $ do
   reservedOp lexer "\\"
   i <- varid
-  reservedOp lexer "->"
+  rightArrow
   e <- expression
   return $ Abs i e
+
+rightArrow = reservedOp lexer "->"
 
 tuple :: Parser Expr
 tuple = flip label "tuple" $ fmap Tuple . parens lexer $ commaSep2 expression
