@@ -399,6 +399,11 @@ unitT = tUnit <$ do
   Token.symbol lexer ")"
 
 
+typeFn :: Parser S.Type
+typeFn = typeApp `chainr1` do
+  rightArrow
+  return S.fn
+
 typeVariable :: Parser S.Type
 typeVariable = S.TypeVar <$> varid
 
