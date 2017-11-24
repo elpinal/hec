@@ -8,6 +8,7 @@ import Refine.AST
 import Refine.Kind
 import Refine.Parse
 import Refine.Type
+import qualified Refine.Type.Syntactic as S
 
 rightIs :: Eq a => a -> Either e a -> Bool
 rightIs x (Right y) = x == y
@@ -412,3 +413,19 @@ spec = do
       parseWhole infixed "`a''`"  `shouldSatisfy` rightIs "a''"
       parseWhole infixed "`a0b`"  `shouldSatisfy` rightIs "a0b"
       parseWhole infixed "`qrst`" `shouldSatisfy` rightIs "qrst"
+
+  describe "typeApp" $
+    it "parses a type application" $ do
+      let var = S.TypeVar
+          con = S.TypeCon
+
+      parseWhole typeApp "a" `shouldSatisfy` rightIs (var "a")
+      parseWhole typeApp "A" `shouldSatisfy` rightIs (con "A")
+
+      parseWhole typeApp "a b" `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b")
+      parseWhole typeApp "A B" `shouldSatisfy` rightIs (con "A" `S.TypeApp` con "B")
+
+      parseWhole typeApp "a b c" `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b" `S.TypeApp` var "c")
+      parseWhole typeApp "A B C" `shouldSatisfy` rightIs (con "A" `S.TypeApp` con "B" `S.TypeApp` con "C")
+
+      parseWhole typeApp "ab X ab bc a A" `shouldSatisfy` (rightIs . foldl1 S.TypeApp) [var "ab", con "X", var "ab", var "bc", var "a", con "A"]
