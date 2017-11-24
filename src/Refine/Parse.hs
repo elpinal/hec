@@ -38,6 +38,7 @@ import qualified Text.Parsec.Token as Token
 import Refine.AST hiding (bool)
 import Refine.Kind
 import Refine.Type
+import qualified Refine.Type.Syntactic as S
 
 parseWhole :: Parser a -> String -> Either ParseError a
 parseWhole p = parse' $ p <* eof
@@ -395,8 +396,10 @@ unitT = tUnit <$ do
   Token.symbol lexer "("
   Token.symbol lexer ")"
 
-typeVariable :: Parser (Kind -> Type)
-typeVariable = fmap (TypeVar .) $ TVar <$> varid
 
-typeCon :: Parser (Kind -> Type)
-typeCon = fmap (TypeCon .) $ TCon <$> conid
+typeVariable :: Parser S.Type
+typeVariable = S.TypeVar <$> varid
+
+typeCon :: Parser S.Type
+typeCon = S.TypeCon <$> conid
+
