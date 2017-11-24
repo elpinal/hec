@@ -296,6 +296,8 @@ dataDecl = do
       ts <- parseTypeTerm `sepBy` many space
       return (c, ts)
 
+{-- Refined parsers with proper lexers --}
+
 def :: LanguageDef st
 def = emptyDef
   { identStart = letter
@@ -401,6 +403,7 @@ unitT = tUnit <$ do
   Token.symbol lexer "("
   Token.symbol lexer ")"
 
+{-- Refined type parsers (for S.Type) --}
 
 typeFn :: Parser S.Type
 typeFn = typeApp `chainr1` do
