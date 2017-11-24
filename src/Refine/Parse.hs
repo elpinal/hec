@@ -404,6 +404,9 @@ typeFn = typeApp `chainr1` do
   rightArrow
   return S.fn
 
+typeApp :: Parser S.Type
+typeApp = foldl1 S.TypeApp <$> many1 typeTerm
+
 typeVariable :: Parser S.Type
 typeVariable = S.TypeVar <$> varid
 
