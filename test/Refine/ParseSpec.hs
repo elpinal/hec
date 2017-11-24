@@ -429,3 +429,39 @@ spec = do
       parseWhole typeApp "A B C" `shouldSatisfy` rightIs (con "A" `S.TypeApp` con "B" `S.TypeApp` con "C")
 
       parseWhole typeApp "ab X ab bc a A" `shouldSatisfy` (rightIs . foldl1 S.TypeApp) [var "ab", con "X", var "ab", var "bc", var "a", con "A"]
+
+  describe "typeFn" $ do
+    let var = S.TypeVar
+        con = S.TypeCon
+
+    it "parses a type which may consist of functions" $ do
+      parseWhole typeFn "A"      `shouldSatisfy` rightIs (con "A")
+      parseWhole typeFn "A -> B" `shouldSatisfy` rightIs (con "A" `S.fn` con "B")
+
+      parseWhole typeFn "a b"      `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b")
+      parseWhole typeFn "a b -> C" `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b" `S.fn` con "C")
+
+      parseWhole typeFn "A B C"            `shouldSatisfy` rightIs (con "A" `S.TypeApp` con "B" `S.TypeApp` con "C")
+      parseWhole typeFn "A B C -> BC cC A" `shouldSatisfy` rightIs (foldl1 S.TypeApp [con "A", con "B", con "C"] `S.fn` foldl1 S.TypeApp [con "BC", var "cC", con "A"])
+
+      parseWhole typeFn "a (b -> C)" `shouldSatisfy` rightIs (S.TypeApp (var "a") $ var "b" `S.fn` con "C")
+
+      parseWhole typeFn "a b c"   `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b" `S.TypeApp` var "c")
+      parseWhole typeFn "a (b c)" `shouldSatisfy` rightIs (S.TypeApp (var "a") $ var "b" `S.TypeApp` var "c")
+
+      parseWhole typeFn "a (b -> C) -> aaaXXX" `shouldSatisfy` rightIs (S.TypeApp (var "a") (var "b" `S.fn` con "C") `S.fn` var "aaaXXX")
+
+    it "parses some primitve type literals" $ do
+      parseWhole typeFn "()"     `shouldSatisfy` rightIs S.tUnit
+      parseWhole typeFn "(())"   `shouldSatisfy` rightIs S.tUnit
+      parseWhole typeFn "((()))" `shouldSatisfy` rightIs S.tUnit
+
+      parseWhole typeFn "() ()" `shouldSatisfy` rightIs (S.tUnit `S.TypeApp` S.tUnit)
+
+      parseWhole typeFn "() -> ()"         `shouldSatisfy` rightIs (S.tUnit `S.fn` S.tUnit)
+      parseWhole typeFn "() -> () -> ()"   `shouldSatisfy` rightIs (S.tUnit `S.fn` (S.tUnit `S.fn` S.tUnit))
+      parseWhole typeFn "() -> (() -> ())" `shouldSatisfy` rightIs (S.tUnit `S.fn` (S.tUnit `S.fn` S.tUnit))
+      parseWhole typeFn "(() -> ()) -> ()" `shouldSatisfy` rightIs (S.tUnit `S.fn` S.tUnit `S.fn` S.tUnit)
+
+      parseWhole typeFn "(a, b)"    `shouldSatisfy` rightIs (S.tTupleN 2 `S.TypeApp` var "a" `S.TypeApp` var "b")
+      parseWhole typeFn "(a, b, c)" `shouldSatisfy` rightIs (S.tTupleN 3 `S.TypeApp` var "a" `S.TypeApp` var "b" `S.TypeApp` var "c")
