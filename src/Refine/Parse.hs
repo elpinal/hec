@@ -440,3 +440,10 @@ tupleType = do
   types <- parens lexer $ commaSep2 typeFn
   let c = S.tTupleN $ length types
   return $ foldl S.TypeApp c types
+
+varDecl :: Parser (String, Expr)
+varDecl = do
+  i <- varid
+  Token.symbol lexer "="
+  e <- expression
+  return (i, e)
