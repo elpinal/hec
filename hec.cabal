@@ -28,11 +28,11 @@ library
                      , Refine.Type
                      , Refine.Kind
                      , Refine.AST
-  build-depends:       base >= 4.7 && < 5
-                     , parsec
+  build-depends:       base       >= 4.7 && < 5
+                     , parsec     >= 3.1.11
                      , containers >= 0.5.8
-                     , safe
-                     , mtl
+                     , safe       >= 0.3.14
+                     , mtl        >= 2.2.1
                      , bytestring >= 0.10.8.1
   default-language:    Haskell2010
 
@@ -50,11 +50,11 @@ test-suite hec-test
   main-is:             Spec.hs
   build-depends:       base
                      , hec
-                     , hspec
+                     , hspec >= 2.4.3
                      , safe
                      , containers
                      , parsec
-                     , mtl >= 2.2.1
+                     , mtl
                      , bytestring
   other-modules:       ParserSpec
                      , ScannerSpec
