@@ -27,6 +27,9 @@ module Refine.Parse
   , infixed
   , ident
   , varid
+  , typeFn
+  , typeApp
+  , typeTerm
   ) where
 
 import Text.Parsec
