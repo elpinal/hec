@@ -489,3 +489,7 @@ spec = do
 
       parseWhole typeTerm "(A B C -> BC cC A)"   `shouldSatisfy` rightIs (foldl1 S.TypeApp [con "A", con "B", con "C"] `S.fn` foldl1 S.TypeApp [con "BC", var "cC", con "A"])
       parseWhole typeTerm "(A (B C -> BC) cC A)" `shouldSatisfy` (rightIs . foldl1 S.TypeApp) [con "A", con "B" `S.TypeApp` con "C" `S.fn` con "BC", var "cC", con "A"]
+
+  describe "labeledType" $
+    it "parses a labeled type" $ do
+      parseWhole labeledType "A B" `shouldSatisfy` rightIs ("A", [S.TypeCon "B"])
