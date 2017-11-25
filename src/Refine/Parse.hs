@@ -31,6 +31,7 @@ module Refine.Parse
   , typeApp
   , typeTerm
   , labeledType
+  , variantType
   ) where
 
 import Text.Parsec
