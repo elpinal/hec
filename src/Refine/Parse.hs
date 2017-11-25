@@ -305,7 +305,7 @@ def = emptyDef
   , opStart = symbol
   , opLetter = symbol
   , reservedNames = keywords
-  , reservedOpNames = ["\\", "->"]
+  , reservedOpNames = ["\\", "->", "="]
   }
 
 lexer :: TokenParser st
