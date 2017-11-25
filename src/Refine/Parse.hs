@@ -463,5 +463,5 @@ typeSynonym = do
   t <- typeFn
   return (i, t)
 
-labeledType :: Parser (String, S.Type)
-labeledType = (,) <$> conid <*> typeFn
+labeledType :: Parser (String, [S.Type])
+labeledType = (,) <$> conid <*> (many1 typeTerm)
