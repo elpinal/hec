@@ -498,4 +498,4 @@ spec = do
 
   describe "variantType" $
     it "parses a variant type" $ do
-      parseWhole variantType "A B" `shouldSatisfy` rightIs ("A", [S.TypeCon "B"])
+      parseWhole variantType "A B" `shouldSatisfy` rightIs [("A", [S.TypeCon "B"])]
