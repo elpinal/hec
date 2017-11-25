@@ -463,11 +463,8 @@ typeSynonym = do
   t <- typeFn
   return (i, t)
 
-typeVariant :: Parser (String, String, S.Type)
-typeVariant = do
-  reserved lexer "data"
-  tc <- conid
-  Token.symbol lexer "="
+variantType :: Parser (String, S.Type)
+variantType = do
   vc <- conid
   t <- typeFn
-  return (tc, vc, t)
+  return (vc, t)
