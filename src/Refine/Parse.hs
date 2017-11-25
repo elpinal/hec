@@ -464,5 +464,4 @@ typeSynonym = do
   return (i, t)
 
 labeledType :: Parser (String, S.Type)
-labeledType = do
-  (,) <$> conid <*> typeFn
+labeledType = (,) <$> conid <*> typeFn
