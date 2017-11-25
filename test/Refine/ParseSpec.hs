@@ -492,4 +492,6 @@ spec = do
 
   describe "labeledType" $
     it "parses a labeled type" $ do
-      parseWhole labeledType "A B" `shouldSatisfy` rightIs ("A", [S.TypeCon "B"])
+      parseWhole labeledType "A B"   `shouldSatisfy` rightIs ("A", [S.TypeCon "B"])
+      parseWhole labeledType "A B C" `shouldSatisfy` rightIs ("A", [S.TypeCon "B", S.TypeCon "C"])
+      parseWhole labeledType "A a"   `shouldSatisfy` rightIs ("A", [S.TypeVar "a"])
