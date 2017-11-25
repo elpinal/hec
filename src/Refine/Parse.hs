@@ -463,6 +463,6 @@ typeSynonym = do
   t <- typeFn
   return (i, t)
 
-variantType :: Parser (String, S.Type)
-variantType = do
+labeledType :: Parser (String, S.Type)
+labeledType = do
   (,) <$> conid <*> typeFn
