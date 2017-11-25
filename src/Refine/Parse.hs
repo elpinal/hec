@@ -476,3 +476,6 @@ variantType = labeledType `sepBy1` Token.symbol lexer "|"
 
 labeledType :: Parser (String, [S.Type])
 labeledType = (,) <$> conid <*> (many1 typeTerm)
+
+equal :: Parser String
+equal = Token.symbol lexer "="
