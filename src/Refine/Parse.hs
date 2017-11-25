@@ -465,6 +465,4 @@ typeSynonym = do
 
 variantType :: Parser (String, S.Type)
 variantType = do
-  vc <- conid
-  t <- typeFn
-  return (vc, t)
+  (,) <$> conid <*> typeFn
