@@ -463,5 +463,9 @@ typeSynonym = do
   t <- typeFn
   return (i, t)
 
+variantType :: Parser [(String, [S.Type])]
+variantType = do
+  labeledType `sepBy1` Token.symbol lexer "|"
+
 labeledType :: Parser (String, [S.Type])
 labeledType = (,) <$> conid <*> (many1 typeTerm)
