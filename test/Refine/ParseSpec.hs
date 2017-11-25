@@ -495,3 +495,7 @@ spec = do
       parseWhole labeledType "A B"   `shouldSatisfy` rightIs ("A", [S.TypeCon "B"])
       parseWhole labeledType "A B C" `shouldSatisfy` rightIs ("A", [S.TypeCon "B", S.TypeCon "C"])
       parseWhole labeledType "A a"   `shouldSatisfy` rightIs ("A", [S.TypeVar "a"])
+
+  describe "variantType" $
+    it "parses a variant type" $ do
+      parseWhole variantType "A B" `shouldSatisfy` rightIs ("A", [S.TypeCon "B"])
