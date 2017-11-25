@@ -472,7 +472,7 @@ typeDecl = do
   return (i, t)
 
 variantType :: Parser [(String, [S.Type])]
-variantType = labeledType `sepBy1` Token.symbol lexer "|"
+variantType = labeledType `sepBy1` reservedOp lexer "|"
 
 labeledType :: Parser (String, [S.Type])
 labeledType = (,) <$> conid <*> (many1 typeTerm)
