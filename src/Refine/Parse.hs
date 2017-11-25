@@ -444,7 +444,7 @@ tupleType = do
 varDecl :: Parser (String, Expr)
 varDecl = do
   i <- varid
-  Token.symbol lexer "="
+  equal
   e <- expression
   return (i, e)
 
@@ -459,7 +459,7 @@ typeSynonym :: Parser (String, S.Type)
 typeSynonym = do
   reserved lexer "type"
   i <- conid
-  Token.symbol lexer "="
+  equal
   t <- typeFn
   return (i, t)
 
@@ -467,7 +467,7 @@ typeDecl :: Parser (String, [(String, [S.Type])])
 typeDecl = do
   reserved lexer "data"
   i <- conid
-  Token.symbol lexer "="
+  equal
   t <- variantType
   return (i, t)
 
