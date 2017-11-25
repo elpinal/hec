@@ -463,6 +463,14 @@ typeSynonym = do
   t <- typeFn
   return (i, t)
 
+typeDecl :: Parser (String, [(String, [S.Type])])
+typeDecl = do
+  reserved lexer "data"
+  i <- conid
+  Token.symbol lexer "="
+  t <- variantType
+  return (i, t)
+
 variantType :: Parser [(String, [S.Type])]
 variantType = labeledType `sepBy1` Token.symbol lexer "|"
 
