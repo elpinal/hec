@@ -481,3 +481,7 @@ labeledType = (,) <$> conid <*> (many1 typeTerm)
 
 equal :: Parser ()
 equal = reservedOp lexer "="
+
+recordR :: Parser [(String, Expr)]
+recordR = do
+  braces lexer $ many varDecl
