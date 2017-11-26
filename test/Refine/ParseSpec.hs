@@ -507,7 +507,7 @@ spec = do
       parseWhole recordR "{x = 3}"        `shouldSatisfy` rightIs [("x", int 3)]
       parseWhole recordR "{x = 3, y = 7}" `shouldSatisfy` rightIs [("x", int 3), ("y", int 7)]
 
-      parseWhole recordR "{a = (1, 2), y = 7}" `shouldSatisfy` rightIs [("x", Tuple [int 1, int 2]), ("y", int 7)]
+      parseWhole recordR "{a = (1, 2), y = 7}" `shouldSatisfy` rightIs [("a", Tuple [int 1, int 2]), ("y", int 7)]
 
     it "fails if it is invalid syntax" $ do
       parseWhole recordR "{"       `shouldSatisfy` isLeft
