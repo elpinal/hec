@@ -501,10 +501,15 @@ spec = do
       parseWhole variantType "A B"       `shouldSatisfy` rightIs [("A", [S.TypeCon "B"])]
       parseWhole variantType "A B | C D" `shouldSatisfy` rightIs [("A", [S.TypeCon "B"]), ("C", [S.TypeCon "D"])]
 
-  describe "recordR" $
+  describe "recordR" $ do
     it "parses a record" $ do
       parseWhole recordR "{}"             `shouldSatisfy` rightIs []
       parseWhole recordR "{x = 3}"        `shouldSatisfy` rightIs [("x", int 3)]
       parseWhole recordR "{x = 3, y = 7}" `shouldSatisfy` rightIs [("x", int 3), ("y", int 7)]
 
       parseWhole recordR "{a = (1, 2), y = 7}" `shouldSatisfy` rightIs [("x", Tuple [int 1, int 2]), ("y", int 7)]
+
+    it "fails if it is invalid syntax" $ do
+      parseWhole recordR "{"       `shouldSatisfy` isLeft
+      parseWhole recordR "}"       `shouldSatisfy` isLeft
+      parseWhole recordR "{a}"     `shouldSatisfy` isLeft
