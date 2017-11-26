@@ -488,4 +488,4 @@ recordR :: Parser [(String, Expr)]
 recordR = braces lexer $ commaSep lexer varDecl
 
 recordTypeR :: Parser [(String, S.Type)]
-recordTypeR = braces lexer $ commaSep lexer typeSynonym
+recordTypeR = braces lexer $ commaSep lexer $ varid
