@@ -503,5 +503,6 @@ spec = do
 
   describe "recordR" $
     it "parses a record" $ do
-      parseWhole recordR "{}"      `shouldSatisfy` rightIs []
-      parseWhole recordR "{x = 3}" `shouldSatisfy` rightIs [("x", int 3)]
+      parseWhole recordR "{}"             `shouldSatisfy` rightIs []
+      parseWhole recordR "{x = 3}"        `shouldSatisfy` rightIs [("x", int 3)]
+      parseWhole recordR "{x = 3, y = 7}" `shouldSatisfy` rightIs [("x", int 3), ("y", int 7)]
