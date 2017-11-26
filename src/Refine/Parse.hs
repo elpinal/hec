@@ -453,7 +453,7 @@ varDecl = do
 typeAnn :: Parser (String, S.Type)
 typeAnn = do
   i <- varid
-  Token.symbol lexer "::"
+  reservedOp lexer "::"
   t <- typeFn
   return (i, t)
 
