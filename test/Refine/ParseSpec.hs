@@ -513,3 +513,5 @@ spec = do
       parseWhole recordR "{"       `shouldSatisfy` isLeft
       parseWhole recordR "}"       `shouldSatisfy` isLeft
       parseWhole recordR "{a}"     `shouldSatisfy` isLeft
+      parseWhole recordR "{a 2}"   `shouldSatisfy` isLeft
+      parseWhole recordR "{3 = a}" `shouldSatisfy` isLeft
