@@ -518,4 +518,6 @@ spec = do
 
   describe "recordTypeR" $
     it "parses a record type" $ do
-      parseWhole recordTypeR "{}" `shouldSatisfy` rightIs []
+      parseWhole recordTypeR "{}"             `shouldSatisfy` rightIs []
+      parseWhole recordTypeR "{a = A}"        `shouldSatisfy` rightIs [("a", S.TypeCon "A")]
+      parseWhole recordTypeR "{a = A, b = B}" `shouldSatisfy` rightIs [("a", S.TypeCon "A"), ("b", S.TypeCon "B")]
