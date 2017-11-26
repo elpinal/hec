@@ -500,3 +500,7 @@ spec = do
     it "parses a variant type" $ do
       parseWhole variantType "A B"       `shouldSatisfy` rightIs [("A", [S.TypeCon "B"])]
       parseWhole variantType "A B | C D" `shouldSatisfy` rightIs [("A", [S.TypeCon "B"]), ("C", [S.TypeCon "D"])]
+
+  describe "recordR" $
+    it "parses a record" $ do
+      parseWhole recordR "{}" `shouldSatisfy` rightIs []
