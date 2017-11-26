@@ -483,5 +483,4 @@ equal :: Parser ()
 equal = reservedOp lexer "="
 
 recordR :: Parser [(String, Expr)]
-recordR = do
-  braces lexer $ many varDecl
+recordR = braces lexer $ many varDecl
