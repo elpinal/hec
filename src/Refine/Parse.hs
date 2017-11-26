@@ -33,6 +33,7 @@ module Refine.Parse
   , labeledType
   , variantType
   , recordR
+  , recordTypeR
   ) where
 
 import Text.Parsec
