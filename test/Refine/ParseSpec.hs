@@ -515,6 +515,7 @@ spec = do
       parseWhole recordR "{a}"     `shouldSatisfy` isLeft
       parseWhole recordR "{a 2}"   `shouldSatisfy` isLeft
       parseWhole recordR "{3 = a}" `shouldSatisfy` isLeft
+      parseWhole recordR "{A = 3}" `shouldSatisfy` isLeft
 
   describe "recordTypeR" $
     it "parses a record type" $ do
