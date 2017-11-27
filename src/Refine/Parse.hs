@@ -105,6 +105,11 @@ parsePAs =  do
   p <- parsePat
   return $ PAs i p
 
+tuplePat :: Parser Pat
+tuplePat = do
+  ps <- parens lexer $ commaSep2 parsePat
+  return $ PCon ("(," ++ show (length ps) ++ ")") ps
+
 parseCase :: Parser Expr
 parseCase = do
   reserved lexer "case"
