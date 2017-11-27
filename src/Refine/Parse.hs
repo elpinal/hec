@@ -127,8 +127,8 @@ sepBy2 p sep = do
   xs <- many1 $ sep >> p
   return $ x : xs
 
-fieldSpecifier :: Parser String
-fieldSpecifier = string "\\/"
+fieldSpecifier :: Parser ()
+fieldSpecifier = reservedOp lexer "\\/"
 
 projField :: Parser String
 projField = fieldSpecifier >> varid
