@@ -17,3 +17,11 @@ tUnit = TypeCon "()"
 
 tTupleN :: Int -> Type
 tTupleN n = TypeCon $ "(," ++ show n ++ ")"
+
+tRecordN :: [String] -> Type
+tRecordN xs = TypeCon $ "{" ++ concatWith "," xs ++ "}"
+
+concatWith :: String -> [String] -> String
+concatWith _ [] = ""
+concatWith _ [x] = x
+concatWith s (x : y : ys) = x ++ s ++ y ++ concatWith s ys
