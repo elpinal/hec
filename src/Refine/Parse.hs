@@ -52,18 +52,6 @@ parse' p = parse p "<no filename>"
 parseExpr :: String -> Either ParseError Expr
 parseExpr = parseWhole expression
 
-surroundedBySpaces :: Parser a -> Parser a
-surroundedBySpaces = between (many space) $ many space
-
-paren :: Parser a -> Parser a
-paren = between (char '(' >> many space) (many space >> char ')')
-
-keyword :: String -> Parser String
-keyword s = do
-  string s
-  notFollowedBy $ alphaNum <|> char '\''
-  return s
-
 decls :: Parser [Decl]
 decls = decl `sepBy` newline
 
