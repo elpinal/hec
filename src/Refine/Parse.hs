@@ -39,8 +39,7 @@ module Refine.Parse
 import Text.Parsec
 import Text.Parsec.Language
 import Text.Parsec.String
-import Text.Parsec.Token hiding (symbol)
-import qualified Text.Parsec.Token as Token
+import Text.Parsec.Token
 
 import Refine.AST hiding (bool)
 import Refine.Kind
@@ -59,12 +58,6 @@ parseExpr = parseWhole expression
 surroundedBySpaces :: Parser a -> Parser a
 surroundedBySpaces = between (many space) $ many space
 
-symbols :: String
-symbols = "!#$%&+/<=>?@:"
-
-symbol :: Parsec String u Char
-symbol = oneOf symbols
-
 paren :: Parser a -> Parser a
 paren = between (char '(' >> many space) (many space >> char ')')
 
@@ -73,9 +66,6 @@ keyword s = do
   string s
   notFollowedBy $ alphaNum <|> char '\''
   return s
-
-keywords :: [String]
-keywords = ["type", "case", "of", "newtype", "data"]
 
 data Decl =
     VarDecl String Expr
@@ -302,6 +292,12 @@ dataDecl = do
 
 {-- Refined parsers with proper lexers --}
 
+symbols :: String
+symbols = "!#$%&+/<=>?@:"
+
+keywords :: [String]
+keywords = ["type", "case", "of", "data", "_"]
+
 def :: LanguageDef st
 def = emptyDef
   { identStart = letter
@@ -311,6 +307,9 @@ def = emptyDef
   , reservedNames = keywords
   , reservedOpNames = ["\\", "->", "=", "|", "::"]
   }
+  where
+    symbol :: Parsec String u Char
+    symbol = oneOf symbols
 
 lexer :: TokenParser st
 lexer = makeTokenParser def
