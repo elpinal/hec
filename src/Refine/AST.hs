@@ -26,9 +26,7 @@ data Pat =
   | PWildcard
   | PAs String Pat
   | PLit Literal
-  {- FIXME: Don't depend on Assump.
-     | PCon Assump [Pat]
-  -}
+  | PCon String [Pat]
   deriving (Eq, Show)
 
 int :: Int -> Expr
