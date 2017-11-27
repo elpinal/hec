@@ -5,9 +5,7 @@ import Test.Hspec
 import Data.Either
 
 import Refine.AST
-import Refine.Kind
 import Refine.Parse
-import Refine.Type
 import qualified Refine.Type.Syntactic as S
 
 rightIs :: Eq a => a -> Either e a -> Bool
@@ -44,6 +42,9 @@ spec = do
       parseExpr "f (g True)"   `shouldSatisfy` rightIs (App (Var "f") (App (Var "g") (bool True)))
       parseExpr "f ( g True )" `shouldSatisfy` rightIs (App (Var "f") (App (Var "g") (bool True)))
 
+      parseExpr "(1, 2)"         `shouldSatisfy` rightIs (Tuple [int 1, int 2])
+      parseExpr "{a = 1, b = 2}" `shouldSatisfy` rightIs (Record [("a", int 1), ("b", int 2)])
+
     it "parses binary operations" $ do
       parseExpr "1#2"     `shouldSatisfy` rightIs (BinOp "#" (int 1) (int 2))
       parseExpr "1 # 2"   `shouldSatisfy` rightIs (BinOp "#" (int 1) (int 2))
@@ -72,6 +73,10 @@ spec = do
 
       parseExpr "1 `a` 2"   `shouldSatisfy` rightIs (BinOp "a" (int 1) (int 2))
 
+    it "parses binary operations if any of them are not reserved" $ do
+      parseExpr "1 @ 2"   `shouldSatisfy` isLeft
+      parseExpr "1 @@ 2 " `shouldSatisfy` rightIs (BinOp "@@" (int 1) (int 2))
+
     it "parses lambda abstractions" $ do
       parseExpr "\\x -> x"      `shouldSatisfy` rightIs (Abs "x" $ Var "x")
       parseExpr "(\\x->x)"      `shouldSatisfy` rightIs (Abs "x" $ Var "x")
@@ -86,97 +91,58 @@ spec = do
       parseExpr "TrueA"      `shouldSatisfy` isLeft
       parseExpr "f \\x -> x" `shouldSatisfy` isLeft
 
-  describe "parseVarDecl" $ do
+  describe "varDecl" $ do
     it "parses a variable declaration" $ do
-      parseWhole parseVarDecl "x = 12"            `shouldSatisfy` rightIs (VarDecl "x" $ int 12)
-      parseWhole parseVarDecl "f = \\x -> x + 12" `shouldSatisfy` rightIs (VarDecl "f" . Abs "x" . BinOp "+" (Var "x") $ int 12)
-
-    it "parses a function to which one argument is passed" $ do
-      parseWhole parseVarDecl "f x = x + 12"   `shouldSatisfy` rightIs (VarDecl "f" . Abs "x" . BinOp "+" (Var "x") $ int 12)
-      -- Currently two or more parameters are not implemented and under consideration.
-      parseWhole parseVarDecl "f x y = x + y" `shouldSatisfy` isLeft
-
-  describe "parseTypeIdent" $ do
-    it "parses a type identifier" $ do
-      parseWhole parseTypeIdent "A"          `shouldSatisfy` rightIs "A"
-      parseWhole parseTypeIdent "AB"         `shouldSatisfy` rightIs "AB"
-      parseWhole parseTypeIdent "X1"         `shouldSatisfy` rightIs "X1"
-      parseWhole parseTypeIdent "Z0Z"        `shouldSatisfy` rightIs "Z0Z"
-      parseWhole parseTypeIdent "A'"         `shouldSatisfy` rightIs "A'"
-      parseWhole parseTypeIdent "A'b"        `shouldSatisfy` rightIs "A'b"
-      parseWhole parseTypeIdent "A''"        `shouldSatisfy` rightIs "A''"
-      parseWhole parseTypeIdent "A0'a9b''11" `shouldSatisfy` rightIs "A0'a9b''11"
-
-    it "fails if it is not a type identifier" $ do
-      parseWhole parseTypeIdent "a"   `shouldSatisfy` isLeft
-      parseWhole parseTypeIdent "aBC" `shouldSatisfy` isLeft
-      parseWhole parseTypeIdent "0"   `shouldSatisfy` isLeft
-      parseWhole parseTypeIdent "'"   `shouldSatisfy` isLeft
-      parseWhole parseTypeIdent "abc" `shouldSatisfy` isLeft
-      parseWhole parseTypeIdent "@"   `shouldSatisfy` isLeft
-
-  describe "parseType" $
-    it "parses a type" $ do
-      parseWhole parseType "Int"                 `shouldSatisfy` rightIs tInt
-      parseWhole parseType "Bool -> Char"        `shouldSatisfy` rightIs (fn tBool tChar)
-      parseWhole parseType "Int -> Bool -> Char" `shouldSatisfy` rightIs (fn tInt $ fn tBool tChar)
-      parseWhole parseType "Int->Bool->Char"     `shouldSatisfy` rightIs (fn tInt $ fn tBool tChar)
-
-  describe "parseType'" $
-    it "parses a more complex type" $ do
-      parseWhole parseType' "(Int)"                   `shouldSatisfy` rightIs tInt
-      parseWhole parseType' "((Int))"                 `shouldSatisfy` rightIs tInt
-      parseWhole parseType' "(Int -> Bool)"           `shouldSatisfy` rightIs (fn tInt tBool)
-      parseWhole parseType' "Int -> (Bool)"           `shouldSatisfy` rightIs (fn tInt tBool)
-      parseWhole parseType' "(Int -> (Bool))"         `shouldSatisfy` rightIs (fn tInt tBool)
-      parseWhole parseType' "Int -> (Bool -> Char)"   `shouldSatisfy` rightIs (fn tInt $ fn tBool tChar)
-      parseWhole parseType' "(Int -> (Bool -> Char))" `shouldSatisfy` rightIs (fn tInt $ fn tBool tChar)
-      parseWhole parseType' "(Int -> Bool) -> Char"   `shouldSatisfy` rightIs (fn (fn tInt tBool) tChar)
-      parseWhole parseType' "((Int -> Bool) -> Char)" `shouldSatisfy` rightIs (fn (fn tInt tBool) tChar)
-
-      parseWhole parseType' "a"        `shouldSatisfy` rightIs (TypeVar $ TVar "a" Star)
-      parseWhole parseType' "a -> Int" `shouldSatisfy` rightIs (TypeVar (TVar "a" Star) `fn` tInt)
-
-      parseWhole parseType' "(Int, Bool)" `shouldSatisfy` rightIs (pair tInt tBool)
-      parseWhole parseType' "(a, b)"      `shouldSatisfy` rightIs (pair (TypeVar $ TVar "a" Star) (TypeVar $ TVar "b" Star))
-
-      parseWhole parseType' "()"  `shouldSatisfy` rightIs tUnit
-      parseWhole parseType' "( )" `shouldSatisfy` rightIs tUnit
+      parseWhole varDecl "x = 12"            `shouldSatisfy` rightIs ("x", int 12)
+      parseWhole varDecl "f = \\x -> x + 12" `shouldSatisfy` rightIs ("f", Abs "x" . BinOp "+" (Var "x") $ int 12)
 
   describe "parseTypeAnn" $
     it "parses a type annotation declaration" $ do
-      parseWhole parseTypeAnn "i :: Int"                 `shouldSatisfy` rightIs (TypeAnn "i" tInt)
-      parseWhole parseTypeAnn "f :: Bool -> Char"        `shouldSatisfy` rightIs (TypeAnn "f" $ fn tBool tChar)
-      parseWhole parseTypeAnn "f::Bool->Char"            `shouldSatisfy` rightIs (TypeAnn "f" $ fn tBool tChar)
-      parseWhole parseTypeAnn "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . fn tInt $ fn tBool tChar)
-      parseWhole parseTypeAnn "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . fn tInt $ fn tBool tChar)
+      let var = S.TypeVar
+          con = S.TypeCon
+          conI = con "Int"
+          conB = con "Bool"
+          conC = con "Char"
 
-      parseWhole parseTypeAnn "x :: a"      `shouldSatisfy` rightIs (TypeAnn "x" $ TypeVar $ TVar "a" Star)
-      parseWhole parseTypeAnn "x :: a -> a" `shouldSatisfy` rightIs (TypeAnn "x" $ (TypeVar $ TVar "a" Star) `fn` (TypeVar $ TVar "a" Star))
+      parseWhole parseTypeAnn "i :: Int"                 `shouldSatisfy` rightIs (TypeAnn "i" conI)
+      parseWhole parseTypeAnn "f :: Bool -> Char"        `shouldSatisfy` rightIs (TypeAnn "f" $ S.fn conB conC)
+      parseWhole parseTypeAnn "f::Bool->Char"            `shouldSatisfy` rightIs (TypeAnn "f" $ S.fn conB conC)
+      parseWhole parseTypeAnn "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . S.fn conI $ S.fn conB conC)
+      parseWhole parseTypeAnn "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . S.fn conI $ S.fn conB conC)
+
+      parseWhole parseTypeAnn "x :: a"      `shouldSatisfy` rightIs (TypeAnn "x" $ var "a")
+      parseWhole parseTypeAnn "x :: a -> a" `shouldSatisfy` rightIs (TypeAnn "x" $ var "a" `S.fn` var "a")
 
   describe "parseTypeDecl" $ do
     it "parses a type synonym" $ do
-      parseWhole parseTypeDecl "type I = Int"                `shouldSatisfy` rightIs (TypeDecl "I" tInt)
-      parseWhole parseTypeDecl "type Fn = Bool -> Char"      `shouldSatisfy` rightIs (TypeDecl "Fn" $ fn tBool tChar)
-      parseWhole parseTypeDecl "type B = Int -> Int -> Bool" `shouldSatisfy` rightIs (TypeDecl "B" . fn tInt $ fn tInt tBool)
-      parseWhole parseTypeDecl "type B=Int -> Int -> Bool"   `shouldSatisfy` rightIs (TypeDecl "B" . fn tInt $ fn tInt tBool)
+      let var = S.TypeVar
+          con = S.TypeCon
+          conI = con "Int"
+          conB = con "Bool"
+          conC = con "Char"
 
-    it "fails if given an illegal syntax" $
-      parseWhole parseTypeDecl "typeI = Int" `shouldSatisfy` isLeft
+      parseWhole parseTypeDecl "type I = Int"                `shouldSatisfy` rightIs (TypeDecl "I" $ con "Int")
+      parseWhole parseTypeDecl "type Fn = Bool -> Char"      `shouldSatisfy` rightIs (TypeDecl "Fn" $ con "Bool" `S.fn` con "Char")
+      parseWhole parseTypeDecl "type B = Int -> Int -> Bool" `shouldSatisfy` rightIs (TypeDecl "B" . S.fn (con "Int") $ con "Int" `S.fn` con "Bool")
+      parseWhole parseTypeDecl "type B=Int -> Int -> Bool"   `shouldSatisfy` rightIs (TypeDecl "B" . S.fn (con "Int") $ con "Int" `S.fn` con "Bool")
 
-  describe "parseDecl" $
+    context "when there are no spaces between 'type' keyword and the type identifier" $
+      it "fails" $
+        parseWhole parseTypeDecl "typeI = Int" `shouldSatisfy` isLeft
+
+  describe "decl" $
     it "parses a declaration" $ do
-      parseWhole parseDecl "x = 2"      `shouldSatisfy` rightIs (VarDecl "x" $ int 2)
-      parseWhole parseDecl "f x = True" `shouldSatisfy` rightIs (VarDecl "f" $ Abs "x" $ bool True)
+      let con = S.TypeCon
 
-      parseWhole parseDecl "x :: Int" `shouldSatisfy` rightIs (TypeAnn "x" tInt)
+      parseWhole decl "x = 2"        `shouldSatisfy` rightIs (VarDecl "x" $ int 2)
+      parseWhole decl "x :: Int"     `shouldSatisfy` rightIs (TypeAnn "x" $ con "Int")
+      parseWhole decl "type I = Int" `shouldSatisfy` rightIs (TypeDecl "I" $ con "Int")
+      parseWhole decl "data I = A T" `shouldSatisfy` rightIs (DataDecl "I" [("A", [con "T"])])
 
-      parseWhole parseDecl "type I = Int" `shouldSatisfy` rightIs (TypeDecl "I" tInt)
-
-  describe "parseEmptyList" $
+  describe "emptyList" $
     it "parses a empty list" $ do
-      parseWhole parseEmptyList "[]"  `shouldSatisfy` rightIs LitEmptyList
-      parseWhole parseEmptyList "[ ]" `shouldSatisfy` rightIs LitEmptyList
+      parseWhole emptyList "[]"  `shouldSatisfy` rightIs LitEmptyList
+      parseWhole emptyList "[ ]" `shouldSatisfy` rightIs LitEmptyList
 
   describe "parseList'" $
     it "parses a list" $ do
@@ -217,41 +183,6 @@ spec = do
       parseWhole parseCase "casesof1 -> 1"   `shouldSatisfy` isLeft
       parseWhole parseCase "case sof 1 -> 1" `shouldSatisfy` isLeft
 
-  describe "keyword" $ do
-    it "parses a keyword" $ do
-      parse' (keyword "case") "case" `shouldSatisfy` rightIs "case"
-      parse' (keyword "ABC")  "ABC"  `shouldSatisfy` rightIs "ABC"
-      parse' (keyword "let'") "let'" `shouldSatisfy` rightIs "let'"
-      parse' (keyword "  ")   "  "   `shouldSatisfy` rightIs "  "
-      parse' (keyword "aaa1") "aaa1" `shouldSatisfy` rightIs "aaa1"
-      parse' (keyword "a1b")  "a1b"  `shouldSatisfy` rightIs "a1b"
-      parse' (keyword "1 ")   "1 "   `shouldSatisfy` rightIs "1 "
-
-    it "parses a keyword even if followed by spaces or symbols" $ do
-      parse' (keyword "case") "case is" `shouldSatisfy` rightIs "case"
-      parse' (keyword "case") "case@@"  `shouldSatisfy` rightIs "case"
-      parse' (keyword "case") "case()"  `shouldSatisfy` rightIs "case"
-      parse' (keyword "ABC")  "ABC DE"  `shouldSatisfy` rightIs "ABC"
-      parse' (keyword "ABC")  "ABC#@"   `shouldSatisfy` rightIs "ABC"
-      parse' (keyword "let'") "let'&"   `shouldSatisfy` rightIs "let'"
-      parse' (keyword "let'") "let' "   `shouldSatisfy` rightIs "let'"
-      parse' (keyword "a1b")  "a1b "    `shouldSatisfy` rightIs "a1b"
-      parse' (keyword "1 ")   "1 @"     `shouldSatisfy` rightIs "1 "
-      parse' (keyword "1 ")   "1  "     `shouldSatisfy` rightIs "1 "
-
-    it "fails if it is an identifier" $ do
-      parse' (keyword "case") "cases" `shouldSatisfy` isLeft
-      parse' (keyword "case") "case'" `shouldSatisfy` isLeft
-      parse' (keyword "case") "caseA" `shouldSatisfy` isLeft
-      parse' (keyword "case") "case1" `shouldSatisfy` isLeft
-      parse' (keyword "case") "cas"   `shouldSatisfy` isLeft
-      parse' (keyword "ABC")  "ABCD"  `shouldSatisfy` isLeft
-      parse' (keyword "ABC")  "ABCd"  `shouldSatisfy` isLeft
-      parse' (keyword "ABC")  "ABC'"  `shouldSatisfy` isLeft
-      parse' (keyword "  ")   "  '"   `shouldSatisfy` isLeft
-      parse' (keyword "  ")   "  a"   `shouldSatisfy` isLeft
-      parse' (keyword "1 ")   "1 a"   `shouldSatisfy` isLeft
-
   describe "varid" $ do
     it "parses a variable identifier" $ do
       parseWhole varid "a"              `shouldSatisfy` rightIs "a"
@@ -286,43 +217,24 @@ spec = do
       parseWhole varid "of"   `shouldSatisfy` isLeft
       parseWhole varid "type" `shouldSatisfy` isLeft
 
-  describe "parseNewType" $
-    it "parses a newtype declaration" $ do
-      parseWhole parseNewType "newtype A = B Int" `shouldSatisfy` rightIs (NewTypeDecl "A" "B" tInt)
-      parseWhole parseNewType "newtype A = A Int" `shouldSatisfy` rightIs (NewTypeDecl "A" "A" tInt)
-      parseWhole parseNewType "newtype A=B Int"   `shouldSatisfy` rightIs (NewTypeDecl "A" "B" tInt)
-      parseWhole parseNewType "newtype A = B a"   `shouldSatisfy` rightIs (NewTypeDecl "A" "B" (TypeVar $ TVar "a" Star))
-
-  describe "parseTuple" $ do
+  describe "tuple" $ do
     it "parses a tuple" $ do
-      parseWhole parseTuple "(1,2)"     `shouldSatisfy` rightIs (Tuple [int 1, int 2])
-      parseWhole parseTuple "(1, 2)"    `shouldSatisfy` rightIs (Tuple [int 1, int 2])
-      parseWhole parseTuple "( 1 , 2 )" `shouldSatisfy` rightIs (Tuple [int 1, int 2])
+      parseWhole tuple "(1,2)"     `shouldSatisfy` rightIs (Tuple [int 1, int 2])
+      parseWhole tuple "(1, 2)"    `shouldSatisfy` rightIs (Tuple [int 1, int 2])
+      parseWhole tuple "( 1 , 2 )" `shouldSatisfy` rightIs (Tuple [int 1, int 2])
 
-      parseWhole parseTuple "(1, 2, 4)"           `shouldSatisfy` rightIs (Tuple [int 1, int 2, int 4])
-      parseWhole parseTuple "(True, 3, 2, False)" `shouldSatisfy` rightIs (Tuple [bool True, int 3, int 2, bool False])
+      parseWhole tuple "(1, 2, 4)"           `shouldSatisfy` rightIs (Tuple [int 1, int 2, int 4])
+      parseWhole tuple "(True, 3, 2, False)" `shouldSatisfy` rightIs (Tuple [bool True, int 3, int 2, bool False])
 
     it "can parse a nested tuple" $ do
-      parseWhole parseTuple "((1, 3), True)"               `shouldSatisfy` rightIs (Tuple [Tuple [int 1, int 3], bool True])
-      parseWhole parseTuple "((False, 3), (2, True))"      `shouldSatisfy` rightIs (Tuple [Tuple [bool False, int 3], Tuple [int 2, bool True]])
-      parseWhole parseTuple "((1, 3), True, (1, 2, 3, 4))" `shouldSatisfy` rightIs (Tuple [Tuple [int 1, int 3], bool True, Tuple [int 1, int 2, int 3, int 4]])
+      parseWhole tuple "((1, 3), True)"               `shouldSatisfy` rightIs (Tuple [Tuple [int 1, int 3], bool True])
+      parseWhole tuple "((False, 3), (2, True))"      `shouldSatisfy` rightIs (Tuple [Tuple [bool False, int 3], Tuple [int 2, bool True]])
+      parseWhole tuple "((1, 3), True, (1, 2, 3, 4))" `shouldSatisfy` rightIs (Tuple [Tuple [int 1, int 3], bool True, Tuple [int 1, int 2, int 3, int 4]])
 
     it "fails if given no tuple (n >= 2)" $ do
-      parseWhole parseTuple "()"   `shouldSatisfy` isLeft
-      parseWhole parseTuple "(1)"  `shouldSatisfy` isLeft
-      parseWhole parseTuple "(1,)" `shouldSatisfy` isLeft
-
-  describe "parseTupleType" $ do
-    it "parses a tuple type" $ do
-      parseWhole parseTupleType "(Int,Int)"      `shouldSatisfy` rightIs (tTupleN 2 `TypeApp` tInt `TypeApp` tInt)
-      parseWhole parseTupleType "(Int, Bool)"    `shouldSatisfy` rightIs (pair tInt tBool)
-      parseWhole parseTupleType "( Char , Int )" `shouldSatisfy` rightIs (pair tChar tInt)
-
-      parseWhole parseTupleType "(Char, Int, Bool)" `shouldSatisfy` rightIs (tTupleN 3 `TypeApp` tChar `TypeApp` tInt `TypeApp` tBool)
-
-    it "can parse a nested tuple type" $ do
-      parseWhole parseTupleType "((Int, Char), Bool)"        `shouldSatisfy` rightIs (pair (pair tInt tChar) tBool)
-      parseWhole parseTupleType "((Int, Int), (Bool, Bool))" `shouldSatisfy` rightIs (pair (pair tInt tInt) (pair tBool tBool))
+      parseWhole tuple "()"   `shouldSatisfy` isLeft
+      parseWhole tuple "(1)"  `shouldSatisfy` isLeft
+      parseWhole tuple "(1,)" `shouldSatisfy` isLeft
 
   describe "parsePAs" $
     it "parses as-pattern" $ do
@@ -331,61 +243,51 @@ spec = do
 
       parseWhole parsePAs "x@1" `shouldSatisfy` rightIs (PAs "x" . PLit $ LitInt 1)
 
-  describe "record" $
-    it "parses a record" $ do
-      parseWhole record "{}"                `shouldSatisfy` rightIs (Record [])
-      parseWhole record "{a = 1}"           `shouldSatisfy` rightIs (Record [("a", int 1)])
-      parseWhole record "{a = 0, b = True}" `shouldSatisfy` rightIs (Record [("a", int 0), ("b", bool True)])
+  describe "parsePat" $
+    it "parses a pattern" $ do
+      parseWhole parsePat "_"     `shouldSatisfy` rightIs PWildcard
+      parseWhole parsePat "x"     `shouldSatisfy` rightIs (PVar "x")
+      parseWhole parsePat "0"     `shouldSatisfy` rightIs (PLit $ LitInt 0)
+      parseWhole parsePat "A"     `shouldSatisfy` rightIs (PCon "A" [])
+      parseWhole parsePat "A 1 2" `shouldSatisfy` rightIs (PCon "A" [PLit $ LitInt 1, PLit $ LitInt 2])
 
-      parseWhole record "{a = 0, a = True}"         `shouldSatisfy` rightIs (Record [("a", int 0), ("a", bool True)])
-      parseWhole record "{a = 0, a = True, b' = 8}" `shouldSatisfy` rightIs (Record [("a", int 0), ("a", bool True), ("b'", int 8)])
-
-      parseWhole record "{a=0,b=True}"         `shouldSatisfy` rightIs (Record [("a", int 0), ("b", bool True)])
-      parseWhole record "{ a = 0 , b = True }" `shouldSatisfy` rightIs (Record [("a", int 0), ("b", bool True)])
-
-  describe "recordType" $
-    it "parses a record type" $ do
-      parseWhole recordType "{}"                  `shouldSatisfy` rightIs (tRecordN [])
-      parseWhole recordType "{a = Int}"           `shouldSatisfy` rightIs (tRecordN ["a"] `TypeApp` tInt)
-      parseWhole recordType "{a = Int, b = Bool}" `shouldSatisfy` rightIs (tRecordN ["a", "b"] `TypeApp` tInt `TypeApp` tBool)
-
-      parseWhole recordType "{a = Int, a = Bool}" `shouldSatisfy` rightIs (tRecordN ["a", "a"] `TypeApp` tInt `TypeApp` tBool)
-
-      parseWhole recordType "{a = Int, b = Bool, c = Char}" `shouldSatisfy` rightIs (tRecordN ["a", "b", "c"] `TypeApp` tInt `TypeApp` tBool `TypeApp` tChar)
-
-      parseWhole recordType "{a = Int, a = Int, a = Int}" `shouldSatisfy` rightIs (tRecordN ["a", "a", "a"] `TypeApp` tInt `TypeApp` tInt `TypeApp` tInt)
+      parseWhole parsePat "x @ 1"      `shouldSatisfy` rightIs (PAs "x" $ PLit $ LitInt 1)
+      parseWhole parsePat "x @ (1, 2)" `shouldSatisfy` rightIs (PAs "x" $ PCon "(,2)" [PLit $ LitInt 1, PLit $ LitInt 2])
 
   describe "dataDecl" $ do
-    it "parses a datatype declaration" $ do
-      parseWhole dataDecl "data A = A Int" `shouldSatisfy` rightIs (DataDecl "A" [("A", [tInt])])
-      parseWhole dataDecl "data A = B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt])])
+    let var = S.TypeVar
+        con = S.TypeCon
 
-      parseWhole dataDecl "data A=B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt])])
+    it "parses a datatype declaration" $ do
+      parseWhole dataDecl "data A = A Int" `shouldSatisfy` rightIs (DataDecl "A" [("A", [(con "Int")])])
+      parseWhole dataDecl "data A = B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")])])
+
+      parseWhole dataDecl "data A=B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")])])
 
       parseWhole dataDecl "data A = B" `shouldSatisfy` rightIs (DataDecl "A" [("B", [])])
 
-      parseWhole dataDecl "data A = B ()"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
-      parseWhole dataDecl "data A = B (())" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
+      parseWhole dataDecl "data A = B ()"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tUnit])])
+      parseWhole dataDecl "data A = B (())" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tUnit])])
 
-      parseWhole dataDecl "data A = B (Int, Bool)"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` tInt `TypeApp` tBool])])
-      parseWhole dataDecl "data A = B ((Int), Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` tInt `TypeApp` tBool])])
-      parseWhole dataDecl "data A = B (Int, ())"     `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` tInt `TypeApp` tUnit])])
+      parseWhole dataDecl "data A = B (Int, Bool)"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tTupleN 2 `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B ((Int), Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tTupleN 2 `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B (Int, ())"     `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tTupleN 2 `S.TypeApp` (con "Int") `S.TypeApp` S.tUnit])])
 
       parseWhole dataDecl "data A = B ((), (), (Int, Bool))"
         `shouldSatisfy`
-        rightIs (DataDecl "A" [("B", [tTupleN 3 `TypeApp` tUnit `TypeApp` tUnit `TypeApp` (tTupleN 2 `TypeApp` tInt `TypeApp` tBool)])])
+        rightIs (DataDecl "A" [("B", [S.tTupleN 3 `S.TypeApp` S.tUnit `S.TypeApp` S.tUnit `S.TypeApp` (S.tTupleN 2 `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool"))])])
 
-      parseWhole dataDecl "data A = B {}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN []])])
-      parseWhole dataDecl "data A = B{}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN []])])
+      parseWhole dataDecl "data A = B {}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN []])])
+      parseWhole dataDecl "data A = B{}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN []])])
 
-      parseWhole dataDecl "data A = B {a = Int}"           `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a"] `TypeApp` tInt])])
-      parseWhole dataDecl "data A = B {a = Bool, b = Int}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "b"] `TypeApp` tBool `TypeApp` tInt])])
-      parseWhole dataDecl "data A = B {b = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["b", "a"] `TypeApp` tInt `TypeApp` tBool])])
-      parseWhole dataDecl "data A = B {a = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "a"] `TypeApp` tInt `TypeApp` tBool])])
-      parseWhole dataDecl "data A = B {a = Int, a = Int}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "a"] `TypeApp` tInt `TypeApp` tInt])])
+      parseWhole dataDecl "data A = B {a = Int}"           `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["a"] `S.TypeApp` (con "Int")])])
+      parseWhole dataDecl "data A = B {a = Bool, b = Int}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["a", "b"] `S.TypeApp` (con "Bool") `S.TypeApp` (con "Int")])])
+      parseWhole dataDecl "data A = B {b = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["b", "a"] `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B {a = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["a", "a"] `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B {a = Int, a = Int}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["a", "a"] `S.TypeApp` (con "Int") `S.TypeApp` (con "Int")])])
 
-      parseWhole dataDecl "data A = B Int Bool"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt, tBool])])
-      parseWhole dataDecl "data A = B (Int -> Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt `fn` tBool])])
+      parseWhole dataDecl "data A = B Int Bool"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int"), (con "Bool")])])
+      parseWhole dataDecl "data A = B (Int -> Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int") `S.fn` (con "Bool")])])
 
     it "parses a variant declaration" $ do
       parseWhole dataDecl "data A = B | C"     `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", [])])
@@ -393,9 +295,9 @@ spec = do
       parseWhole dataDecl "data A = B | C | D" `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", []), ("D", [])])
 
       -- FIXME
-      parseWhole dataDecl "data A = B Int | C Bool" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [tBool])])
-      parseWhole dataDecl "data A = B Int | C"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [])])
-      parseWhole dataDecl "data A = B Int|C"        `shouldSatisfy` rightIs (DataDecl "A" [("B", [tInt]), ("C", [])])
+      parseWhole dataDecl "data A = B Int | C Bool" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")]), ("C", [(con "Bool")])])
+      parseWhole dataDecl "data A = B Int | C"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")]), ("C", [])])
+      parseWhole dataDecl "data A = B Int|C"        `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")]), ("C", [])])
 
     it "fails if given invalid syntax" $ do
       parseWhole dataDecl "dataA=B Int" `shouldSatisfy` isLeft
@@ -501,24 +403,29 @@ spec = do
       parseWhole variantType "A B"       `shouldSatisfy` rightIs [("A", [S.TypeCon "B"])]
       parseWhole variantType "A B | C D" `shouldSatisfy` rightIs [("A", [S.TypeCon "B"]), ("C", [S.TypeCon "D"])]
 
-  describe "recordR" $ do
+  describe "record" $ do
     it "parses a record" $ do
-      parseWhole recordR "{}"             `shouldSatisfy` rightIs []
-      parseWhole recordR "{x = 3}"        `shouldSatisfy` rightIs [("x", int 3)]
-      parseWhole recordR "{x = 3, y = 7}" `shouldSatisfy` rightIs [("x", int 3), ("y", int 7)]
+      parseWhole record "{}"             `shouldSatisfy` (rightIs . Record) []
+      parseWhole record "{x = 3}"        `shouldSatisfy` (rightIs . Record) [("x", int 3)]
+      parseWhole record "{x = 3, y = 7}" `shouldSatisfy` (rightIs . Record) [("x", int 3), ("y", int 7)]
 
-      parseWhole recordR "{a = (1, 2), y = 7}" `shouldSatisfy` rightIs [("a", Tuple [int 1, int 2]), ("y", int 7)]
+      parseWhole record "{x=3,y=7}"           `shouldSatisfy` (rightIs . Record) [("x", int 3), ("y", int 7)]
+      parseWhole record "{  x = 3 , y = 7  }" `shouldSatisfy` (rightIs . Record) [("x", int 3), ("y", int 7)]
+
+      parseWhole record "{a = (1, 2), y = 7}" `shouldSatisfy` (rightIs . Record) [("a", Tuple [int 1, int 2]), ("y", int 7)]
+
+      parseWhole record "{a = {a = 1, b = 2}, y = 7}" `shouldSatisfy` (rightIs . Record) [("a", Record [("a", int 1), ("b", int 2)]), ("y", int 7)]
 
     it "fails if it is invalid syntax" $ do
-      parseWhole recordR "{"       `shouldSatisfy` isLeft
-      parseWhole recordR "}"       `shouldSatisfy` isLeft
-      parseWhole recordR "{a}"     `shouldSatisfy` isLeft
-      parseWhole recordR "{a 2}"   `shouldSatisfy` isLeft
-      parseWhole recordR "{3 = a}" `shouldSatisfy` isLeft
-      parseWhole recordR "{A = 3}" `shouldSatisfy` isLeft
+      parseWhole record "{"       `shouldSatisfy` isLeft
+      parseWhole record "}"       `shouldSatisfy` isLeft
+      parseWhole record "{a}"     `shouldSatisfy` isLeft
+      parseWhole record "{a 2}"   `shouldSatisfy` isLeft
+      parseWhole record "{3 = a}" `shouldSatisfy` isLeft
+      parseWhole record "{A = 3}" `shouldSatisfy` isLeft
 
   describe "recordTypeR" $
     it "parses a record type" $ do
-      parseWhole recordTypeR "{}"             `shouldSatisfy` rightIs []
-      parseWhole recordTypeR "{a = A}"        `shouldSatisfy` rightIs [("a", S.TypeCon "A")]
-      parseWhole recordTypeR "{a = A, b = B}" `shouldSatisfy` rightIs [("a", S.TypeCon "A"), ("b", S.TypeCon "B")]
+      parseWhole recordTypeR "{}"             `shouldSatisfy` rightIs (S.tRecordN [])
+      parseWhole recordTypeR "{a = A}"        `shouldSatisfy` rightIs (S.tRecordN ["a"] `S.TypeApp` S.TypeCon "A")
+      parseWhole recordTypeR "{a = A, b = B}" `shouldSatisfy` rightIs (S.tRecordN ["a", "b"] `S.TypeApp` S.TypeCon "A" `S.TypeApp` S.TypeCon "B")
