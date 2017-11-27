@@ -122,39 +122,7 @@ parseCase = do
   return $ Case e [(p, e1)]
 
 parseList' :: Parser [Expr]
-parseList' = do
-  char '['
-  es <- surroundedBySpaces expression `sepBy` string ","
-  char ']'
-  return es
-
-parseEmptyList :: Parser Literal
-parseEmptyList = do
-  char '['
-  many space
-  char ']'
-  return LitEmptyList
-
-parseNewType :: Parser Decl
-parseNewType = do
-  keyword "newtype"
-  many space
-  s <- parseTypeIdent
-  many space
-  char '='
-  many space
-  con <- parseTypeIdent
-  many space
-  t <- parseTypeTerm
-  return $ NewTypeDecl s con t
-
-parseTuple :: Parser Expr
-parseTuple = do
-  char '('
-  many space
-  es <- (expression <* many space) `sepBy2` try (char ',' >> many space)
-  char ')'
-  return $ Tuple es
+parseList' = brackets lexer $ commaSep lexer expression
 
 sepBy2 :: (Stream s m t) => ParsecT s u m a -> ParsecT s u m sep -> ParsecT s u m [a]
 sepBy2 p sep = do
