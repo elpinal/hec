@@ -75,91 +75,22 @@ data Decl =
   | DataDecl String [(String, [Type])]
   deriving (Eq, Show)
 
-parseDecls :: Parser [Decl]
-parseDecls = parseDecl `sepBy` newline
+decls :: Parser [Decl]
+decls = decl `sepBy` newline
 
-parseDecl :: Parser Decl
-parseDecl = try parseVarDecl <|> try parseTypeAnn <|> parseTypeDecl
-
-parseVarDecl :: Parser Decl
-parseVarDecl = do
-  name <- varid
-  arg <- optionMaybe parseArg
-  surroundedBySpaces $ char '='
-  e <- expression
-  return . VarDecl name $ maybe e (flip Abs e) arg
-
-parseArg :: Parser String
-parseArg = try varid
+decl :: Parser Decl
+decl = choice
+  [ uncurry VarDecl <$> try varDecl
+  , parseTypeAnn
+  , parseTypeDecl
+  , dataDecl
+  ]
 
 parseTypeAnn :: Parser Decl
-parseTypeAnn = do
-  name <- varid
-  surroundedBySpaces $ string "::"
-  t <- parseType'
-  return $ TypeAnn name t
-
-parseType :: Parser Type
-parseType =
-  chainr1 (readType <$> parseTypeIdent) $ do
-    many space
-    string "->"
-    many space
-    return fn
-
-parseType' :: Parser Type
-parseType' = try parseFunctionType <|> parseTypeTerm
-
-parseSimpleType :: Parser Type
-parseSimpleType = readType <$> parseTypeIdent
-              <|> TypeVar . flip TVar Star <$> varid
-              <|> try unitT
-              <|> try parseTupleType
-              <|> paren parseSimpleType
-              <|> recordType
-
-parseTypeTerm :: Parser Type
-parseTypeTerm = try parseSimpleType
-            <|> paren (try parseFunctionType <|> try parseSimpleType)
-
-parseTupleType :: Parser Type
-parseTupleType = do
-  char '('
-  many space
-  ts <- (parseType' <* many space) `sepBy2` try (char ',' >> many space)
-  char ')'
-  return $ foldl TypeApp (tTupleN $ length ts) ts
-
-parseFunctionType :: Parser Type
-parseFunctionType = do
-  t <- parseTypeTerm
-  many space
-  string "->"
-  many space
-  fmap (fn t) $ try parseFunctionType <|> parseTypeTerm
-
-parseTypeIdent :: Parser String
-parseTypeIdent = do
-  x <- upper
-  xs <- many $ alphaNum <|> char '\''
-  return $ x : xs
-
-readType :: String -> Type
-readType "Int" = tInt
-readType "Bool" = tBool
-readType "Char" = tChar
-readType "String" = tString
+parseTypeAnn = uncurry TypeAnn <$> typeAnn
 
 parseTypeDecl :: Parser Decl
-parseTypeDecl = do
-  keyword "type"
-  many1 space
-  s <- parseTypeIdent
-  many space
-  char '='
-  many space
-  t <- parseType
-  return $ TypeDecl s t
+parseTypeDecl = uncurry TypeDecl <$> typeSynonym
 
 parsePat :: Parser Pat
 parsePat = PVar <$> varid
