@@ -133,22 +133,7 @@ projField :: Parser String
 projField = fieldSpecifier >> varid
 
 dataDecl :: Parser Decl
-dataDecl = do
-  keyword "data"
-  many space
-  t <- parseTypeIdent
-  many space
-  char '='
-  xs <- f `sepBy1` (many space >> char '|')
-  return $ DataDecl t xs
-  where
-    f :: Parser (String, [Type])
-    f = do
-      many space
-      c <- parseTypeIdent
-      many space
-      ts <- parseTypeTerm `sepBy` many space
-      return (c, ts)
+dataDecl = uncurry DataDecl <$> typeDecl
 
 {-- Refined parsers with proper lexers --}
 
