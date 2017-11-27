@@ -40,7 +40,6 @@ import Text.Parsec.String
 import Text.Parsec.Token
 
 import Refine.AST hiding (bool)
-import Refine.Kind
 import Refine.Type
 import qualified Refine.Type.Syntactic as S
 
