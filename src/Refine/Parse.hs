@@ -170,25 +170,19 @@ parsePat = PVar <$> varid
 parsePAs :: Parser Pat
 parsePAs =  do
   i <- varid
-  many space
-  char '@'
-  many space
+  reservedOp lexer "@"
   p <- parsePat
   return $ PAs i p
 
 parseCase :: Parser Expr
 parseCase = do
-  keyword "case"
-  many space
+  reserved lexer "case"
   e <- expression
-  many space
-  keyword "of"
-  many space
+  reserved lexer "of"
   p <- parsePat
-  many space
-  string "->"
-  many space
+  rightArrow
   e1 <- expression
+  -- TODO: Support multiple branches.
   return $ Case e [(p, e1)]
 
 parseList' :: Parser [Expr]
@@ -305,7 +299,7 @@ def = emptyDef
   , opStart = symbol
   , opLetter = symbol
   , reservedNames = keywords
-  , reservedOpNames = ["\\", "->", "=", "|", "::"]
+  , reservedOpNames = ["\\", "->", "=", "|", "::", ",", "\\/", "@"]
   }
   where
     symbol :: Parsec String u Char
