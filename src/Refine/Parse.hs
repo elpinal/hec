@@ -85,10 +85,17 @@ parseTypeDecl :: Parser Decl
 parseTypeDecl = uncurry TypeDecl <$> typeSynonym
 
 parsePat :: Parser Pat
-parsePat = PVar <$> varid
-       <|> PWildcard <$ string "_"
-       <|> PLit <$> literal
-       <|> parsePAs
+parsePat = choice
+  [ try parsePAs
+  , PVar <$> try varid
+  , PWildcard <$ reserved lexer "_"
+  , PLit <$> try literal
+  , conPat
+  , tuplePat
+  ]
+
+conPat :: Parser Pat
+conPat = PCon <$> conid <*> many parsePat
 
 parsePAs :: Parser Pat
 parsePAs =  do
