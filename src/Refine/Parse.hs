@@ -108,12 +108,6 @@ parseCase = do
 parseList' :: Parser [Expr]
 parseList' = brackets lexer $ commaSep lexer expression
 
-sepBy2 :: (Stream s m t) => ParsecT s u m a -> ParsecT s u m sep -> ParsecT s u m [a]
-sepBy2 p sep = do
-  x <- p
-  xs <- many1 $ sep >> p
-  return $ x : xs
-
 fieldSpecifier :: Parser ()
 fieldSpecifier = reservedOp lexer "\\/"
 
@@ -231,6 +225,12 @@ rightArrow = reservedOp lexer "->"
 
 tuple :: Parser Expr
 tuple = flip label "tuple" $ fmap Tuple . parens lexer $ commaSep2 expression
+
+sepBy2 :: (Stream s m t) => ParsecT s u m a -> ParsecT s u m sep -> ParsecT s u m [a]
+sepBy2 p sep = do
+  x <- p
+  xs <- many1 $ sep >> p
+  return $ x : xs
 
 commaSep2 :: Parser a -> Parser [a]
 commaSep2 p = sepBy2 p $ comma lexer
