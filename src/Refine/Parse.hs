@@ -341,10 +341,10 @@ str :: Parser Literal
 str = LitString <$> stringLiteral lexer <?> "string"
 
 emptyList :: Parser Literal
-emptyList = LitEmptyList <$ (Token.symbol lexer "[" >> Token.symbol lexer "]") <?> "[]"
+emptyList = LitEmptyList <$ (brackets lexer $ return ()) <?> "[]"
 
 unit :: Parser Literal
-unit = LitUnit <$ (Token.symbol lexer "(" >> Token.symbol lexer ")") <?> "unit"
+unit = LitUnit <$ (parens lexer $ return ()) <?> "unit"
 
 literal :: Parser Literal
 literal = number
@@ -379,7 +379,7 @@ operate = flip label "binary operator" $ fmap BinOp $
   operator lexer <|> infixed
 
 infixed :: Parser String
-infixed = between (Token.symbol lexer "`") (Token.symbol lexer "`") ident
+infixed = between (symbol lexer "`") (symbol lexer "`") ident
   <?> "infixed function"
 
 expression :: Parser Expr
@@ -403,8 +403,7 @@ commaSep2 p = sepBy2 p $ comma lexer
 
 unitT :: Parser Type
 unitT = tUnit <$ do
-  Token.symbol lexer "("
-  Token.symbol lexer ")"
+  parens lexer $ return ()
 
 {-- Refined type parsers (for S.Type) --}
 
@@ -435,8 +434,8 @@ typeCon = S.TypeCon <$> conid
 
 unitType :: Parser S.Type
 unitType = S.tUnit <$ do
-  Token.symbol lexer "("
-  Token.symbol lexer ")"
+  symbol lexer "("
+  symbol lexer ")"
 
 tupleType :: Parser S.Type
 tupleType = do
