@@ -446,11 +446,7 @@ tupleType = do
   return $ foldl S.TypeApp c types
 
 varDecl :: Parser (String, Expr)
-varDecl = do
-  i <- varid
-  equal
-  e <- expression
-  return (i, e)
+varDecl = eq varid expression
 
 typeAnn :: Parser (String, S.Type)
 typeAnn = do
@@ -462,18 +458,12 @@ typeAnn = do
 typeSynonym :: Parser (String, S.Type)
 typeSynonym = do
   reserved lexer "type"
-  i <- conid
-  equal
-  t <- typeFn
-  return (i, t)
+  eq conid typeFn
 
 typeDecl :: Parser (String, [(String, [S.Type])])
 typeDecl = do
   reserved lexer "data"
-  i <- conid
-  equal
-  t <- variantType
-  return (i, t)
+  eq conid variantType
 
 variantType :: Parser [(String, [S.Type])]
 variantType = labeledType `sepBy1` reservedOp lexer "|"
@@ -484,8 +474,15 @@ labeledType = (,) <$> conid <*> (many1 typeTerm)
 equal :: Parser ()
 equal = reservedOp lexer "="
 
+eq :: Parser a -> Parser b -> Parser (a, b)
+eq p q = do
+  x <- p
+  equal
+  y <- q
+  return (x, y)
+
 recordR :: Parser [(String, Expr)]
 recordR = braces lexer $ commaSep lexer varDecl
 
 recordTypeR :: Parser [(String, S.Type)]
-recordTypeR = braces lexer $ commaSep lexer $ varid
+recordTypeR = braces lexer . commaSep lexer $ eq varid typeFn
