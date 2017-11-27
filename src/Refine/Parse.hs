@@ -5,22 +5,15 @@ module Refine.Parse
 
   , parseWhole
   , parse'
-  , parseDecl
-  , parseVarDecl
-  , parseTypeIdent
-  , parseType
-  , parseType'
-  , parseTupleType
+  , decl
+  , varDecl
   , parseTypeAnn
   , parseTypeDecl
   , parseList'
-  , parseEmptyList
   , parseCase
-  , parseNewType
-  , parseTuple
+  , parsePat
   , parsePAs
   , Decl(..)
-  , keyword
   , dataDecl
   , infixed
   , ident
@@ -30,8 +23,10 @@ module Refine.Parse
   , typeTerm
   , labeledType
   , variantType
+  , tuple
   , record
   , recordTypeR
+  , emptyList
   ) where
 
 import Text.Parsec
