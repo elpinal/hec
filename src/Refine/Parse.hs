@@ -21,8 +21,6 @@ module Refine.Parse
   , parsePAs
   , Decl(..)
   , keyword
-  , record
-  , recordType
   , dataDecl
   , infixed
   , ident
@@ -32,7 +30,7 @@ module Refine.Parse
   , typeTerm
   , labeledType
   , variantType
-  , recordR
+  , record
   , recordTypeR
   ) where
 
@@ -135,40 +133,6 @@ fieldSpecifier = string "\\/"
 projField :: Parser String
 projField = fieldSpecifier >> varid
 
-record :: Parser Expr
-record = do
-  char '{'
-  many space
-  xs <- (f <* many space) `sepBy` (char ',' >> many space)
-  char '}'
-  return $ Record xs
-  where
-    f :: Parser (String, Expr)
-    f = do
-      s <- varid
-      many space
-      char '='
-      many space
-      e <- expression
-      return (s, e)
-
-recordType :: Parser Type
-recordType = do
-  char '{'
-  many space
-  xs <- (f <* many space) `sepBy` (char ',' >> many space)
-  char '}'
-  return $ foldl TypeApp (tRecordN $ map fst xs) $ map snd xs
-  where
-    f :: Parser (String, Type)
-    f = do
-      s <- varid
-      many space
-      char '='
-      many space
-      t <- parseType'
-      return (s, t)
-
 dataDecl :: Parser Decl
 dataDecl = do
   keyword "data"
@@ -258,6 +222,7 @@ term = choice
   , variable
   , try tuple
   , parens lexer expression
+  , record
   ] <?> "term"
 
 app :: Parser Expr
@@ -321,6 +286,7 @@ typeAtom = choice
   , typeCon
   , try unitType
   , tupleType
+  , recordTypeR
   ]
 
 typeVariable :: Parser S.Type
@@ -376,8 +342,15 @@ eq p q = do
   y <- q
   return (x, y)
 
-recordR :: Parser [(String, Expr)]
-recordR = braces lexer $ commaSep lexer varDecl
+record :: Parser Expr
+record = fmap Record . braces lexer $ commaSep lexer varDecl
 
-recordTypeR :: Parser [(String, S.Type)]
-recordTypeR = braces lexer . commaSep lexer $ eq varid typeFn
+recordTypeR :: Parser S.Type
+recordTypeR = do
+  r <- p
+  let t = S.tRecordN $ map fst r
+      ts = map snd r
+  return $ foldl S.TypeApp t ts
+  where
+    p :: Parser [(String, S.Type)]
+    p = flip label "record type" $ braces lexer . commaSep lexer $ eq varid typeFn
