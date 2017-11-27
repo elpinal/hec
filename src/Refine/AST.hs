@@ -1,5 +1,7 @@
 module Refine.AST where
 
+import Refine.Type.Syntactic
+
 data Literal =
     LitInt Int
   | LitBool Bool
@@ -27,6 +29,13 @@ data Pat =
   | PAs String Pat
   | PLit Literal
   | PCon String [Pat]
+  deriving (Eq, Show)
+
+data Decl =
+    VarDecl String Expr
+  | TypeAnn String Type
+  | TypeDecl String Type
+  | DataDecl String [(String, [Type])]
   deriving (Eq, Show)
 
 int :: Int -> Expr

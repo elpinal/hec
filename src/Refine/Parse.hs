@@ -67,14 +67,6 @@ keyword s = do
   notFollowedBy $ alphaNum <|> char '\''
   return s
 
-data Decl =
-    VarDecl String Expr
-  | TypeAnn String Type
-  | TypeDecl String Type
-  | NewTypeDecl String String Type
-  | DataDecl String [(String, [Type])]
-  deriving (Eq, Show)
-
 decls :: Parser [Decl]
 decls = decl `sepBy` newline
 
