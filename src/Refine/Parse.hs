@@ -35,7 +35,7 @@ import Text.Parsec.String
 import Text.Parsec.Token
 
 import Refine.AST hiding (bool)
-import qualified Refine.Type.Syntactic as S
+import Refine.Type.Syntactic
 
 parseWhole :: Parser a -> String -> Either ParseError a
 parseWhole p = parse' $ p <* eof
@@ -229,20 +229,20 @@ sepBy2 p sep = do
 commaSep2 :: Parser a -> Parser [a]
 commaSep2 p = sepBy2 p $ comma lexer
 
-{-- Refined type parsers (for S.Type) --}
+{-- Refined type parsers (for Type) --}
 
-typeFn :: Parser S.Type
+typeFn :: Parser Type
 typeFn = typeApp `chainr1` do
   rightArrow
-  return S.fn
+  return fn
 
-typeApp :: Parser S.Type
-typeApp = foldl1 S.TypeApp <$> many1 typeTerm
+typeApp :: Parser Type
+typeApp = foldl1 TypeApp <$> many1 typeTerm
 
-typeTerm :: Parser S.Type
+typeTerm :: Parser Type
 typeTerm = try typeAtom <|> parens lexer typeFn
 
-typeAtom :: Parser S.Type
+typeAtom :: Parser Type
 typeAtom = choice
   [ typeVariable
   , typeCon
@@ -251,47 +251,47 @@ typeAtom = choice
   , recordTypeR
   ]
 
-typeVariable :: Parser S.Type
-typeVariable = S.TypeVar <$> varid
+typeVariable :: Parser Type
+typeVariable = TypeVar <$> varid
 
-typeCon :: Parser S.Type
-typeCon = S.TypeCon <$> conid
+typeCon :: Parser Type
+typeCon = TypeCon <$> conid
 
-unitType :: Parser S.Type
-unitType = S.tUnit <$ do
+unitType :: Parser Type
+unitType = tUnit <$ do
   symbol lexer "("
   symbol lexer ")"
 
-tupleType :: Parser S.Type
+tupleType :: Parser Type
 tupleType = do
   types <- parens lexer $ commaSep2 typeFn
-  let c = S.tTupleN $ length types
-  return $ foldl S.TypeApp c types
+  let c = tTupleN $ length types
+  return $ foldl TypeApp c types
 
 varDecl :: Parser (String, Expr)
 varDecl = eq varid expression
 
-typeAnn :: Parser (String, S.Type)
+typeAnn :: Parser (String, Type)
 typeAnn = do
   i <- varid
   reservedOp lexer "::"
   t <- typeFn
   return (i, t)
 
-typeSynonym :: Parser (String, S.Type)
+typeSynonym :: Parser (String, Type)
 typeSynonym = do
   reserved lexer "type"
   eq conid typeFn
 
-typeDecl :: Parser (String, [(String, [S.Type])])
+typeDecl :: Parser (String, [(String, [Type])])
 typeDecl = do
   reserved lexer "data"
   eq conid variantType
 
-variantType :: Parser [(String, [S.Type])]
+variantType :: Parser [(String, [Type])]
 variantType = labeledType `sepBy1` reservedOp lexer "|"
 
-labeledType :: Parser (String, [S.Type])
+labeledType :: Parser (String, [Type])
 labeledType = (,) <$> conid <*> (many typeTerm)
 
 equal :: Parser ()
@@ -307,12 +307,12 @@ eq p q = do
 record :: Parser Expr
 record = fmap Record . braces lexer $ commaSep lexer varDecl
 
-recordTypeR :: Parser S.Type
+recordTypeR :: Parser Type
 recordTypeR = do
   r <- p
-  let t = S.tRecordN $ map fst r
+  let t = tRecordN $ map fst r
       ts = map snd r
-  return $ foldl S.TypeApp t ts
+  return $ foldl TypeApp t ts
   where
-    p :: Parser [(String, S.Type)]
+    p :: Parser [(String, Type)]
     p = flip label "record type" $ braces lexer . commaSep lexer $ eq varid typeFn

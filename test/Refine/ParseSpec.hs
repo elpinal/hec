@@ -6,7 +6,7 @@ import Data.Either
 
 import Refine.AST
 import Refine.Parse
-import qualified Refine.Type.Syntactic as S
+import Refine.Type.Syntactic
 
 rightIs :: Eq a => a -> Either e a -> Bool
 rightIs x (Right y) = x == y
@@ -98,33 +98,33 @@ spec = do
 
   describe "parseTypeAnn" $
     it "parses a type annotation declaration" $ do
-      let var = S.TypeVar
-          con = S.TypeCon
+      let var = TypeVar
+          con = TypeCon
           conI = con "Int"
           conB = con "Bool"
           conC = con "Char"
 
       parseWhole parseTypeAnn "i :: Int"                 `shouldSatisfy` rightIs (TypeAnn "i" conI)
-      parseWhole parseTypeAnn "f :: Bool -> Char"        `shouldSatisfy` rightIs (TypeAnn "f" $ S.fn conB conC)
-      parseWhole parseTypeAnn "f::Bool->Char"            `shouldSatisfy` rightIs (TypeAnn "f" $ S.fn conB conC)
-      parseWhole parseTypeAnn "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . S.fn conI $ S.fn conB conC)
-      parseWhole parseTypeAnn "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . S.fn conI $ S.fn conB conC)
+      parseWhole parseTypeAnn "f :: Bool -> Char"        `shouldSatisfy` rightIs (TypeAnn "f" $ fn conB conC)
+      parseWhole parseTypeAnn "f::Bool->Char"            `shouldSatisfy` rightIs (TypeAnn "f" $ fn conB conC)
+      parseWhole parseTypeAnn "g :: Int -> Bool -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . fn conI $ fn conB conC)
+      parseWhole parseTypeAnn "g::Int ->  Bool  -> Char" `shouldSatisfy` rightIs (TypeAnn "g" . fn conI $ fn conB conC)
 
       parseWhole parseTypeAnn "x :: a"      `shouldSatisfy` rightIs (TypeAnn "x" $ var "a")
-      parseWhole parseTypeAnn "x :: a -> a" `shouldSatisfy` rightIs (TypeAnn "x" $ var "a" `S.fn` var "a")
+      parseWhole parseTypeAnn "x :: a -> a" `shouldSatisfy` rightIs (TypeAnn "x" $ var "a" `fn` var "a")
 
   describe "parseTypeDecl" $ do
     it "parses a type synonym" $ do
-      let var = S.TypeVar
-          con = S.TypeCon
+      let var = TypeVar
+          con = TypeCon
           conI = con "Int"
           conB = con "Bool"
           conC = con "Char"
 
       parseWhole parseTypeDecl "type I = Int"                `shouldSatisfy` rightIs (TypeDecl "I" $ con "Int")
-      parseWhole parseTypeDecl "type Fn = Bool -> Char"      `shouldSatisfy` rightIs (TypeDecl "Fn" $ con "Bool" `S.fn` con "Char")
-      parseWhole parseTypeDecl "type B = Int -> Int -> Bool" `shouldSatisfy` rightIs (TypeDecl "B" . S.fn (con "Int") $ con "Int" `S.fn` con "Bool")
-      parseWhole parseTypeDecl "type B=Int -> Int -> Bool"   `shouldSatisfy` rightIs (TypeDecl "B" . S.fn (con "Int") $ con "Int" `S.fn` con "Bool")
+      parseWhole parseTypeDecl "type Fn = Bool -> Char"      `shouldSatisfy` rightIs (TypeDecl "Fn" $ con "Bool" `fn` con "Char")
+      parseWhole parseTypeDecl "type B = Int -> Int -> Bool" `shouldSatisfy` rightIs (TypeDecl "B" . fn (con "Int") $ con "Int" `fn` con "Bool")
+      parseWhole parseTypeDecl "type B=Int -> Int -> Bool"   `shouldSatisfy` rightIs (TypeDecl "B" . fn (con "Int") $ con "Int" `fn` con "Bool")
 
     context "when there are no spaces between 'type' keyword and the type identifier" $
       it "fails" $
@@ -132,7 +132,7 @@ spec = do
 
   describe "decl" $
     it "parses a declaration" $ do
-      let con = S.TypeCon
+      let con = TypeCon
 
       parseWhole decl "x = 2"        `shouldSatisfy` rightIs (VarDecl "x" $ int 2)
       parseWhole decl "x :: Int"     `shouldSatisfy` rightIs (TypeAnn "x" $ con "Int")
@@ -255,8 +255,8 @@ spec = do
       parseWhole parsePat "x @ (1, 2)" `shouldSatisfy` rightIs (PAs "x" $ PCon "(,2)" [PLit $ LitInt 1, PLit $ LitInt 2])
 
   describe "dataDecl" $ do
-    let var = S.TypeVar
-        con = S.TypeCon
+    let var = TypeVar
+        con = TypeCon
 
     it "parses a datatype declaration" $ do
       parseWhole dataDecl "data A = A Int" `shouldSatisfy` rightIs (DataDecl "A" [("A", [(con "Int")])])
@@ -266,28 +266,28 @@ spec = do
 
       parseWhole dataDecl "data A = B" `shouldSatisfy` rightIs (DataDecl "A" [("B", [])])
 
-      parseWhole dataDecl "data A = B ()"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tUnit])])
-      parseWhole dataDecl "data A = B (())" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tUnit])])
+      parseWhole dataDecl "data A = B ()"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
+      parseWhole dataDecl "data A = B (())" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
 
-      parseWhole dataDecl "data A = B (Int, Bool)"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tTupleN 2 `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool")])])
-      parseWhole dataDecl "data A = B ((Int), Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tTupleN 2 `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool")])])
-      parseWhole dataDecl "data A = B (Int, ())"     `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tTupleN 2 `S.TypeApp` (con "Int") `S.TypeApp` S.tUnit])])
+      parseWhole dataDecl "data A = B (Int, Bool)"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B ((Int), Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B (Int, ())"     `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` (con "Int") `TypeApp` tUnit])])
 
       parseWhole dataDecl "data A = B ((), (), (Int, Bool))"
         `shouldSatisfy`
-        rightIs (DataDecl "A" [("B", [S.tTupleN 3 `S.TypeApp` S.tUnit `S.TypeApp` S.tUnit `S.TypeApp` (S.tTupleN 2 `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool"))])])
+        rightIs (DataDecl "A" [("B", [tTupleN 3 `TypeApp` tUnit `TypeApp` tUnit `TypeApp` (tTupleN 2 `TypeApp` (con "Int") `TypeApp` (con "Bool"))])])
 
-      parseWhole dataDecl "data A = B {}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN []])])
-      parseWhole dataDecl "data A = B{}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN []])])
+      parseWhole dataDecl "data A = B {}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN []])])
+      parseWhole dataDecl "data A = B{}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN []])])
 
-      parseWhole dataDecl "data A = B {a = Int}"           `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["a"] `S.TypeApp` (con "Int")])])
-      parseWhole dataDecl "data A = B {a = Bool, b = Int}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["a", "b"] `S.TypeApp` (con "Bool") `S.TypeApp` (con "Int")])])
-      parseWhole dataDecl "data A = B {b = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["b", "a"] `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool")])])
-      parseWhole dataDecl "data A = B {a = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["a", "a"] `S.TypeApp` (con "Int") `S.TypeApp` (con "Bool")])])
-      parseWhole dataDecl "data A = B {a = Int, a = Int}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [S.tRecordN ["a", "a"] `S.TypeApp` (con "Int") `S.TypeApp` (con "Int")])])
+      parseWhole dataDecl "data A = B {a = Int}"           `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a"] `TypeApp` (con "Int")])])
+      parseWhole dataDecl "data A = B {a = Bool, b = Int}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "b"] `TypeApp` (con "Bool") `TypeApp` (con "Int")])])
+      parseWhole dataDecl "data A = B {b = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["b", "a"] `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B {a = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "a"] `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B {a = Int, a = Int}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "a"] `TypeApp` (con "Int") `TypeApp` (con "Int")])])
 
       parseWhole dataDecl "data A = B Int Bool"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int"), (con "Bool")])])
-      parseWhole dataDecl "data A = B (Int -> Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int") `S.fn` (con "Bool")])])
+      parseWhole dataDecl "data A = B (Int -> Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int") `fn` (con "Bool")])])
 
     it "parses a variant declaration" $ do
       parseWhole dataDecl "data A = B | C"     `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", [])])
@@ -318,90 +318,90 @@ spec = do
 
   describe "typeApp" $
     it "parses a type application" $ do
-      let var = S.TypeVar
-          con = S.TypeCon
+      let var = TypeVar
+          con = TypeCon
 
       parseWhole typeApp "a" `shouldSatisfy` rightIs (var "a")
       parseWhole typeApp "A" `shouldSatisfy` rightIs (con "A")
 
-      parseWhole typeApp "a b" `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b")
-      parseWhole typeApp "A B" `shouldSatisfy` rightIs (con "A" `S.TypeApp` con "B")
+      parseWhole typeApp "a b" `shouldSatisfy` rightIs (var "a" `TypeApp` var "b")
+      parseWhole typeApp "A B" `shouldSatisfy` rightIs (con "A" `TypeApp` con "B")
 
-      parseWhole typeApp "a b c" `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b" `S.TypeApp` var "c")
-      parseWhole typeApp "A B C" `shouldSatisfy` rightIs (con "A" `S.TypeApp` con "B" `S.TypeApp` con "C")
+      parseWhole typeApp "a b c" `shouldSatisfy` rightIs (var "a" `TypeApp` var "b" `TypeApp` var "c")
+      parseWhole typeApp "A B C" `shouldSatisfy` rightIs (con "A" `TypeApp` con "B" `TypeApp` con "C")
 
-      parseWhole typeApp "ab X ab bc a A" `shouldSatisfy` (rightIs . foldl1 S.TypeApp) [var "ab", con "X", var "ab", var "bc", var "a", con "A"]
+      parseWhole typeApp "ab X ab bc a A" `shouldSatisfy` (rightIs . foldl1 TypeApp) [var "ab", con "X", var "ab", var "bc", var "a", con "A"]
 
   describe "typeFn" $ do
-    let var = S.TypeVar
-        con = S.TypeCon
+    let var = TypeVar
+        con = TypeCon
 
     it "parses a type which may consist of functions" $ do
       parseWhole typeFn "A"      `shouldSatisfy` rightIs (con "A")
-      parseWhole typeFn "A -> B" `shouldSatisfy` rightIs (con "A" `S.fn` con "B")
+      parseWhole typeFn "A -> B" `shouldSatisfy` rightIs (con "A" `fn` con "B")
 
-      parseWhole typeFn "a b"      `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b")
-      parseWhole typeFn "a b -> C" `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b" `S.fn` con "C")
+      parseWhole typeFn "a b"      `shouldSatisfy` rightIs (var "a" `TypeApp` var "b")
+      parseWhole typeFn "a b -> C" `shouldSatisfy` rightIs (var "a" `TypeApp` var "b" `fn` con "C")
 
-      parseWhole typeFn "A B C"            `shouldSatisfy` rightIs (con "A" `S.TypeApp` con "B" `S.TypeApp` con "C")
-      parseWhole typeFn "A B C -> BC cC A" `shouldSatisfy` rightIs (foldl1 S.TypeApp [con "A", con "B", con "C"] `S.fn` foldl1 S.TypeApp [con "BC", var "cC", con "A"])
+      parseWhole typeFn "A B C"            `shouldSatisfy` rightIs (con "A" `TypeApp` con "B" `TypeApp` con "C")
+      parseWhole typeFn "A B C -> BC cC A" `shouldSatisfy` rightIs (foldl1 TypeApp [con "A", con "B", con "C"] `fn` foldl1 TypeApp [con "BC", var "cC", con "A"])
 
-      parseWhole typeFn "a (b -> C)" `shouldSatisfy` rightIs (S.TypeApp (var "a") $ var "b" `S.fn` con "C")
+      parseWhole typeFn "a (b -> C)" `shouldSatisfy` rightIs (TypeApp (var "a") $ var "b" `fn` con "C")
 
-      parseWhole typeFn "a b c"   `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b" `S.TypeApp` var "c")
-      parseWhole typeFn "a (b c)" `shouldSatisfy` rightIs (S.TypeApp (var "a") $ var "b" `S.TypeApp` var "c")
+      parseWhole typeFn "a b c"   `shouldSatisfy` rightIs (var "a" `TypeApp` var "b" `TypeApp` var "c")
+      parseWhole typeFn "a (b c)" `shouldSatisfy` rightIs (TypeApp (var "a") $ var "b" `TypeApp` var "c")
 
-      parseWhole typeFn "a (b -> C) -> aaaXXX" `shouldSatisfy` rightIs (S.TypeApp (var "a") (var "b" `S.fn` con "C") `S.fn` var "aaaXXX")
+      parseWhole typeFn "a (b -> C) -> aaaXXX" `shouldSatisfy` rightIs (TypeApp (var "a") (var "b" `fn` con "C") `fn` var "aaaXXX")
 
     it "parses some primitve type literals" $ do
-      parseWhole typeFn "()"     `shouldSatisfy` rightIs S.tUnit
-      parseWhole typeFn "(())"   `shouldSatisfy` rightIs S.tUnit
-      parseWhole typeFn "((()))" `shouldSatisfy` rightIs S.tUnit
+      parseWhole typeFn "()"     `shouldSatisfy` rightIs tUnit
+      parseWhole typeFn "(())"   `shouldSatisfy` rightIs tUnit
+      parseWhole typeFn "((()))" `shouldSatisfy` rightIs tUnit
 
-      parseWhole typeFn "() ()" `shouldSatisfy` rightIs (S.tUnit `S.TypeApp` S.tUnit)
+      parseWhole typeFn "() ()" `shouldSatisfy` rightIs (tUnit `TypeApp` tUnit)
 
-      parseWhole typeFn "() -> ()"         `shouldSatisfy` rightIs (S.tUnit `S.fn` S.tUnit)
-      parseWhole typeFn "() -> () -> ()"   `shouldSatisfy` rightIs (S.tUnit `S.fn` (S.tUnit `S.fn` S.tUnit))
-      parseWhole typeFn "() -> (() -> ())" `shouldSatisfy` rightIs (S.tUnit `S.fn` (S.tUnit `S.fn` S.tUnit))
-      parseWhole typeFn "(() -> ()) -> ()" `shouldSatisfy` rightIs (S.tUnit `S.fn` S.tUnit `S.fn` S.tUnit)
+      parseWhole typeFn "() -> ()"         `shouldSatisfy` rightIs (tUnit `fn` tUnit)
+      parseWhole typeFn "() -> () -> ()"   `shouldSatisfy` rightIs (tUnit `fn` (tUnit `fn` tUnit))
+      parseWhole typeFn "() -> (() -> ())" `shouldSatisfy` rightIs (tUnit `fn` (tUnit `fn` tUnit))
+      parseWhole typeFn "(() -> ()) -> ()" `shouldSatisfy` rightIs (tUnit `fn` tUnit `fn` tUnit)
 
-      parseWhole typeFn "(a, b)"    `shouldSatisfy` rightIs (S.tTupleN 2 `S.TypeApp` var "a" `S.TypeApp` var "b")
-      parseWhole typeFn "(a, b, c)" `shouldSatisfy` rightIs (S.tTupleN 3 `S.TypeApp` var "a" `S.TypeApp` var "b" `S.TypeApp` var "c")
+      parseWhole typeFn "(a, b)"    `shouldSatisfy` rightIs (tTupleN 2 `TypeApp` var "a" `TypeApp` var "b")
+      parseWhole typeFn "(a, b, c)" `shouldSatisfy` rightIs (tTupleN 3 `TypeApp` var "a" `TypeApp` var "b" `TypeApp` var "c")
 
   describe "typeTerm" $
     it "parses a type term" $ do
-      let var = S.TypeVar
-          con = S.TypeCon
+      let var = TypeVar
+          con = TypeCon
 
       parseWhole typeTerm "A"   `shouldSatisfy` rightIs (con "A")
       parseWhole typeTerm "(A)" `shouldSatisfy` rightIs (con "A")
 
-      parseWhole typeTerm "(A -> B)"       `shouldSatisfy` rightIs (con "A" `S.fn` con "B")
-      parseWhole typeTerm "((A) -> (B))"   `shouldSatisfy` rightIs (con "A" `S.fn` con "B")
-      parseWhole typeTerm "(((A) -> (B)))" `shouldSatisfy` rightIs (con "A" `S.fn` con "B")
+      parseWhole typeTerm "(A -> B)"       `shouldSatisfy` rightIs (con "A" `fn` con "B")
+      parseWhole typeTerm "((A) -> (B))"   `shouldSatisfy` rightIs (con "A" `fn` con "B")
+      parseWhole typeTerm "(((A) -> (B)))" `shouldSatisfy` rightIs (con "A" `fn` con "B")
 
-      parseWhole typeTerm "(a b)" `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b")
+      parseWhole typeTerm "(a b)" `shouldSatisfy` rightIs (var "a" `TypeApp` var "b")
 
-      parseWhole typeTerm "(a b -> C)"   `shouldSatisfy` rightIs (var "a" `S.TypeApp` var "b" `S.fn` con "C")
-      parseWhole typeTerm "(a (b -> C))" `shouldSatisfy` rightIs (S.TypeApp (var "a") $ var "b" `S.fn` con "C")
+      parseWhole typeTerm "(a b -> C)"   `shouldSatisfy` rightIs (var "a" `TypeApp` var "b" `fn` con "C")
+      parseWhole typeTerm "(a (b -> C))" `shouldSatisfy` rightIs (TypeApp (var "a") $ var "b" `fn` con "C")
 
-      parseWhole typeTerm "(A B C)"   `shouldSatisfy` rightIs (foldl1 S.TypeApp [con "A", con "B", con "C"])
-      parseWhole typeTerm "((A B) C)" `shouldSatisfy` rightIs (foldl1 S.TypeApp [con "A", con "B", con "C"])
-      parseWhole typeTerm "(A (B C))" `shouldSatisfy` rightIs (foldr1 S.TypeApp [con "A", con "B", con "C"])
+      parseWhole typeTerm "(A B C)"   `shouldSatisfy` rightIs (foldl1 TypeApp [con "A", con "B", con "C"])
+      parseWhole typeTerm "((A B) C)" `shouldSatisfy` rightIs (foldl1 TypeApp [con "A", con "B", con "C"])
+      parseWhole typeTerm "(A (B C))" `shouldSatisfy` rightIs (foldr1 TypeApp [con "A", con "B", con "C"])
 
-      parseWhole typeTerm "(A B C -> BC cC A)"   `shouldSatisfy` rightIs (foldl1 S.TypeApp [con "A", con "B", con "C"] `S.fn` foldl1 S.TypeApp [con "BC", var "cC", con "A"])
-      parseWhole typeTerm "(A (B C -> BC) cC A)" `shouldSatisfy` (rightIs . foldl1 S.TypeApp) [con "A", con "B" `S.TypeApp` con "C" `S.fn` con "BC", var "cC", con "A"]
+      parseWhole typeTerm "(A B C -> BC cC A)"   `shouldSatisfy` rightIs (foldl1 TypeApp [con "A", con "B", con "C"] `fn` foldl1 TypeApp [con "BC", var "cC", con "A"])
+      parseWhole typeTerm "(A (B C -> BC) cC A)" `shouldSatisfy` (rightIs . foldl1 TypeApp) [con "A", con "B" `TypeApp` con "C" `fn` con "BC", var "cC", con "A"]
 
   describe "labeledType" $
     it "parses a labeled type" $ do
-      parseWhole labeledType "A B"   `shouldSatisfy` rightIs ("A", [S.TypeCon "B"])
-      parseWhole labeledType "A B C" `shouldSatisfy` rightIs ("A", [S.TypeCon "B", S.TypeCon "C"])
-      parseWhole labeledType "A a"   `shouldSatisfy` rightIs ("A", [S.TypeVar "a"])
+      parseWhole labeledType "A B"   `shouldSatisfy` rightIs ("A", [TypeCon "B"])
+      parseWhole labeledType "A B C" `shouldSatisfy` rightIs ("A", [TypeCon "B", TypeCon "C"])
+      parseWhole labeledType "A a"   `shouldSatisfy` rightIs ("A", [TypeVar "a"])
 
   describe "variantType" $
     it "parses a variant type" $ do
-      parseWhole variantType "A B"       `shouldSatisfy` rightIs [("A", [S.TypeCon "B"])]
-      parseWhole variantType "A B | C D" `shouldSatisfy` rightIs [("A", [S.TypeCon "B"]), ("C", [S.TypeCon "D"])]
+      parseWhole variantType "A B"       `shouldSatisfy` rightIs [("A", [TypeCon "B"])]
+      parseWhole variantType "A B | C D" `shouldSatisfy` rightIs [("A", [TypeCon "B"]), ("C", [TypeCon "D"])]
 
   describe "record" $ do
     it "parses a record" $ do
@@ -426,6 +426,6 @@ spec = do
 
   describe "recordTypeR" $
     it "parses a record type" $ do
-      parseWhole recordTypeR "{}"             `shouldSatisfy` rightIs (S.tRecordN [])
-      parseWhole recordTypeR "{a = A}"        `shouldSatisfy` rightIs (S.tRecordN ["a"] `S.TypeApp` S.TypeCon "A")
-      parseWhole recordTypeR "{a = A, b = B}" `shouldSatisfy` rightIs (S.tRecordN ["a", "b"] `S.TypeApp` S.TypeCon "A" `S.TypeApp` S.TypeCon "B")
+      parseWhole recordTypeR "{}"             `shouldSatisfy` rightIs (tRecordN [])
+      parseWhole recordTypeR "{a = A}"        `shouldSatisfy` rightIs (tRecordN ["a"] `TypeApp` TypeCon "A")
+      parseWhole recordTypeR "{a = A, b = B}" `shouldSatisfy` rightIs (tRecordN ["a", "b"] `TypeApp` TypeCon "A" `TypeApp` TypeCon "B")
