@@ -35,7 +35,6 @@ import Text.Parsec.String
 import Text.Parsec.Token
 
 import Refine.AST hiding (bool)
-import Refine.Type
 import qualified Refine.Type.Syntactic as S
 
 parseWhole :: Parser a -> String -> Either ParseError a
@@ -229,10 +228,6 @@ sepBy2 p sep = do
 
 commaSep2 :: Parser a -> Parser [a]
 commaSep2 p = sepBy2 p $ comma lexer
-
-unitT :: Parser Type
-unitT = tUnit <$ do
-  parens lexer $ return ()
 
 {-- Refined type parsers (for S.Type) --}
 
