@@ -104,7 +104,9 @@ binToFun :: Expr -> Expr
 binToFun (BinOp name lhs rhs) = App (Var name) (binToFun lhs) `App` binToFun rhs
 binToFun (App x y) = App (binToFun x) $ binToFun y
 binToFun (Abs name e) = Abs name $ binToFun e
-binToFun (Case e xs) = Case (binToFun e) [(p, binToFun x) | (p, x) <- xs]
+binToFun (Case e xs) = Case (binToFun e) $ map (second binToFun) xs
+binToFun (Tuple es) = Tuple $ map binToFun es
+binToFun (Record fs) = Record $ map (second binToFun) fs
 binToFun e = e
 
 data ThreeAddress =
