@@ -2,6 +2,7 @@ module Refine.Inter.Env
   ( emptyDecls
   , scanDecls
   , updateVars
+  , updateTypes
 
   , DeclError(..)
   ) where
@@ -55,5 +56,13 @@ scanDecls ds = foldl (>=>) return (map scanDecl ds) emptyDecls
         Just (e, Nothing) -> defineVar i e (Just t) d
         Nothing           -> defineVar i Nothing (Just t) d
 
+    scanDecl (AST.TypeDecl i t) d =
+      if i `Map.member` types d
+        then Left $ Duplicate i
+        else defineType i t d
+
 defineVar :: Monad m => String -> Maybe AST.Expr -> Maybe S.Type -> Decls -> m Decls
 defineVar i e t = return . updateVars (Map.insert i (e, t))
+
+defineType :: Monad m => String -> S.Type -> Decls -> m Decls
+defineType i t = return . updateTypes (Map.insert i t)
