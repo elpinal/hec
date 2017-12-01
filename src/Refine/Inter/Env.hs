@@ -45,12 +45,15 @@ scanDecls ds = foldl (>=>) return (map scanDecl ds) emptyDecls
 
     scanDecl (AST.VarDecl i e) d =
       case Map.lookup i $ vars d of
-        Just (Just e, t) -> Left $ Duplicate i
-        Just (Nothing, t) -> return $ updateVars (Map.insert i (Just e, t)) d
-        Nothing -> return $ updateVars (Map.insert i (Just e, Nothing)) d
+        Just (Just e, t)  -> Left $ Duplicate i
+        Just (Nothing, t) -> defineVar i (Just e) t d
+        Nothing           -> defineVar i (Just e) Nothing d
 
     scanDecl (AST.TypeAnn i t) d =
       case Map.lookup i $ vars d of
-        Just (e, Just t) -> Left $ Duplicate i
-        Just (e, Nothing) -> return $ updateVars (Map.insert i (e, Just t)) d
-        Nothing -> return $ updateVars (Map.insert i (Nothing, Just t)) d
+        Just (e, Just t)  -> Left $ Duplicate i
+        Just (e, Nothing) -> defineVar i e (Just t) d
+        Nothing           -> defineVar i Nothing (Just t) d
+
+defineVar :: Monad m => String -> Maybe AST.Expr -> Maybe S.Type -> Decls -> m Decls
+defineVar i e t = return . updateVars (Map.insert i (e, t))
