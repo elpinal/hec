@@ -52,6 +52,7 @@ test-suite hec-test
   build-depends:       base
                      , hec
                      , hspec >= 2.4.3
+                     , HUnit >= 1.5.0.0
                      , safe
                      , containers
                      , parsec

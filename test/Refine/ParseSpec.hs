@@ -1,6 +1,7 @@
 module Refine.ParseSpec where
 
 import Test.Hspec
+import Test.HUnit
 
 import Data.Either
 
@@ -12,8 +13,37 @@ rightIs :: Eq a => a -> Either e a -> Bool
 rightIs x (Right y) = x == y
 rightIs _ (Left _) = False
 
+matchRight :: (HasCallStack, Eq a, Show a, Show e) => Either e a -> Maybe a -> Expectation
+matchRight (Left e) Nothing = return ()
+matchRight (Left e) (Just a) = do
+  assertFailure $ "expected: " ++ show a ++ "\n" ++ show e
+matchRight (Right x) Nothing = Just x `shouldBe` Nothing
+matchRight (Right x) (Just y) = x `shouldBe` y
+
 spec :: Spec
 spec = do
+  describe "decls" $ do
+    it "parses declarations" $ do
+      parseWhole decls "x = 3"         `matchRight` Just [VarDecl "x" $ int 3]
+      parseWhole decls "x = 3;y = 4"   `matchRight` Just [VarDecl "x" $ int 3, VarDecl "y" $ int 4]
+      parseWhole decls "x = 3; y = 4;" `matchRight` Just [VarDecl "x" $ int 3, VarDecl "y" $ int 4]
+
+      parseWhole decls "x :: A; x = 3" `matchRight` Just [TypeAnn "x" $ TypeCon "A", VarDecl "x" $ int 3]
+      parseWhole decls "x :: A; x = 3; type A = B"
+        `matchRight` Just
+        [ TypeAnn "x" $ TypeCon "A"
+        , VarDecl "x" $ int 3
+        , TypeDecl "A" $ TypeCon "B"
+        ]
+      parseWhole decls "data A = B C | D | E (F -> G -> {}) ()"
+        `matchRight` Just
+        [ DataDecl "A"
+          [ ("B", [TypeCon "C"])
+          , ("D", [])
+          , ("E", [foldr1 fn [TypeCon "F", TypeCon "G", tRecordN []], tUnit])
+          ]
+        ]
+
   describe "parseExpr" $ do
     it "parses an expression" $ do
       parseExpr "()"           `shouldSatisfy` rightIs (Lit LitUnit)

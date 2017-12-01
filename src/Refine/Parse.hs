@@ -5,6 +5,7 @@ module Refine.Parse
 
   , parseWhole
   , parse'
+  , decls
   , decl
   , varDecl
   , parseTypeAnn
@@ -47,7 +48,7 @@ parseExpr :: String -> Either ParseError Expr
 parseExpr = parseWhole expression
 
 decls :: Parser [Decl]
-decls = decl `sepBy` newline
+decls = decl `sepEndBy` semi lexer
 
 decl :: Parser Decl
 decl = choice
