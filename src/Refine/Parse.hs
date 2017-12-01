@@ -1,5 +1,6 @@
 module Refine.Parse
   ( parseExpr
+  , Decl(..)
   , Expr(..)
   , Literal(..)
 
@@ -14,7 +15,6 @@ module Refine.Parse
   , parseCase
   , parsePat
   , parsePAs
-  , Decl(..)
   , dataDecl
   , infixed
   , ident
