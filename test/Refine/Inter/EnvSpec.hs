@@ -15,5 +15,5 @@ spec = do
       scanDecls [VarDecl "x" $ int 23] `shouldBe` return (updateVars (Map.insert "x" (int 23, Nothing)) emptyDecls)
 
     context "when given duplicated declarations" $
-      it "returns Nothing" $ do
-        scanDecls [VarDecl "x" $ int 23, VarDecl "x" $ int 0] `shouldBe` Nothing
+      it "return an error" $ do
+        scanDecls [VarDecl "x" $ int 23, VarDecl "x" $ int 0] `shouldBe` Left (Duplicate "x")

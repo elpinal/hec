@@ -2,6 +2,8 @@ module Refine.Inter.Env
   ( emptyDecls
   , scanDecls
   , updateVars
+
+  , DeclError(..)
   ) where
 
 import Control.Monad
@@ -31,11 +33,16 @@ updateVars f d = d { vars = f $ vars d }
 updateTypes :: (Types -> Types) -> Decls -> Decls
 updateTypes f d = d { types = f $ types d }
 
-scanDecls :: [AST.Decl] -> Maybe Decls
+data DeclError =
+    Duplicate String
+  | Undefined String
+  deriving (Eq, Show)
+
+scanDecls :: [AST.Decl] -> Either DeclError Decls
 scanDecls ds = foldl (>=>) return (map scanDecl ds) emptyDecls
   where
-    scanDecl :: AST.Decl -> Decls -> Maybe Decls
+    scanDecl :: AST.Decl -> Decls -> Either DeclError Decls
     scanDecl (AST.VarDecl i e) d =
       if i `Map.member` vars d
-        then Nothing
-        else Just $ updateVars (Map.insert i (e, Nothing)) d
+        then Left $ Duplicate i
+        else return $ updateVars (Map.insert i (e, Nothing)) d
