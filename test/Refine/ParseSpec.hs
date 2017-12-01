@@ -120,6 +120,7 @@ spec = do
     it "returns an error when extra tokens appear" $ do
       parseExpr "TrueA"      `shouldSatisfy` isLeft
       parseExpr "f \\x -> x" `shouldSatisfy` isLeft
+      parseExpr " True"      `shouldSatisfy` isLeft
 
   describe "varDecl" $ do
     it "parses a variable declaration" $ do
