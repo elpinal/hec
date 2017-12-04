@@ -5,7 +5,6 @@ module Refine.Inter.Env
   , updateTypes
 
   , DeclError(..)
-  , TypeDef(..)
   ) where
 
 import Control.Monad
@@ -15,12 +14,7 @@ import qualified Refine.AST as AST
 import qualified Refine.Type.Syntactic as S
 
 type Vars  = Map.Map String (Maybe AST.Expr, Maybe S.Type)
-type Types = Map.Map String TypeDef
-
-data TypeDef =
-    Synonym S.Type
-  | Labeled S.Type
-  deriving (Eq, Show)
+type Types = Map.Map String S.Type
 
 data Decls = Decls
   { vars :: Vars
@@ -65,15 +59,15 @@ scanDecls ds = foldl (>=>) return (map scanDecl ds) emptyDecls
     scanDecl (AST.TypeDecl i t) d =
       if i `Map.member` types d
         then Left $ Duplicate i
-        else defineType i (Synonym t) d
+        else defineType i t d
 
     scanDecl (AST.DataDecl i t) d =
       if i `Map.member` types d
         then Left $ Duplicate i
-        else defineType i (Labeled t) d
+        else defineType i t d
 
 defineVar :: Monad m => String -> Maybe AST.Expr -> Maybe S.Type -> Decls -> m Decls
 defineVar i e t = return . updateVars (Map.insert i (e, t))
 
-defineType :: Monad m => String -> TypeDef -> Decls -> m Decls
+defineType :: Monad m => String -> S.Type -> Decls -> m Decls
 defineType i t = return . updateTypes (Map.insert i t)
