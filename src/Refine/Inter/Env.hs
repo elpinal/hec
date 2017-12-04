@@ -3,6 +3,8 @@ module Refine.Inter.Env
   , scanDecls
   , updateVars
   , updateTypes
+  , runKindEnv
+  , kindOf
 
   , DeclError(..)
   ) where
