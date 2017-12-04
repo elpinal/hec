@@ -18,7 +18,8 @@ spec = do
       scanDecls [TypeAnn "x" $ S.TypeCon "A"]                       `shouldBe` return (updateVars (Map.insert "x" (Nothing, Just $ S.TypeCon "A")) emptyDecls)
       scanDecls [TypeAnn "x" $ S.TypeCon "A", VarDecl "x" $ int 23] `shouldBe` return (updateVars (Map.insert "x" (Just $ int 23, Just $ S.TypeCon "A")) emptyDecls)
 
-      scanDecls [TypeDecl "A" $ S.TypeCon "B"] `shouldBe` return (updateTypes (Map.insert "A" $ S.TypeCon "B") emptyDecls)
+      scanDecls [TypeDecl "A" $ S.TypeCon "B"] `shouldBe` return (updateTypes (Map.insert "A" . Synonym $ S.TypeCon "B") emptyDecls)
+      scanDecls [DataDecl "A" $ S.TypeCon "B"] `shouldBe` return (updateTypes (Map.insert "A" . Labeled $ S.TypeCon "B") emptyDecls)
 
     context "when given duplicated declarations" $
       it "return an error" $ do
