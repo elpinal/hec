@@ -42,6 +42,8 @@ updateTypes f d = d { types = f $ types d }
 data DeclError =
     Duplicate String
   | Undefined String
+  | AppOfStar
+  | KindMismatch
   deriving (Eq, Show)
 
 scanDecls :: [AST.Decl] -> Either DeclError Decls
@@ -87,6 +89,13 @@ getKind i = Map.lookup i <$> get
 
 kindOf :: S.Type -> Types -> KindEnv Kind
 kindOf (S.TypeCon i) ts = maybe (primKind i) (\t -> kindOf t ts) $ Map.lookup i ts
+kindOf (S.TypeApp t1 t2) ts = do
+  k1 <- kindOf t1 ts
+  k2 <- kindOf t2 ts
+  case k1 of
+    Star -> throwError AppOfStar
+    KFun k k' | k1 == k -> return k'
+    _ -> throwError KindMismatch
 
 primKind :: String -> KindEnv Kind
 primKind i = getKind i >>= maybe (throwError $ Undefined i) return
