@@ -264,10 +264,7 @@ unitType = tUnit <$ do
   symbol lexer ")"
 
 tupleType :: Parser Type
-tupleType = do
-  types <- parens lexer $ commaSep2 typeFn
-  let c = tTupleN $ length types
-  return $ foldl TypeApp c types
+tupleType = fmap tupleOf . parens lexer $ commaSep2 typeFn
 
 varDecl :: Parser (String, Expr)
 varDecl = eq varid expression
@@ -297,10 +294,7 @@ variantType = do
   return $ foldl TypeApp t ts
 
 labeledType :: Parser (String, Type)
-labeledType = do
-  i <- conid
-  ts <- many typeTerm
-  return (i, foldl TypeApp (tTupleN $ length ts) ts)
+labeledType = (,) <$> conid <*> (tupleOf <$> many typeTerm)
 
 equal :: Parser ()
 equal = reservedOp lexer "="

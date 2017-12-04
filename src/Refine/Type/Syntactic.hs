@@ -19,6 +19,9 @@ tTupleN :: Int -> Type
 tTupleN 0 = tUnit
 tTupleN n = TypeCon $ "(," ++ show n ++ ")"
 
+tupleOf :: [Type] -> Type
+tupleOf ts = foldl TypeApp (tTupleN $ length ts) ts
+
 tRecordN :: [String] -> Type
 tRecordN xs = TypeCon $ "{" ++ concatWith "," xs ++ "}"
 
