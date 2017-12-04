@@ -284,16 +284,23 @@ typeSynonym = do
   reserved lexer "type"
   eq conid typeFn
 
-typeDecl :: Parser (String, [(String, [Type])])
+typeDecl :: Parser (String, Type)
 typeDecl = do
   reserved lexer "data"
   eq conid variantType
 
-variantType :: Parser [(String, [Type])]
-variantType = labeledType `sepBy1` reservedOp lexer "|"
+variantType :: Parser Type
+variantType = do
+  fs <- labeledType `sepBy1` reservedOp lexer "|"
+  let t = tVariant $ map fst fs
+      ts = map snd fs
+  return $ foldl TypeApp t ts
 
-labeledType :: Parser (String, [Type])
-labeledType = (,) <$> conid <*> many typeTerm
+labeledType :: Parser (String, Type)
+labeledType = do
+  i <- conid
+  ts <- many typeTerm
+  return (i, foldl TypeApp (tTupleN $ length ts) ts)
 
 equal :: Parser ()
 equal = reservedOp lexer "="

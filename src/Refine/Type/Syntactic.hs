@@ -16,10 +16,14 @@ tUnit :: Type
 tUnit = TypeCon "()"
 
 tTupleN :: Int -> Type
+tTupleN 0 = tUnit
 tTupleN n = TypeCon $ "(," ++ show n ++ ")"
 
 tRecordN :: [String] -> Type
 tRecordN xs = TypeCon $ "{" ++ concatWith "," xs ++ "}"
+
+tVariant :: [String] -> Type
+tVariant xs = TypeCon $ "<" ++ concatWith "," xs ++ ">"
 
 concatWith :: String -> [String] -> String
 concatWith _ [] = ""

@@ -35,7 +35,7 @@ data Decl =
     VarDecl String Expr
   | TypeAnn String Type
   | TypeDecl String Type
-  | DataDecl String [(String, [Type])]
+  | DataDecl String Type
   deriving (Eq, Show)
 
 int :: Int -> Expr

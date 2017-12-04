@@ -37,11 +37,12 @@ spec = do
         ]
       parseWhole decls "data A = B C | D | E (F -> G -> {}) ()"
         `matchRight` Just
-        [ DataDecl "A"
-          [ ("B", [TypeCon "C"])
-          , ("D", [])
-          , ("E", [foldr1 fn [TypeCon "F", TypeCon "G", tRecordN []], tUnit])
-          ]
+        [ DataDecl "A" $
+          foldl TypeApp (tVariant ["B", "D", "E"])
+            [ tTupleN 1 `TypeApp` TypeCon "C"
+            , tUnit
+            , tTupleN 2 `TypeApp` foldr1 fn [TypeCon "F", TypeCon "G", tRecordN []] `TypeApp` tUnit
+            ]
         ]
 
   describe "parseExpr" $ do
@@ -168,7 +169,7 @@ spec = do
       parseWhole decl "x = 2"        `shouldSatisfy` rightIs (VarDecl "x" $ int 2)
       parseWhole decl "x :: Int"     `shouldSatisfy` rightIs (TypeAnn "x" $ con "Int")
       parseWhole decl "type I = Int" `shouldSatisfy` rightIs (TypeDecl "I" $ con "Int")
-      parseWhole decl "data I = A T" `shouldSatisfy` rightIs (DataDecl "I" [("A", [con "T"])])
+      parseWhole decl "data I = A T" `shouldSatisfy` rightIs (DataDecl "I" $ tVariant ["A"] `TypeApp` (tTupleN 1 `TypeApp` con "T"))
 
   describe "emptyList" $
     it "parses a empty list" $ do
@@ -289,46 +290,48 @@ spec = do
     let var = TypeVar
         con = TypeCon
 
+        dd :: String -> [(String, [Type])] -> Decl
+        dd i fs = DataDecl i $ foldl TypeApp (tVariant $ map fst fs) $ map ((\ts -> foldl TypeApp (tTupleN $ length ts) ts) . snd) fs
+
     it "parses a datatype declaration" $ do
-      parseWhole dataDecl "data A = A Int" `shouldSatisfy` rightIs (DataDecl "A" [("A", [(con "Int")])])
-      parseWhole dataDecl "data A = B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")])])
+      parseWhole dataDecl "data A = A Int" `shouldSatisfy` rightIs (dd "A" [("A", [(con "Int")])])
+      parseWhole dataDecl "data A = B Int" `shouldSatisfy` rightIs (dd "A" [("B", [(con "Int")])])
 
-      parseWhole dataDecl "data A=B Int" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")])])
+      parseWhole dataDecl "data A=B Int" `shouldSatisfy` rightIs (dd "A" [("B", [(con "Int")])])
 
-      parseWhole dataDecl "data A = B" `shouldSatisfy` rightIs (DataDecl "A" [("B", [])])
+      parseWhole dataDecl "data A = B" `matchRight` Just (dd "A" [("B", [])])
 
-      parseWhole dataDecl "data A = B ()"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
-      parseWhole dataDecl "data A = B (())" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tUnit])])
+      parseWhole dataDecl "data A = B ()"   `shouldSatisfy` rightIs (dd "A" [("B", [tUnit])])
+      parseWhole dataDecl "data A = B (())" `shouldSatisfy` rightIs (dd "A" [("B", [tUnit])])
 
-      parseWhole dataDecl "data A = B (Int, Bool)"   `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
-      parseWhole dataDecl "data A = B ((Int), Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
-      parseWhole dataDecl "data A = B (Int, ())"     `shouldSatisfy` rightIs (DataDecl "A" [("B", [tTupleN 2 `TypeApp` (con "Int") `TypeApp` tUnit])])
+      parseWhole dataDecl "data A = B (Int, Bool)"   `shouldSatisfy` rightIs (dd "A" [("B", [tTupleN 2 `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B ((Int), Bool)" `shouldSatisfy` rightIs (dd "A" [("B", [tTupleN 2 `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B (Int, ())"     `shouldSatisfy` rightIs (dd "A" [("B", [tTupleN 2 `TypeApp` (con "Int") `TypeApp` tUnit])])
 
       parseWhole dataDecl "data A = B ((), (), (Int, Bool))"
         `shouldSatisfy`
-        rightIs (DataDecl "A" [("B", [tTupleN 3 `TypeApp` tUnit `TypeApp` tUnit `TypeApp` (tTupleN 2 `TypeApp` (con "Int") `TypeApp` (con "Bool"))])])
+        rightIs (dd "A" [("B", [tTupleN 3 `TypeApp` tUnit `TypeApp` tUnit `TypeApp` (tTupleN 2 `TypeApp` (con "Int") `TypeApp` (con "Bool"))])])
 
-      parseWhole dataDecl "data A = B {}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN []])])
-      parseWhole dataDecl "data A = B{}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN []])])
+      parseWhole dataDecl "data A = B {}" `shouldSatisfy` rightIs (dd "A" [("B", [tRecordN []])])
+      parseWhole dataDecl "data A = B{}"  `shouldSatisfy` rightIs (dd "A" [("B", [tRecordN []])])
 
-      parseWhole dataDecl "data A = B {a = Int}"           `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a"] `TypeApp` (con "Int")])])
-      parseWhole dataDecl "data A = B {a = Bool, b = Int}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "b"] `TypeApp` (con "Bool") `TypeApp` (con "Int")])])
-      parseWhole dataDecl "data A = B {b = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["b", "a"] `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
-      parseWhole dataDecl "data A = B {a = Int, a = Bool}" `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "a"] `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
-      parseWhole dataDecl "data A = B {a = Int, a = Int}"  `shouldSatisfy` rightIs (DataDecl "A" [("B", [tRecordN ["a", "a"] `TypeApp` (con "Int") `TypeApp` (con "Int")])])
+      parseWhole dataDecl "data A = B {a = Int}"           `shouldSatisfy` rightIs (dd "A" [("B", [tRecordN ["a"] `TypeApp` (con "Int")])])
+      parseWhole dataDecl "data A = B {a = Bool, b = Int}" `shouldSatisfy` rightIs (dd "A" [("B", [tRecordN ["a", "b"] `TypeApp` (con "Bool") `TypeApp` (con "Int")])])
+      parseWhole dataDecl "data A = B {b = Int, a = Bool}" `shouldSatisfy` rightIs (dd "A" [("B", [tRecordN ["b", "a"] `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B {a = Int, a = Bool}" `shouldSatisfy` rightIs (dd "A" [("B", [tRecordN ["a", "a"] `TypeApp` (con "Int") `TypeApp` (con "Bool")])])
+      parseWhole dataDecl "data A = B {a = Int, a = Int}"  `shouldSatisfy` rightIs (dd "A" [("B", [tRecordN ["a", "a"] `TypeApp` (con "Int") `TypeApp` (con "Int")])])
 
-      parseWhole dataDecl "data A = B Int Bool"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int"), (con "Bool")])])
-      parseWhole dataDecl "data A = B (Int -> Bool)" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int") `fn` (con "Bool")])])
+      parseWhole dataDecl "data A = B Int Bool"      `shouldSatisfy` rightIs (dd "A" [("B", [(con "Int"), (con "Bool")])])
+      parseWhole dataDecl "data A = B (Int -> Bool)" `shouldSatisfy` rightIs (dd "A" [("B", [(con "Int") `fn` (con "Bool")])])
 
     it "parses a variant declaration" $ do
-      parseWhole dataDecl "data A = B | C"     `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", [])])
-      parseWhole dataDecl "data A=B|C"         `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", [])])
-      parseWhole dataDecl "data A = B | C | D" `shouldSatisfy` rightIs (DataDecl "A" [("B", []), ("C", []), ("D", [])])
+      parseWhole dataDecl "data A = B | C"     `matchRight` Just (dd "A" [("B", []), ("C", [])])
+      parseWhole dataDecl "data A=B|C"         `shouldSatisfy` rightIs (dd "A" [("B", []), ("C", [])])
+      parseWhole dataDecl "data A = B | C | D" `shouldSatisfy` rightIs (dd "A" [("B", []), ("C", []), ("D", [])])
 
-      -- FIXME
-      parseWhole dataDecl "data A = B Int | C Bool" `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")]), ("C", [(con "Bool")])])
-      parseWhole dataDecl "data A = B Int | C"      `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")]), ("C", [])])
-      parseWhole dataDecl "data A = B Int|C"        `shouldSatisfy` rightIs (DataDecl "A" [("B", [(con "Int")]), ("C", [])])
+      parseWhole dataDecl "data A = B Int | C Bool" `shouldSatisfy` rightIs (dd "A" [("B", [(con "Int")]), ("C", [(con "Bool")])])
+      parseWhole dataDecl "data A = B Int | C"      `shouldSatisfy` rightIs (dd "A" [("B", [(con "Int")]), ("C", [])])
+      parseWhole dataDecl "data A = B Int|C"        `shouldSatisfy` rightIs (dd "A" [("B", [(con "Int")]), ("C", [])])
 
     it "fails if given invalid syntax" $ do
       parseWhole dataDecl "dataA=B Int" `shouldSatisfy` isLeft
@@ -425,14 +428,14 @@ spec = do
 
   describe "labeledType" $
     it "parses a labeled type" $ do
-      parseWhole labeledType "A B"   `shouldSatisfy` rightIs ("A", [TypeCon "B"])
-      parseWhole labeledType "A B C" `shouldSatisfy` rightIs ("A", [TypeCon "B", TypeCon "C"])
-      parseWhole labeledType "A a"   `shouldSatisfy` rightIs ("A", [TypeVar "a"])
+      parseWhole labeledType "A B"   `shouldSatisfy` rightIs ("A", tTupleN 1 `TypeApp` TypeCon "B")
+      parseWhole labeledType "A B C" `shouldSatisfy` rightIs ("A", foldl TypeApp (tTupleN 2) [TypeCon "B", TypeCon "C"])
+      parseWhole labeledType "A a"   `shouldSatisfy` rightIs ("A", tTupleN 1 `TypeApp` TypeVar "a")
 
   describe "variantType" $
     it "parses a variant type" $ do
-      parseWhole variantType "A B"       `shouldSatisfy` rightIs [("A", [TypeCon "B"])]
-      parseWhole variantType "A B | C D" `shouldSatisfy` rightIs [("A", [TypeCon "B"]), ("C", [TypeCon "D"])]
+      parseWhole variantType "A B"       `shouldSatisfy` rightIs (tVariant ["A"] `TypeApp` (tTupleN 1 `TypeApp` TypeCon "B"))
+      parseWhole variantType "A B | C D" `shouldSatisfy` rightIs (tVariant ["A", "C"] `TypeApp` (tTupleN 1 `TypeApp` TypeCon "B") `TypeApp` (tTupleN 1 `TypeApp` TypeCon "D"))
 
   describe "record" $ do
     it "parses a record" $ do
