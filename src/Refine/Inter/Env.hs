@@ -11,6 +11,7 @@ import Control.Monad
 import qualified Data.Map.Lazy as Map
 
 import qualified Refine.AST as AST
+import Refine.Kind
 import qualified Refine.Type.Syntactic as S
 
 type Vars  = Map.Map String (Maybe AST.Expr, Maybe S.Type)
@@ -71,3 +72,11 @@ defineVar i e t = return . updateVars (Map.insert i (e, t))
 
 defineType :: Monad m => String -> S.Type -> Decls -> m Decls
 defineType i t = return . updateTypes (Map.insert i t)
+
+type KindEnv = Map.Map String Kind
+
+kindOf :: S.Type -> Types -> KindEnv -> Either DeclError Kind
+kindOf (S.TypeCon i) ts ks = maybe (primKind i ks) (\t -> kindOf t ts ks) $ Map.lookup i ts
+
+primKind :: String -> KindEnv -> Either DeclError Kind
+primKind i ks = maybe (Left $ Undefined i) Right $ Map.lookup i ks
