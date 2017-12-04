@@ -10,6 +10,7 @@ module Refine.Inter.Env
   ) where
 
 import Control.Monad
+import Control.Monad.Except
 import Control.Monad.State.Lazy
 import qualified Data.Map.Lazy as Map
 
@@ -76,16 +77,16 @@ defineVar i e t = return . updateVars (Map.insert i (e, t))
 defineType :: Monad m => String -> S.Type -> Decls -> m Decls
 defineType i t = return . updateTypes (Map.insert i t)
 
-type KindEnv = State (Map.Map String Kind)
+type KindEnv = ExceptT DeclError (State (Map.Map String Kind))
 
-runKindEnv :: KindEnv a -> Map.Map String Kind -> a
-runKindEnv = evalState
+runKindEnv :: KindEnv a -> Map.Map String Kind -> Either DeclError a
+runKindEnv e = evalState (runExceptT e)
 
 getKind :: String -> KindEnv (Maybe Kind)
 getKind i = Map.lookup i <$> get
 
-kindOf :: S.Type -> Types -> KindEnv (Either DeclError Kind)
+kindOf :: S.Type -> Types -> KindEnv Kind
 kindOf (S.TypeCon i) ts = maybe (primKind i) (\t -> kindOf t ts) $ Map.lookup i ts
 
-primKind :: String -> KindEnv (Either DeclError Kind)
-primKind i = maybe (Left $ Undefined i) Right <$> getKind i
+primKind :: String -> KindEnv Kind
+primKind i = getKind i >>= maybe (throwError $ Undefined i) return
