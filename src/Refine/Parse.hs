@@ -293,7 +293,7 @@ variantType :: Parser [(String, [Type])]
 variantType = labeledType `sepBy1` reservedOp lexer "|"
 
 labeledType :: Parser (String, [Type])
-labeledType = (,) <$> conid <*> (many typeTerm)
+labeledType = (,) <$> conid <*> many typeTerm
 
 equal :: Parser ()
 equal = reservedOp lexer "="
