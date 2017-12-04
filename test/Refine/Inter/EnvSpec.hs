@@ -30,8 +30,9 @@ spec = do
 
   describe "kindOf" $ do
     it "gets the kind of a type" $ do
-      runKindEnv (kindOf (S.TypeCon "A") Map.empty) Map.empty                `shouldBe` Left (Undefined "A")
-      runKindEnv (kindOf (S.TypeCon "A") Map.empty) (Map.singleton "A" Star) `shouldBe` Right Star
+      let kind t ts = runKindEnv (kindOf t ts)
+      kind (S.TypeCon "A") Map.empty Map.empty                `shouldBe` Left (Undefined "A")
+      kind (S.TypeCon "A") Map.empty (Map.singleton "A" Star) `shouldBe` Right Star
 
-      runKindEnv (kindOf (S.TypeCon "A") $ Map.singleton "A" $ S.TypeCon "B") (Map.singleton "A" Star) `shouldBe` Left (Undefined "B")
-      runKindEnv (kindOf (S.TypeCon "A") $ Map.singleton "A" $ S.TypeCon "B") (Map.singleton "B" Star) `shouldBe` Right Star
+      kind (S.TypeCon "A") (Map.singleton "A" $ S.TypeCon "B") (Map.singleton "A" Star) `shouldBe` Left (Undefined "B")
+      kind (S.TypeCon "A") (Map.singleton "A" $ S.TypeCon "B") (Map.singleton "B" Star) `shouldBe` Right Star
