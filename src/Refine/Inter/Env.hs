@@ -82,7 +82,7 @@ defineType i t = return . updateTypes (Map.insert i t)
 type KindEnv = ExceptT DeclError (State (Map.Map String Kind))
 
 runKindEnv :: KindEnv a -> Map.Map String Kind -> Either DeclError a
-runKindEnv e = evalState (runExceptT e)
+runKindEnv e = evalState $ runExceptT e
 
 getKind :: String -> KindEnv (Maybe Kind)
 getKind i = Map.lookup i <$> get
